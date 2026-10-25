@@ -8317,5 +8317,22 @@ Answer Key:
       });
     })();
   </script>
+  
+<!-- Gyan Manch: Supabase connection -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window.GYAN_MANCH_SUPABASE_URL =
+    "https://yqdgkhlnwhojvuydjtgb.supabase.co";
+
+  // Yahan Supabase ki Publishable key paste karna.
+  // Secret ya service_role key bilkul mat daalna.
+  window.GYAN_MANCH_SUPABASE_KEY = "sb_publishable_sRf0zkDPeJ9VnirxPk8AkA_wMh-wi-M";
+
+  window.gyanManchSupabase = window.supabase.createClient(
+    window.GYAN_MANCH_SUPABASE_URL,
+    window.GYAN_MANCH_SUPABASE_KEY
+  );
+</script>
+
 </body>
 </html>
