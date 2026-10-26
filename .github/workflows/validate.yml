@@ -1,0 +1,56 @@
+name: Validate Gyan Manch
+on:
+  push:
+    branches: [main, work/gyan-manch-light-theme]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  syntax-and-config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate Cloudflare configuration
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('wrangler.jsonc','utf8')); console.log('wrangler.jsonc is valid JSON')"
+      - name: Check inline JavaScript in index.html
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          class ScriptParser(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=False)
+                  self.scripts = []
+                  self.current = None
+                  self.external = False
+              def handle_starttag(self, tag, attrs):
+                  if tag.lower() == 'script':
+                      self.current = []
+                      self.external = any(k.lower() == 'src' for k, _ in attrs)
+              def handle_data(self, data):
+                  if self.current is not None:
+                      self.current.append(data)
+              def handle_endtag(self, tag):
+                  if tag.lower() == 'script' and self.current is not None:
+                      if not self.external:
+                          self.scripts.append(''.join(self.current))
+                      self.current = None
+                      self.external = False
+          parser = ScriptParser()
+          parser.feed(Path('index.html').read_text(encoding='utf-8'))
+          if not parser.scripts:
+              raise SystemExit('No inline scripts found in index.html')
+          for i, source in enumerate(parser.scripts):
+              Path(f'/tmp/gyan-inline-{i}.js').write_text(source, encoding='utf-8')
+          print(f'Extracted {len(parser.scripts)} inline scripts')
+          PY
+          for f in /tmp/gyan-inline-*.js; do node --check "$f"; done
+      - name: Check question extraction endpoint syntax
+        run: cp functions/api/extract-questions.js /tmp/extract-questions.mjs && node --check /tmp/extract-questions.mjs
