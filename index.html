@@ -6364,8 +6364,15 @@ table{max-width:100%;border-collapse:collapse}
               window.gyanManchPdfJobId = job.data.id;
               window.gyanManchPdfFilePath = path;
               window.gyanManchPdfFileName = file.name;
-              showToast('Question paper stored privately. Run extraction, review answers, then publish.', 'success');
+              showToast('PDF uploaded. Starting question extraction automatically…', 'success');
+              // One upload action should continue directly into extraction; no second button tap needed.
+              if (progressPanel) showUploadProgress(100, 'PDF uploaded — starting extraction…', 'The same file is now being read for questions, options and inline answers.');
+              setTimeout(function() {
+                const extractButton = document.getElementById('btnRunPdfExtraction');
+                if (extractButton) extractButton.click();
+              }, 150);
             } catch (error) {
+              showUploadProgress(0, 'Upload failed', error.message || 'Please retry.');
               showToast('Private upload failed: ' + (error.message || 'Please retry.'), 'error');
             } finally {
               buttons.forEach(b => { b.disabled = false; });
