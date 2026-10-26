@@ -1,42 +1,35 @@
-# Cloudflare Pages deployment — Gyan Manch
+# Cloudflare deployment — Gyan Manch
 
-This repository is a static HTML application (built into `dist/` by `npm run build`). Cloudflare Pages serves the website; Supabase handles accounts, database access, private PDF storage and test scoring.
+## Confirmed deployment failure
 
-## Fix for `Missing entry-point to Worker script or to assets directory`
+The latest Cloudflare log shows that the build step succeeds, then deployment fails because Cloudflare runs:
 
-The repository is configured as a **Pages** project (`pages_build_output_dir: "./dist"`), but the failing Cloudflare build is running `npx wrangler deploy`, which deploys a **Worker**. That command mismatch is the cause of the reported build failure; this error does not by itself indicate a Supabase database failure.
+`npx wrangler deploy`
 
-**Do not fix this by adding a made-up Worker entry point or by deploying the repository root as Worker assets.** The root contains SQL seed/schema and setup documents that should not be published as website assets.
+That is the Worker deployment command. This repository is configured as a Cloudflare Pages site and includes a Pages Function at `functions/api/extract-questions.js`. Deploying it as a static-assets-only Worker is not a safe workaround because it would not automatically deploy the Pages Functions.
 
-Use the Cloudflare Pages Git integration instead:
+**The fix is in the Cloudflare project/build configuration, not another Worker entry point in this repository.** Do not add a fake `main` file and do not publish the repository root as Worker assets.
 
-1. Open Cloudflare Dashboard → **Workers & Pages**.
-2. Open the existing **Pages** project connected to `abhiranaktm350-creator/Gyanmamch` (or create one only if no Pages project exists).
-3. Set production branch to `main`, framework preset to **None**, build command to blank, and build output directory to `.`.
-4. Save and deploy. A Pages project should use the Pages build/deploy flow, not the Worker service's `npx wrangler deploy` command.
-5. If the dashboard page is the **Workers service** `gyanmamch`, it is the wrong deployment target for this static site. Open Workers & Pages and select/create the Pages project. Changing repository files alone does not change the existing service's dashboard deploy command.
+## Correct setup
 
-## Before production
+1. In Cloudflare Dashboard → **Workers & Pages**, open the Pages project connected to `abhiranaktm350-creator/Gyanmamch`. If only the Worker service `gyanmamch` exists, create a Pages project through **Create → Pages → Connect to Git**.
+2. Select repository `abhiranaktm350-creator/Gyanmamch`, production branch `main`.
+3. Set framework preset to **None**.
+4. Set build command to `npm run build`.
+5. Set build output directory to `dist`.
+6. Save and deploy. The Pages Git integration should perform a Pages deployment; it must not invoke the Worker service's custom `npx wrangler deploy` command.
+7. If the log still says `Executing user deploy command: npx wrangler deploy`, you are still using the Worker Builds/service configuration or an explicit deploy-command override. Remove that override/use the Pages project. Changing repository files alone cannot change a dashboard-level deploy command.
 
-- Use the `work/gyan-manch-light-theme` branch for review; merge approved changes into `main` before using `main` as the production branch.
-- The site contains only the Supabase project URL and a publishable browser key. Never add a Supabase service-role key, private model key, or other secret to `index.html`.
-- In Supabase → Authentication → URL Configuration, set Site URL to the final `https://…pages.dev` domain and add it to Redirect URLs.
-- In Supabase → Authentication → Sign In / Providers, enable Email. Confirm whether email verification is required for registration.
-- Create the owner's account using the public registration form, then promote that account to the first administrator with the one-time SQL in `BACKEND_SETUP.md`. Do not add an administrator password to source code.
-- The connected database currently has 9 categories, 62 exams, 27 bilingual starter questions and 30 starter tests. The starter tests are not full-length unique papers yet.
+The repository build script runs `rm -rf dist && mkdir -p dist && cp index.html _headers dist/`, so only the site HTML and headers are placed in the public output directory. SQL schema/seed files and setup documentation are not copied to `dist`.
 
-## Create or connect the Pages project
+## Supabase production checks
 
-1. In Cloudflare Dashboard, open **Workers & Pages → Create → Pages → Connect to Git**.
-2. Select `abhiranaktm350-creator/Gyanmamch`.
-3. Production branch: `main` (after reviewed changes are merged).
-4. Framework preset: **None**. Build command: `npm run build` (copies only `index.html` and `_headers` into `dist/`, so SQL and setup files are never published). Build output directory: `dist`.
-5. Save and deploy. Wait for deployment status to show **Success**, then open the generated `pages.dev` URL.
-6. Test registration, email verification, login, admin approval, mock submission and result review before sharing the site.
-7. If a Pages project is already connected to this repository, edit that project instead of creating a duplicate.
+- Set the final `pages.dev` domain as the Supabase Auth Site URL and add it to Redirect URLs.
+- Enable the intended sign-in provider in Supabase Auth.
+- Never place a Supabase service-role key or private API secret in browser code.
+- Test registration, login, administrator approval, mock submission, results and the `/api/extract-questions` endpoint after deployment.
 
-## Important limitations
+## Known limitations
 
-- The application currently has browser-side PDF text extraction/OCR and a staff review/publish flow. A secured server-side model extraction endpoint is not deployed or verified yet.
-- Cloudflare Pages does not automatically deploy a non-production branch to the production URL. Merge reviewed changes into `main` or configure a preview deployment for the working branch.
-- Never treat starter data as verified official previous-year papers without checking the source and answer key.
+- The browser UI and static build completing successfully do not prove that authentication, database policies, PDF extraction or scoring work correctly in production.
+- The app currently has starter data; do not label generated starter questions as verified official previous-year papers without validating their source and answer key.
