@@ -78,7 +78,6 @@
     .gm-announcement-bar { display:flex; align-items:center; gap:10px; width:100%; padding:7px 12px; border-radius:10px; border:1px solid #fbbf24; background:#fffbeb; color:#78350f; font-size:12px; line-height:1.4; }
     .gm-announcement-text { flex:1; min-width:0; overflow-wrap:anywhere; }
     .gm-announcement-close { flex:none; border:0; background:transparent; color:inherit; font-size:18px; line-height:1; cursor:pointer; padding:0 4px; }
-    body.gm-dark-theme .gm-announcement-bar { background:#422006; border-color:#92400e; color:#fef3c7; }
     .hindi-text {
       font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
       line-height: 1.75;
@@ -159,59 +158,6 @@
     #hdrBtnMenu { display:flex; align-items:center; justify-content:center; width:36px; height:30px; border:1px solid #475569; border-radius:7px; color:#e2e8f0; background:#1e293b; }
     #headerAuthArea { flex-wrap:wrap; justify-content:flex-end; }
     body.exam-active #mainHeader, body.exam-active #topSampleBanner, body.exam-active #libraryQuickSwitcher, body.exam-active #appMain, body.exam-active #mainFooter { display:none !important; }
-    /* Dark-mode contrast refinement: cards, controls, links, placeholders and status labels. */
-    body.gm-dark-theme #appMain .bg-indigo-50,
-    body.gm-dark-theme #appMain .bg-blue-50,
-    body.gm-dark-theme #appMain .bg-emerald-50,
-    body.gm-dark-theme #appMain .bg-green-50,
-    body.gm-dark-theme #appMain .bg-amber-50,
-    body.gm-dark-theme #appMain .bg-yellow-50,
-    body.gm-dark-theme #appMain .bg-red-50,
-    body.gm-dark-theme #appMain .bg-purple-50,
-    body.gm-dark-theme #appMain .bg-pink-50 { background-color:#1e293b !important; }
-    body.gm-dark-theme #appMain .text-indigo-900,
-    body.gm-dark-theme #appMain .text-indigo-800,
-    body.gm-dark-theme #appMain .text-indigo-700,
-    body.gm-dark-theme #appMain .text-blue-900,
-    body.gm-dark-theme #appMain .text-blue-800,
-    body.gm-dark-theme #appMain .text-blue-700,
-    body.gm-dark-theme #appMain .text-emerald-900,
-    body.gm-dark-theme #appMain .text-emerald-800,
-    body.gm-dark-theme #appMain .text-green-900,
-    body.gm-dark-theme #appMain .text-green-800,
-    body.gm-dark-theme #appMain .text-amber-900,
-    body.gm-dark-theme #appMain .text-amber-800,
-    body.gm-dark-theme #appMain .text-yellow-900,
-    body.gm-dark-theme #appMain .text-yellow-800,
-    body.gm-dark-theme #appMain .text-red-900,
-    body.gm-dark-theme #appMain .text-red-800,
-    body.gm-dark-theme #appMain .text-purple-900,
-    body.gm-dark-theme #appMain .text-purple-800,
-    body.gm-dark-theme #appMain .text-pink-900,
-    body.gm-dark-theme #appMain .text-pink-800 { color:#e2e8f0 !important; }
-    body.gm-dark-theme #appMain input::placeholder,
-    body.gm-dark-theme #appMain textarea::placeholder { color:#94a3b8 !important; opacity:1; }
-    body.gm-dark-theme #appMain input:disabled,
-    body.gm-dark-theme #appMain select:disabled,
-    body.gm-dark-theme #appMain textarea:disabled { color:#94a3b8 !important; background:#1e293b !important; }
-    body.gm-dark-theme #appMain table thead { background:#1e293b !important; color:#f1f5f9 !important; }
-    body.gm-dark-theme #appMain table tbody tr { border-color:#334155 !important; }
-    body.gm-dark-theme #appMain a:not([class*="bg-"]) { color:#a5b4fc; }
-    body.gm-dark-theme #appMain .bg-white button,
-    body.gm-dark-theme #appMain .bg-slate-50 button,
-    body.gm-dark-theme #appMain .bg-slate-100 button { color:inherit; }
-    body.gm-dark-theme #appMain button.bg-white,
-    body.gm-dark-theme #appMain button.bg-slate-50,
-    body.gm-dark-theme #appMain button.bg-slate-100,
-    body.gm-dark-theme #appMain a.bg-white,
-    body.gm-dark-theme #appMain a.bg-slate-50,
-    body.gm-dark-theme #appMain a.bg-slate-100 { background:#263449 !important; color:#f1f5f9 !important; border-color:#475569 !important; }
-    body.gm-dark-theme #appMain .shadow,
-    body.gm-dark-theme #appMain .shadow-sm,
-    body.gm-dark-theme #appMain .shadow-md,
-    body.gm-dark-theme #appMain .shadow-lg { --tw-shadow-color:rgba(0,0,0,.35); }
-    body.gm-dark-theme ::-webkit-scrollbar-track { background:#111827; }
-    body.gm-dark-theme ::-webkit-scrollbar-thumb { background:#475569; }
   </style>
 
   <style id="gm-fullscreen-enhancements">
@@ -1520,11 +1466,6 @@ table{max-width:100%;border-collapse:collapse}
       };
 
       // Homepage appearance and announcement helpers (local browser storage unless LAN DB sync is configured).
-      function applyGmTheme() {
-        document.body.classList.remove('gm-dark-theme');
-        try { localStorage.setItem('gm_theme', 'light'); } catch(e) {}
-      }
-      function toggleGmTheme() { applyGmTheme(); }
       function getActiveGmAnnouncement() {
         if (!Array.isArray(db.announcements)) db.announcements = [];
         return db.announcements.find(function(a){ return a && a.active && String(a.text || '').trim(); }) || null;
@@ -1906,8 +1847,8 @@ table{max-width:100%;border-collapse:collapse}
             </section>`;
           document.getElementById('frontStudentLoginBtn').addEventListener('click', () => navigateTo('student-login'));
           document.getElementById('frontAdminLoginBtn').addEventListener('click', () => navigateTo('admin-login'));
-          document.querySelectorAll('[data-gm-theme-toggle]').forEach(function(btn){ btn.addEventListener('click', toggleGmTheme); });
-          wireGmAnnouncementClose(container); applyGmTheme();
+
+wireGmAnnouncementClose(container); applyGmTheme();
           return;
         }
         let accountStatusBanner = '';
@@ -2125,8 +2066,7 @@ table{max-width:100%;border-collapse:collapse}
         const bannerBtn = document.getElementById('btnBannerGoStudentDash');
         if (bannerBtn) bannerBtn.addEventListener('click', function() { navigateTo('student-dashboard'); });
 
-        document.querySelectorAll('[data-gm-theme-toggle]').forEach(function(btn){ btn.addEventListener('click', toggleGmTheme); });
-        wireGmAnnouncementClose(container); applyGmTheme();
+wireGmAnnouncementClose(container); applyGmTheme();
         const searchInput = document.getElementById('catalogueSearchInput');
         if (searchInput) {
           searchInput.addEventListener('input', function(e) {
@@ -6145,48 +6085,6 @@ table{max-width:100%;border-collapse:collapse}
           renderAdminDashboardView(document.getElementById('appMain'));
         });
 
-        // Load 5-Question Multi-Page Sample Paper with End-of-Paper Answer Key
-        document.getElementById('btnSimulateBilingualPdf').addEventListener('click', function() {
-          const multiQSample = `
-1. Where is the headquarters of the Forest Research Institute (FRI) located in Uttarakhand? / उत्तराखंड में वन अनुसंधान संस्थान (FRI) का मुख्यालय कहाँ स्थित है?
-(A) Dehradun / देहरादून
-(B) Nainital / नैनीताल
-(C) Almora / अल्मोड़ा
-(D) Roorkee / रुड़की
-
-2. If a train 150 m long passes a pole in 15 seconds, what is the speed of the train in km/hr? / यदि 150 मीटर लंबी एक रेलगाड़ी एक खंभे को 15 सेकंड में पार करती है, तो रेलगाड़ी की चाल किमी/घंटा में क्या है?
-(A) 30 km/hr
-(B) 36 km/hr
-(C) 45 km/hr
-(D) 54 km/hr
-
-3. Which Constitutional Amendment added Fundamental Duties to the Indian Constitution? / किस संविधान संशोधन द्वारा भारतीय संविधान में मौलिक कर्तव्यों को जोड़ा गया?
-(A) 44th Amendment / 44वाँ संशोधन
-(B) 42nd Amendment / 42वाँ संशोधन
-(C) 86th Amendment / 86वाँ संशोधन
-(D) 73rd Amendment / 73वाँ संशोधन
-
-4. Find the missing number in the series: 2, 6, 12, 20, 30, ? / श्रृंखला में लुप्त संख्या ज्ञात कीजिए: 2, 6, 12, 20, 30, ?
-(A) 40
-(B) 42
-(C) 38
-(D) 44
-
-5. Choose the correct antonym of "ABUNDANT": / "ABUNDANT" (प्रचुर) का सही विलोम शब्द चुनें:
-(A) Plentiful / प्रचुर
-(B) Scarce / दुर्लभ (कम)
-(C) Ample / पर्याप्त
-(D) Copious / विपुल
-
-Answer Key:
-1: A, 2: B, 3: B, 4: B, 5: B
-          `.trim();
-          const targetExId = document.getElementById('pdfTargetExamSelect').value;
-          const targetSubId = document.getElementById('pdfTargetSubjectSelect').value;
-          parseAllQuestionsFromText(multiQSample, 'Full_Bilingual_Paper_Set.pdf', targetExId, targetSubId);
-          renderAdminDashboardView(document.getElementById('appMain'));
-        });
-
         // Real Multi-Page PDF.js Extraction (Preserves line coordinates so ALL questions are extracted)
         document.getElementById('btnRunPdfExtraction').addEventListener('click', async function() {
           const fileInput = document.getElementById('inpPdfFile');
@@ -6383,7 +6281,7 @@ Answer Key:
           btnOcrScan.addEventListener('click', async function() {
             const fileInput = document.getElementById('inpPdfFile');
             if (!fileInput.files || fileInput.files.length === 0) {
-              showToast('Please select a Scanned PDF or Question Paper Photo (.pdf, .jpg, .png) first, or click "Demo: Scan Printed Exam Paper".', 'warning');
+              showToast('Please select a Scanned PDF or Question Paper Photo (.pdf, .jpg, .png) first, or select a scanned paper image.', 'warning');
               return;
             }
             const targetExId = document.getElementById('pdfTargetExamSelect').value;
@@ -7393,8 +7291,8 @@ Answer Key:
 
       // Initialize App on Load
       window.addEventListener('DOMContentLoaded', function() {
-        applyGmTheme();
-        const termsModal = document.getElementById('examTermsModal');
+
+const termsModal = document.getElementById('examTermsModal');
         const termsAgree = document.getElementById('examTermsAgree');
         const termsAccept = document.getElementById('examTermsAccept');
         const termsCancel = document.getElementById('examTermsCancel');
