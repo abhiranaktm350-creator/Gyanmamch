@@ -470,7 +470,7 @@ table{max-width:100%;border-collapse:collapse}
       <!-- Right Controls: Language Switch + Auth Session Switcher -->
       <div class="flex items-center gap-2.5">
         <!-- Global Exam Language Default Switch (English / हिंदी) -->
-        <div class="flex items-center bg-slate-800 p-0.5 rounded-lg border border-slate-700" title="Default Mock Test Question Language">
+        <div class="hidden flex items-center bg-slate-800 p-0.5 rounded-lg border border-slate-700" title="Default Mock Test Question Language">
           <button id="langSwitchEn" type="button" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-600 text-white transition">English</button>
           <button id="langSwitchHi" type="button" class="px-2.5 py-1 rounded-md text-xs font-semibold text-slate-300 hover:text-white hindi-text transition">हिंदी</button>
         </div>
@@ -2079,8 +2079,8 @@ table{max-width:100%;border-collapse:collapse}
                 </div>
               </div>
               <div class="mt-5 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 text-center shadow-sm">
-                <h2 class="text-lg font-bold text-slate-900">Mock tests dekhne ke liye login karein</h2>
-                <p class="text-sm text-slate-600 mt-1">Ek baar student login karne ke baad, 10 din tak inactivity na hone par dobara login nahi maanga jayega.</p>
+                <h2 class="text-lg font-bold text-slate-900">Log in to access mock tests</h2>
+                <p class="text-sm text-slate-600 mt-1">Once a student logs in, they will not be asked to log in again unless they are inactive for 10 days.</p>
               </div>
             </section>`;
           document.getElementById('frontStudentLoginBtn').addEventListener('click', () => navigateTo('student-login'));
