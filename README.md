@@ -18,11 +18,11 @@ The database currently contains 9 exam categories, 62 exam definitions, 27 bilin
 
 ## Before opening the site to students
 
-1. Deploy the repository using the Cloudflare Pages steps in `BACKEND_SETUP.md`.
-2. Set the final Pages URL in Supabase Authentication → URL Configuration.
-3. Register the owner account using the website's student registration form and verify the email if confirmation is enabled.
-4. Promote the first account using the owner-only `claim_initial_admin` SQL in `BACKEND_SETUP.md`.
-5. Test owner login, student registration, pending approval, admin approval, test attempt, submission, result review and private PDF upload with separate test accounts.
-6. Confirm the Cloudflare Pages deployment is successful and the site is using the intended branch.
+1. Cloudflare deployment is currently disabled. Select a replacement host before deploying; the static build output is `dist`.
+2. Port `functions/api/extract-questions.js` to the selected host or Supabase Edge Functions. It currently depends on Cloudflare Workers AI and will not work unchanged elsewhere.
+3. Set the final HTTPS site URL in Supabase Authentication → URL Configuration.
+4. Register the owner's account, verify the email if required, and promote the first administrator using the protected SQL instructions in `BACKEND_SETUP.md`.
+5. Test owner login, student registration/approval, mock attempt submission/scoring, result review, and private PDF upload with separate test accounts.
+6. The current catalogue has 30 test records but only 27 starter questions; some tests reuse those questions. They are not 30 complete unique official-length papers. Expand and verify question content before advertising full-length mocks or verified PYQs.
 
-A connected database is not by itself proof that the live website is production-ready. Do not advertise it as fully complete until these end-to-end checks pass.
+A connected database and a passing build do not prove that the deployed website is production-ready.
