@@ -6088,6 +6088,9 @@ table{max-width:100%;border-collapse:collapse}
                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
                   <label class="block font-bold text-slate-800">Upload PDF Paper or Scanned Question Paper Photo (<code>.pdf, .jpg, .png</code>):</label>
                   <input id="inpPdfFile" type="file" accept=".pdf,image/png,image/jpeg,image/webp" class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500" />
+                  <label class="block font-bold text-slate-800 mt-3">Optional Answer Key PDF (answers will be matched by question number):</label>
+                  <input id="inpAnswerKeyFile" type="file" accept=".pdf" class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-700 file:text-white hover:file:bg-emerald-600" />
+                  <p class="text-[11px] text-slate-500">Upload the question paper and answer key together. The answer key PDF should contain selectable text for best results. Review all answers before publishing.</p>
                   <label class="inline-flex items-center gap-2 text-[11px] text-slate-700 font-medium cursor-pointer">
                     <input id="chkEnhanceScannedPaper" type="checkbox" checked class="rounded border-slate-300 text-indigo-600" />
                     <span>Auto High-Contrast Document Filter (sharpens camera photos & scanned exam papers)</span>
@@ -6430,6 +6433,31 @@ Answer Key:
             return;
           }
           const file = fileInput.files[0];
+          const answerKeyFile = document.getElementById('inpAnswerKeyFile') && document.getElementById('inpAnswerKeyFile').files[0];
+          let answerKeyText = '';
+          if (answerKeyFile) {
+            if (!window.pdfjsLib) {
+              showToast('PDF.js is unavailable; remove the answer key file or try again online.', 'warning');
+              return;
+            }
+            try {
+              const keyPdf = await window.pdfjsLib.getDocument({ data: await answerKeyFile.arrayBuffer() }).promise;
+              const keyPages = [];
+              for (let kp = 1; kp <= keyPdf.numPages; kp++) {
+                const page = await keyPdf.getPage(kp);
+                const content = await page.getTextContent();
+                keyPages.push(content.items.map(item => item.str).join(' '));
+              }
+              answerKeyText = keyPages.join('\n').trim();
+              if (answerKeyText.length < 5) {
+                showToast('No selectable text found in the answer key PDF. Use a text-based answer key PDF.', 'warning');
+                return;
+              }
+            } catch (keyError) {
+              showToast('Could not read answer key PDF: ' + keyError.message, 'error');
+              return;
+            }
+          }
           const targetExId = document.getElementById('pdfTargetExamSelect').value;
           const targetSubId = document.getElementById('pdfTargetSubjectSelect').value;
 
@@ -6467,7 +6495,7 @@ Answer Key:
               await runVisualOcrOnFile(file, targetExId, targetSubId);
               return;
             }
-            const backgroundExtracted = await tryBackgroundExtractQuestions(combinedText, file.name, targetExId, targetSubId);
+            const backgroundExtracted = await tryBackgroundExtractQuestions(combinedText, file.name, targetExId, targetSubId, answerKeyText);
             if (!backgroundExtracted) parseAllQuestionsFromText(combinedText, file.name, targetExId, targetSubId);
             renderAdminDashboardView(document.getElementById('appMain'));
           } catch (err) {
@@ -6600,7 +6628,7 @@ Answer Key:
               if (statusEl) statusEl.textContent = '✓ Scanned Paper OCR Complete! Extracted text copied to Box #2 & Review Queue.';
               const rawBox = document.getElementById('inpRawBlockExtract');
               if (rawBox) rawBox.value = fullOcrText.trim();
-              const backgroundExtracted = await tryBackgroundExtractQuestions(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId);
+              const backgroundExtracted = await tryBackgroundExtractQuestions(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId, '');
               if (!backgroundExtracted) parseAllQuestionsFromText(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId);
               setTimeout(function() {
                 renderAdminDashboardView(document.getElementById('appMain'));
@@ -6923,7 +6951,7 @@ Answer Key:
       }
 
       // Multi-Question Parser: Extracts ALL questions, options (inline or multi-line), and End-of-PDF Answer Key tables!
-      async function tryBackgroundExtractQuestions(rawText, sourceFileName, targetExamId, targetSubjectId) {
+      async function tryBackgroundExtractQuestions(rawText, sourceFileName, targetExamId, targetSubjectId, answerKeyText) {
         const client = window.gyanManchSupabase;
         if (!client || !state.currentUser || !['admin','teacher'].includes(state.currentUser.role)) return false;
         try {
@@ -6933,9 +6961,13 @@ Answer Key:
           const response = await fetch('/api/extract-questions', {
             method: 'POST',
             headers: { 'content-type': 'application/json', authorization: 'Bearer ' + accessToken },
-            body: JSON.stringify({ text: String(rawText || '').slice(0, 24000) })
+            body: JSON.stringify({ text: String(rawText || '').slice(0, 24000), answer_key: String(answerKeyText || '').slice(0, 12000) })
           });
-          if (!response.ok) return false;
+          if (!response.ok) {
+            const failure = await response.json().catch(() => ({}));
+            showToast('AI extraction unavailable: ' + (failure.error || ('HTTP ' + response.status)) + '. Trying built-in parser next.', 'warning');
+            return false;
+          }
           const payload = await response.json();
           if (!payload || !Array.isArray(payload.questions) || !payload.questions.length) return false;
           const exam = db.exams.find(e => e.id === targetExamId) || db.exams[0];
