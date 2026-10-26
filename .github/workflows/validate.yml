@@ -56,6 +56,32 @@ jobs:
           for f in /tmp/gyan-inline-*.js; do node --check "$f"; done
       - name: Check Vercel question extraction API syntax
         run: node --check api/extract-questions.js
+      - name: Smoke-test API method and authentication guards
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import handler from './api/extract-questions.js';
+          process.env.SUPABASE_URL = 'https://example.supabase.co';
+          process.env.SUPABASE_PUBLISHABLE_KEY = 'test-publishable-key';
+          delete process.env.AI_API_KEY;
+          async function invoke(method, headers = {}) {
+            const response = {
+              statusCode: 200,
+              headers: {},
+              payload: undefined,
+              status(code) { this.statusCode = code; return this; },
+              setHeader(key, value) { this.headers[key] = value; },
+              send(body) { this.payload = body; return body; }
+            };
+            await handler({ method, headers, body: {} }, response);
+            return response;
+          }
+          const get = await invoke('GET');
+          assert.equal(get.statusCode, 405, 'GET must be rejected');
+          const unauthenticated = await invoke('POST');
+          assert.equal(unauthenticated.statusCode, 401, 'POST without bearer token must be rejected before AI configuration');
+          console.log('API method and authentication guards passed.');
+          JS
       - name: Build production assets
         run: |
           npm run build
