@@ -429,6 +429,39 @@ table{max-width:100%;border-collapse:collapse}
     @media(max-width:640px) { #appMain .gm-home-hero { padding:24px 20px !important; border-radius:20px !important; } }
   </style>
 
+
+  <style id="gm-mobile-menu-readability">
+    /* Keep the mobile hamburger menu readable in the light website theme. */
+    #mainHeader #mobileMenuPanel {
+      background:#ffffff !important;
+      color:#172b4d !important;
+      border-top:1px solid #dbeafe !important;
+      box-shadow:0 12px 28px rgba(23,43,77,.12) !important;
+    }
+    #mainHeader #mobileMenuPanel .nav-btn,
+    #mainHeader #mobileMenuPanel #mobileMenuLogout {
+      color:#1e3a5f !important;
+      background:#ffffff !important;
+      border:1px solid #e4edf8 !important;
+      font-size:14px !important;
+      line-height:1.5 !important;
+      padding:11px 13px !important;
+      margin:3px 0 !important;
+      border-radius:9px !important;
+      white-space:normal !important;
+      text-align:left !important;
+    }
+    #mainHeader #mobileMenuPanel .nav-btn:hover,
+    #mainHeader #mobileMenuPanel #mobileMenuLogout:hover {
+      background:#edf5ff !important;
+      color:#124fa3 !important;
+    }
+    #mainHeader #mobileMenuPanel [data-nav="student-login"] { color:#1558a6 !important; font-weight:700 !important; }
+    #mainHeader #mobileMenuPanel [data-nav="admin-dashboard"] { color:#8a5200 !important; font-weight:700 !important; }
+    #mainHeader #btnMobileMenu { color:#1558a6 !important; background:#edf5ff !important; border:1px solid #d4e5fa !important; border-radius:9px !important; }
+    #mainHeader #btnMobileMenu svg { stroke:#1558a6 !important; }
+  </style>
+
 </head>
 <body class="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
 
@@ -2077,10 +2110,6 @@ table{max-width:100%;border-collapse:collapse}
                   <button id="frontStudentLoginBtn" type="button" class="px-6 py-3 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold shadow-md">Student Login / Register</button>
                   <button id="frontAdminLoginBtn" type="button" class="px-6 py-3 rounded-xl border border-amber-300/50 text-amber-200 hover:bg-slate-800 font-bold">Admin Login</button>
                 </div>
-              </div>
-              <div class="mt-5 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 text-center shadow-sm">
-                <h2 class="text-lg font-bold text-slate-900">Log in to access mock tests</h2>
-                <p class="text-sm text-slate-600 mt-1">Once a student logs in, they will not be asked to log in again unless they are inactive for 10 days.</p>
               </div>
             </section>`;
           document.getElementById('frontStudentLoginBtn').addEventListener('click', () => navigateTo('student-login'));
