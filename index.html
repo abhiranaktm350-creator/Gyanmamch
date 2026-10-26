@@ -6543,11 +6543,20 @@ Answer Key:
             }
             setImportProgress(74, 'Identifying questions and answers…', 'AI is separating question text, options and answer labels.');
             const backgroundExtracted = await tryBackgroundExtractQuestions(combinedText, file.name, targetExId, targetSubId, '');
+            const queueBefore = db.pdfImportQueue.length;
             if (!backgroundExtracted) {
-              setImportProgress(88, 'Using built-in question parser…', 'Reading question and answer labels from the extracted PDF text.');
+              setImportProgress(82, 'Using built-in question parser…', 'Reading question numbers, options and inline answer labels from the same PDF.');
               parseAllQuestionsFromText(combinedText, file.name, targetExId, targetSubId);
             }
-            setImportProgress(100, 'Processing complete', 'Questions are in the review queue. Check every option and answer before publishing.');
+            const addedCount = Math.max(0, db.pdfImportQueue.length - queueBefore);
+            if (addedCount === 0) {
+              setImportProgress(0, 'No questions were added', 'PDF text was read, but no question blocks were recognized. Try a text-based PDF or paste its extracted text into the manual parser.');
+              showToast('No questions were added. The PDF text format did not match the question parser. Try the manual text parser or share the PDF so its layout can be handled.', 'error');
+              return;
+            }
+            state.adminActiveTab = 'pdf-import';
+            saveDatabase(db);
+            setImportProgress(100, 'Processing complete — ' + addedCount + ' questions added', 'Open the review queue below. Check options and answers before approving.');
             renderAdminDashboardView(document.getElementById('appMain'));
           } catch (err) {
             setImportProgress(0, 'Could not process this file', err && err.message ? err.message : 'Please try another PDF.');
@@ -7146,7 +7155,7 @@ Answer Key:
         const questionBlocks = [];
         let currentBlock = null;
 
-        const qStartRegex = /^(?:Q(?:uestion)?\.?\s*|प्रश्न\s*)?(\d{1,3})\s*[.):\-]\s+(.+)/i;
+        const qStartRegex = /^(?:Q(?:uestion)?\.?\s*|प्रश्न\s*)?(\d{1,3})\s*[.):\-]\s*(\S.*)$/i;
         const qUnnumberedRegex = /^(?:Q(?:uestion)?|प्रश्न)\s*[:.\-]\s*(.+)/i;
 
         lines.forEach(function(line) {
@@ -7231,10 +7240,12 @@ Answer Key:
               const p = line.replace(/^(?:\(?[Ee5]\)|[Ee]\.)\s*/, '').split('/');
               optsEn[4] = (p[0] || '').trim();
               optsHi[4] = (p[1] || p[0] || '').trim();
-            } else if (/^(?:Ans(?:wer)?|उत्तर|सही\s*उत्तर)\s*[:.\-]\s*/i.test(line)) {
-              const m = line.match(/[ABCDE12345]/i);
+            } else if (/^(?:Ans(?:wer)?|Correct\s*Answer|उत्तर|सही\s*उत्तर)\s*[:.\-]?\s*/i.test(line)) {
+              const answerPart = line.replace(/^(?:Ans(?:wer)?|Correct\s*Answer|उत्तर|सही\s*उत्तर)\s*[:.\-]?\s*/i, '');
+              const m = answerPart.match(/^\(?\s*([ABCDE1-5])\s*\)?(?:\b|\s|[.):-])/i) || answerPart.match(/^\(?\s*([ABCDE1-5])\s*\)?$/i);
               if (m) {
-                ansIdx = { A: 0, B: 1, C: 2, D: 3, E: 4, '1': 0, '2': 1, '3': 2, '4': 3, '5': 4 }[m[0].toUpperCase()];
+                const answerToken = m[1].toUpperCase();
+                ansIdx = { A: 0, B: 1, C: 2, D: 3, E: 4, '1': 0, '2': 1, '3': 2, '4': 3, '5': 4 }[answerToken];
               }
             } else if (/^(?:Exp(?:lanation)?|व्याख्या|हल)\s*[:.\-]\s*/i.test(line)) {
               expText = line.replace(/^(?:Exp(?:lanation)?|व्याख्या|हल)\s*[:.\-]\s*/i, '').trim();
