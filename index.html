@@ -675,6 +675,17 @@ table{max-width:100%;border-collapse:collapse}
     </div>
   </footer>
 
+<!-- Public Supabase client configuration. Never put service-role secrets in the browser. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window.GYAN_MANCH_SUPABASE_URL = "https://zpjpoolfkjdlqxioabnf.supabase.co";
+  window.GYAN_MANCH_SUPABASE_KEY = "sb_publishable_KJ3nxQqRZmDORHpk35qpCQ_1rixBmi4";
+  window.gyanManchSupabase = window.supabase.createClient(
+    window.GYAN_MANCH_SUPABASE_URL,
+    window.GYAN_MANCH_SUPABASE_KEY,
+    { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
+  );
+</script>
   <!-- APPLICATION LOGIC -->
   <script>
     (function() {
@@ -5401,13 +5412,13 @@ table{max-width:100%;border-collapse:collapse}
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
               <div class="inline-flex items-center px-2.5 py-0.5 rounded bg-indigo-50 text-indigo-700 text-xs font-bold mb-2">STUDENT PORTAL</div>
               <h1 class="text-xl font-extrabold text-slate-900 mb-1">Student Login</h1>
-              <p class="text-xs text-slate-500 mb-5">Log in with your registered <strong>Username</strong> or <strong>10-digit Mobile Number</strong> (no email address required).</p>
+              <p class="text-xs text-slate-500 mb-5">Log in with the email address you registered with and your password.</p>
 
               <div id="studentAccountStatusNotice" class="hidden mb-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm font-semibold text-amber-900" role="status"></div>
               <form id="formStudentLogin" class="space-y-4 text-xs sm:text-sm">
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Username or Mobile Number</label>
-                  <input id="loginStuIdentifier" type="text" required placeholder="Enter username or mobile number" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
+                  <label class="block font-semibold text-slate-700 mb-1">Email Address</label>
+                  <input id="loginStuIdentifier" type="email" autocomplete="email" required placeholder="Enter registered email address" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
                 </div>
                 <div>
                   <label class="block font-semibold text-slate-700 mb-1">Password</label>
@@ -5424,7 +5435,7 @@ table{max-width:100%;border-collapse:collapse}
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
               <div class="inline-flex items-center px-2.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-xs font-bold mb-2">NEW LIBRARY STUDENT</div>
               <h2 class="text-xl font-extrabold text-slate-900 mb-1">Register New Student Account</h2>
-              <p class="text-xs text-slate-500 mb-5">Create your library student ID using your username and 10-digit mobile number to start practicing mock tests.</p>
+              <p class="text-xs text-slate-500 mb-5">Create your student account with email, username and mobile number. Mock tests unlock after administrator approval.</p>
 
               <form id="formStudentRegister" class="space-y-3.5 text-xs sm:text-sm">
                 <div>
@@ -5432,11 +5443,15 @@ table{max-width:100%;border-collapse:collapse}
                   <input id="regStuName" type="text" required placeholder="e.g., Deepak Pant" class="w-full rounded-xl border border-slate-300 px-3.5 py-2" />
                 </div>
                 <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Email Address</label>
+                  <input id="regStuEmail" type="email" autocomplete="email" required placeholder="you@example.com" class="w-full rounded-xl border border-slate-300 px-3.5 py-2" />
+                </div>
+                <div>
                   <label class="block font-semibold text-slate-700 mb-1">Unique Username</label>
                   <input id="regStuUsername" type="text" required placeholder="e.g., deepak_uk01" class="w-full rounded-xl border border-slate-300 px-3.5 py-2" />
                 </div>
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Mobile Number (10 digits, No Email Needed)</label>
+                  <label class="block font-semibold text-slate-700 mb-1">Mobile Number (10 digits)</label>
                   <input id="regStuMobile" type="tel" inputmode="numeric" autocomplete="tel" required minlength="10" maxlength="10" pattern="[0-9]{10}" title="Enter exactly 10 digits" placeholder="e.g., 9412098765" class="w-full rounded-xl border border-slate-300 px-3.5 py-2" />
                 </div>
                 <div>
@@ -5448,7 +5463,7 @@ table{max-width:100%;border-collapse:collapse}
                   <div class="flex gap-2"><input id="regStuPasswordConfirm" type="password" required minlength="6" autocomplete="new-password" placeholder="Enter password again" class="flex-1 min-w-0 rounded-xl border border-slate-300 px-3.5 py-2" /><button type="button" data-toggle-password="regStuPasswordConfirm" aria-label="Show password" title="Show password" class="password-toggle inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" style="min-width:42px" data-state="hidden"><svg class="password-eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
                 </div>
                 <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-emerald-600 text-white font-bold shadow transition">
-                  Register & Start Practicing →
+                  Create Account (Approval Required) →
                 </button>
               </form>
             </div>
@@ -5574,8 +5589,8 @@ table{max-width:100%;border-collapse:collapse}
             <p class="text-xs text-slate-500 mb-4">Only authorized administrators may approve students, manage question banks, or publish PDF imports.</p>
             <form id="formAdminLogin" class="space-y-4 text-xs sm:text-sm">
               <div>
-                <label class="block font-semibold text-slate-700 mb-1">Admin Username</label>
-                <input id="admLoginUser" type="text" required placeholder="Enter admin username" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
+                <label class="block font-semibold text-slate-700 mb-1">Administrator Email</label>
+                <input id="admLoginUser" type="email" autocomplete="username" required placeholder="Enter administrator email" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
               </div>
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Admin Password</label>
@@ -8264,6 +8279,83 @@ Answer Key:
           try { localStorage.setItem('gyanManchQuestionReports', JSON.stringify(reports)); } catch(e) {}
           showToast('Question report note ho gayi. Shukriya!', 'success');
         });
+
+        // Official Supabase authentication bridge: local/demo credentials are not accepted.
+        document.addEventListener('submit', async function(event) {
+          const form = event.target;
+          if (!form || !['formStudentLogin','formStudentRegister','formAdminLogin'].includes(form.id)) return;
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          const client = window.gyanManchSupabase;
+          if (!client) { showToast('Backend connection is unavailable. Please refresh and try again.', 'error'); return; }
+          const submit = form.querySelector('button[type="submit"]');
+          if (submit) { submit.disabled = true; submit.dataset.originalText = submit.textContent; submit.textContent = 'Please wait…'; }
+          try {
+            if (form.id === 'formStudentRegister') {
+              const name = document.getElementById('regStuName').value.trim();
+              const username = document.getElementById('regStuUsername').value.trim().toLowerCase();
+              const phone = document.getElementById('regStuMobile').value.trim();
+              const email = document.getElementById('regStuEmail').value.trim().toLowerCase();
+              const password = document.getElementById('regStuPassword').value;
+              const confirm = document.getElementById('regStuPasswordConfirm').value;
+              if (!name || !/^[a-z0-9_.-]{3,24}$/.test(username)) throw new Error('Username 3–24 characters ka ho; letters, numbers, dot, underscore ya hyphen use karein.');
+              if (!/^\\d{10}$/.test(phone)) throw new Error('Mobile number exactly 10 digits ka hona chahiye.');
+              if (password.length < 8) throw new Error('Password kam se kam 8 characters ka hona chahiye.');
+              if (password !== confirm) throw new Error('Dono passwords match nahi karte.');
+              const { data, error } = await client.auth.signUp({
+                email, password,
+                options: { data: { display_name: name, username, phone, preferred_language: 'both' } }
+              });
+              if (error) throw error;
+              if (!data.user) throw new Error('Account create nahi hua. Email check karke dobara try karein.');
+              if (data.session) await client.auth.signOut();
+              state.currentUser = null; savePersistentSession(null);
+              showToast('Registration request submitted. Email verify karein if requested; admin approval ke baad hi tests unlock honge.', 'success');
+              navigateTo('student-login');
+              const notice = document.getElementById('studentAccountStatusNotice');
+              if (notice) { notice.textContent = 'Registration received. Email verification (if enabled) complete karein; administrator approval ke baad access milega.'; notice.classList.remove('hidden'); }
+            } else {
+              const emailInput = form.id === 'formStudentLogin' ? document.getElementById('loginStuIdentifier') : document.getElementById('admLoginUser');
+              const passwordInput = form.id === 'formStudentLogin' ? document.getElementById('loginStuPassword') : document.getElementById('admLoginPass');
+              const email = emailInput.value.trim().toLowerCase();
+              const { data, error } = await client.auth.signInWithPassword({ email, password: passwordInput.value });
+              if (error) throw error;
+              const { data: profileRow, error: profileError } = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,preferred_language').eq('id', data.user.id).single();
+              if (profileError || !profileRow) { await client.auth.signOut(); throw new Error('Account profile missing. Please contact the administrator.'); }
+              if (form.id === 'formAdminLogin' && !(profileRow.role === 'admin' && profileRow.approval_status === 'approved')) {
+                await client.auth.signOut(); throw new Error('Is account ko administrator access nahi mila hai.');
+              }
+              if (form.id === 'formStudentLogin' && profileRow.role !== 'student') {
+                await client.auth.signOut(); throw new Error('Yeh student account nahi hai. Administrator portal use karein.');
+              }
+              if (profileRow.approval_status !== 'approved') {
+                await client.auth.signOut();
+                const notice = document.getElementById('studentAccountStatusNotice');
+                if (notice) { notice.textContent = 'Account status: ' + String(profileRow.approval_status || 'pending').toUpperCase() + '. Administrator approval ke baad hi mock tests access honge.'; notice.classList.remove('hidden'); }
+                throw new Error('Account abhi ' + String(profileRow.approval_status || 'pending') + ' hai. Approval ke baad login karein.');
+              }
+              const user = { id: profileRow.id, username: profileRow.username || email, mobile: profileRow.phone || '', displayName: profileRow.display_name || email, role: profileRow.role, status: profileRow.approval_status, showOnLeaderboard: true, email };
+              state.currentUser = user; savePersistentSession(user);
+              if (form.id === 'formAdminLogin') {
+                const { data: profiles, error: listError } = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,created_at');
+                if (!listError && Array.isArray(profiles)) {
+                  db.users = profiles.map(p => ({ id:p.id, username:p.username || '', mobile:p.phone || '', displayName:p.display_name || '', role:p.role, status:p.approval_status, createdAt:p.created_at, showOnLeaderboard:true, email:'' }));
+                }
+                navigateTo('admin-dashboard');
+                showToast('Administrator login successful.', 'success');
+              } else {
+                db.users = db.users.filter(u => u.id !== user.id).concat(user);
+                navigateTo('home');
+                showToast('Welcome back, ' + user.displayName + '.', 'success');
+              }
+            }
+          } catch (error) {
+            showToast(error && error.message ? error.message : 'Authentication failed. Please try again.', 'error');
+          } finally {
+            if (submit) { submit.disabled = false; submit.textContent = submit.dataset.originalText || 'Submit'; }
+          }
+        }, true);
+
         // Bind timer controls first, independently of the larger global event binder.
         document.addEventListener('click', function(event) {
           const startBtn = event.target && event.target.closest ? event.target.closest('#btnCbtStartExamNow') : null;
@@ -8279,8 +8371,6 @@ Answer Key:
     })();
   </script>
   
-<!-- Gyan Manch: Supabase connection -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   window.GYAN_MANCH_SUPABASE_URL =
     "https://yqdgkhlnwhojvuydjtgb.supabase.co";
