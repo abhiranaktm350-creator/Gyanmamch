@@ -6235,7 +6235,8 @@ Answer Key:
               await runVisualOcrOnFile(file, targetExId, targetSubId);
               return;
             }
-            const backgroundExtracted = await tryBackgroundExtractQuestions(combinedText, file.name, targetExId, targetSubId);\n            if (!backgroundExtracted) parseAllQuestionsFromText(combinedText, file.name, targetExId, targetSubId);
+            const backgroundExtracted = await tryBackgroundExtractQuestions(combinedText, file.name, targetExId, targetSubId);
+            if (!backgroundExtracted) parseAllQuestionsFromText(combinedText, file.name, targetExId, targetSubId);
             renderAdminDashboardView(document.getElementById('appMain'));
           } catch (err) {
             showToast('PDF Extraction Error: ' + err.message, 'error');
@@ -6367,7 +6368,8 @@ Answer Key:
               if (statusEl) statusEl.textContent = '✓ Scanned Paper OCR Complete! Extracted text copied to Box #2 & Review Queue.';
               const rawBox = document.getElementById('inpRawBlockExtract');
               if (rawBox) rawBox.value = fullOcrText.trim();
-              const backgroundExtracted = await tryBackgroundExtractQuestions(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId);\n              if (!backgroundExtracted) parseAllQuestionsFromText(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId);
+              const backgroundExtracted = await tryBackgroundExtractQuestions(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId);
+              if (!backgroundExtracted) parseAllQuestionsFromText(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId);
               setTimeout(function() {
                 renderAdminDashboardView(document.getElementById('appMain'));
               }, 900);
