@@ -4624,13 +4624,13 @@ table{max-width:100%;border-collapse:collapse}
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
               <div class="inline-flex items-center px-2.5 py-0.5 rounded bg-indigo-50 text-indigo-700 text-xs font-bold mb-2">STUDENT PORTAL</div>
               <h1 class="text-xl font-extrabold text-slate-900 mb-1">Student Login</h1>
-              <p class="text-xs text-slate-500 mb-5">Log in with the email address you registered with and your password.</p>
+              <p class="text-xs text-slate-500 mb-5">Username ya registered Gmail aur password se login karein.</p>
 
               <div id="studentAccountStatusNotice" class="hidden mb-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm font-semibold text-amber-900" role="status"></div>
               <form id="formStudentLogin" class="space-y-4 text-xs sm:text-sm">
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Email Address</label>
-                  <input id="loginStuIdentifier" type="email" autocomplete="email" required placeholder="Enter registered email address" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
+                  <label class="block font-semibold text-slate-700 mb-1">Username / Gmail</label>
+                  <input id="loginStuIdentifier" type="text" autocomplete="username" required placeholder="Enter username or registered Gmail" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
                 </div>
                 <div>
                   <label class="block font-semibold text-slate-700 mb-1">Password</label>
@@ -4811,8 +4811,8 @@ table{max-width:100%;border-collapse:collapse}
             <p class="text-xs text-slate-500 mb-4">Only authorized administrators may approve students, manage question banks, or publish PDF imports.</p>
             <form id="formAdminLogin" class="space-y-4 text-xs sm:text-sm">
               <div>
-                <label class="block font-semibold text-slate-700 mb-1">Administrator Email</label>
-                <input id="admLoginUser" type="email" autocomplete="username" required placeholder="Enter administrator email" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
+                <label class="block font-semibold text-slate-700 mb-1">Admin Username / Gmail</label>
+                <input id="admLoginUser" type="text" autocomplete="username" required placeholder="Enter admin username or Gmail" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
               </div>
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Admin Password</label>
@@ -4866,6 +4866,7 @@ table{max-width:100%;border-collapse:collapse}
         const stagingCount = db.pdfImportQueue.filter(j => j.status === 'pending_review').length;
 
         const tabs = [
+          ...(state.currentUser.isPrimaryAdmin ? [{ id: 'admin-accounts', label: 'Admin Accounts' }] : []),
           { id: 'students', label: '1. Student Approvals (' + pendingCount + ' Pending)' },
           { id: 'catalogue', label: '2. Exams, Chapters & Tests' },
           { id: 'questions', label: '3. Bilingual Question Bank (' + db.questions.length + ')' },
@@ -4939,8 +4940,39 @@ table{max-width:100%;border-collapse:collapse}
         else if (state.adminActiveTab === 'analytics') renderAdminAnalyticsTab(tabPane);
         else if (state.adminActiveTab === 'announcements') renderAdminAnnouncementsTab(tabPane);
         else if (state.adminActiveTab === 'cloud-setup') renderAdminCloudSetupTab(tabPane);
+        else if (state.adminActiveTab === 'admin-accounts' && state.currentUser.isPrimaryAdmin) renderPrimaryAdminAccountsTab(tabPane);
       }
 
+      // Primary admin only: promote an already-registered account to Admin 2.
+      async function renderPrimaryAdminAccountsTab(pane) {
+        if (!state.currentUser || state.currentUser.role !== 'admin' || !state.currentUser.isPrimaryAdmin) {
+          pane.innerHTML = '<p class="rounded-xl bg-red-50 p-4 text-red-800">Primary administrator access required.</p>'; return;
+        }
+        const client = window.gyanManchSupabase;
+        pane.innerHTML = '<section class="bg-white border border-blue-200 rounded-2xl p-5 shadow-sm"><h2 class="text-lg font-extrabold text-slate-900 mb-2">Admin Accounts</h2><p class="text-sm text-slate-600 mb-4">Admin 2 ko banane ke liye pehle us vyakti ko student signup karna hoga. Phir uska unique username yahan enter karein. Sirf Admin 1 ye kar sakta hai.</p><form id="gmPromoteAdminForm" class="flex flex-col sm:flex-row gap-3"><input id="gmPromoteAdminUsername" required minlength="3" maxlength="24" pattern="[a-zA-Z0-9_.-]{3,24}" placeholder="Naye account ka username" class="flex-1 rounded-xl border px-3 py-3"/><button type="submit" class="rounded-xl bg-blue-700 px-5 py-3 font-bold text-white">Make Admin 2</button></form><p id="gmAdminManageMessage" class="mt-3 text-sm" role="status"></p><div class="mt-5 border-t pt-4"><h3 class="font-bold mb-2">Existing admins</h3><div id="gmAdminAccountsList" class="space-y-2 text-sm">Loading…</div></div></section>';
+        const message = document.getElementById('gmAdminManageMessage');
+        const list = document.getElementById('gmAdminAccountsList');
+        async function loadAdmins() {
+          const result = await client.from('profiles').select('display_name,username,role,approval_status,is_primary_admin').eq('role','admin');
+          if (result.error) { list.textContent = 'Admin list load nahi hui: ' + result.error.message; return; }
+          list.innerHTML = (result.data || []).map(a => '<div class="rounded-lg border p-3"><strong>' + escapeHtml(a.display_name || a.username || 'Admin') + '</strong> · @' + escapeHtml(a.username || 'no-username') + ' · ' + (a.is_primary_admin ? 'Admin 1 (Primary)' : 'Admin 2') + ' · ' + escapeHtml(a.approval_status) + '</div>').join('') || 'Abhi koi admin nahi mila.';
+        }
+        await loadAdmins();
+        document.getElementById('gmPromoteAdminForm').addEventListener('submit', async function(ev) {
+          ev.preventDefault();
+          if (!state.currentUser || !state.currentUser.isPrimaryAdmin) { message.textContent = 'Primary admin required.'; return; }
+          const username = document.getElementById('gmPromoteAdminUsername').value.trim().toLowerCase();
+          message.className = 'mt-3 text-sm text-slate-600'; message.textContent = 'Account check ho raha hai…';
+          const found = await client.from('profiles').select('id,username,role,is_primary_admin').eq('username', username).maybeSingle();
+          if (found.error || !found.data) { message.className = 'mt-3 text-sm text-red-700'; message.textContent = 'Account nahi mila. Pehle us Gmail se signup karwayein aur username sahi likhein.'; return; }
+          if (found.data.is_primary_admin) { message.textContent = 'Ye pehle se Primary Admin hai.'; return; }
+          if (found.data.role === 'admin') { message.textContent = 'Ye account pehle se admin hai.'; return; }
+          const update = await client.from('profiles').update({role:'admin',approval_status:'approved'}).eq('id', found.data.id).select('id').single();
+          if (update.error) { message.className = 'mt-3 text-sm text-red-700'; message.textContent = 'Admin nahi bana paye: ' + update.error.message; return; }
+          message.className = 'mt-3 text-sm text-green-700'; message.textContent = '@' + username + ' ko Admin 2 bana diya. Ab woh username + password se admin login kar sakta hai.';
+          document.getElementById('gmPromoteAdminUsername').value = ''; await loadAdmins();
+        });
+      }
       // --- ADMIN TAB: HOME ANNOUNCEMENTS ---
       function renderAdminAnnouncementsTab(pane) {
         if (!Array.isArray(db.announcements)) db.announcements = [];
@@ -7825,10 +7857,24 @@ Answer Key:
             } else {
               const emailInput = form.id === 'formStudentLogin' ? document.getElementById('loginStuIdentifier') : document.getElementById('admLoginUser');
               const passwordInput = form.id === 'formStudentLogin' ? document.getElementById('loginStuPassword') : document.getElementById('admLoginPass');
-              const email = emailInput.value.trim().toLowerCase();
-              const { data, error } = await client.auth.signInWithPassword({ email, password: passwordInput.value });
+              const identifier = emailInput.value.trim().toLowerCase();
+              let data, error;
+              if (identifier.includes('@')) {
+                const result = await client.auth.signInWithPassword({ email: identifier, password: passwordInput.value });
+                data = result.data; error = result.error;
+              } else {
+                const response = await fetch(window.GYAN_MANCH_SUPABASE_URL + '/functions/v1/username-login', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'apikey': window.GYAN_MANCH_SUPABASE_KEY },
+                  body: JSON.stringify({ username: identifier, password: passwordInput.value })
+                });
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok || !payload.session) throw new Error(payload.error || 'Username ya password galat hai.');
+                const sessionResult = await client.auth.setSession({ access_token: payload.session.access_token, refresh_token: payload.session.refresh_token });
+                data = sessionResult.data; error = sessionResult.error;
+              }
               if (error) throw error;
-              const { data: profileRow, error: profileError } = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,preferred_language').eq('id', data.user.id).single();
+              const { data: profileRow, error: profileError } = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,preferred_language,is_primary_admin').eq('id', data.user.id).single();
               if (profileError || !profileRow) { await client.auth.signOut(); throw new Error('Account profile missing. Please contact the administrator.'); }
               if (form.id === 'formAdminLogin' && !(profileRow.role === 'admin' && profileRow.approval_status === 'approved')) {
                 await client.auth.signOut(); throw new Error('Is account ko administrator access nahi mila hai.');
@@ -7842,13 +7888,14 @@ Answer Key:
                 if (notice) { notice.textContent = 'Account status: ' + String(profileRow.approval_status || 'pending').toUpperCase() + '. Administrator approval ke baad hi mock tests access honge.'; notice.classList.remove('hidden'); }
                 throw new Error('Account abhi ' + String(profileRow.approval_status || 'pending') + ' hai. Approval ke baad login karein.');
               }
-              const user = { id: profileRow.id, username: profileRow.username || email, mobile: profileRow.phone || '', displayName: profileRow.display_name || email, role: profileRow.role, status: profileRow.approval_status, showOnLeaderboard: true, email };
+              const email = data.user.email || identifier;
+              const user = { id: profileRow.id, username: profileRow.username || email, mobile: profileRow.phone || '', displayName: profileRow.display_name || email, role: profileRow.role, status: profileRow.approval_status, isPrimaryAdmin: profileRow.is_primary_admin === true, showOnLeaderboard: true, email };
               state.currentUser = user; savePersistentSession(user);
               if (form.id === 'formAdminLogin') {
                 await hydrateQuestionsFromSupabase(true);
-                const { data: profiles, error: listError } = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,created_at');
+                const { data: profiles, error: listError } = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,is_primary_admin,created_at');
                 if (!listError && Array.isArray(profiles)) {
-                  db.users = profiles.map(p => ({ id:p.id, username:p.username || '', mobile:p.phone || '', displayName:p.display_name || '', role:p.role, status:p.approval_status, createdAt:p.created_at, showOnLeaderboard:true, email:'' }));
+                  db.users = profiles.map(p => ({ id:p.id, username:p.username || '', mobile:p.phone || '', displayName:p.display_name || '', role:p.role, status:p.approval_status, isPrimaryAdmin:p.is_primary_admin === true, createdAt:p.created_at, showOnLeaderboard:true, email:'' }));
                 }
                 await hydrateAttemptsFromSupabase();
                 navigateTo('admin-dashboard');
@@ -7998,7 +8045,7 @@ Answer Key:
             if (!session || !session.user) return;
             const client = window.gyanManchSupabase;
             const profileResult = await client.from('profiles')
-              .select('id,display_name,username,phone,role,approval_status,preferred_language')
+              .select('id,display_name,username,phone,role,approval_status,preferred_language,is_primary_admin')
               .eq('id', session.user.id).maybeSingle();
             const p = profileResult.data;
             if (profileResult.error || !p || p.approval_status !== 'approved') {
@@ -8006,12 +8053,12 @@ Answer Key:
               state.currentUser = null;
               savePersistentSession(null);
             } else {
-              state.currentUser = { id:p.id, username:p.username || session.user.email, mobile:p.phone || '', displayName:p.display_name || session.user.email, role:p.role, status:p.approval_status, showOnLeaderboard:true, email:session.user.email };
+              state.currentUser = { id:p.id, username:p.username || session.user.email, mobile:p.phone || '', displayName:p.display_name || session.user.email, role:p.role, status:p.approval_status, isPrimaryAdmin:p.is_primary_admin === true, showOnLeaderboard:true, email:session.user.email };
               savePersistentSession(state.currentUser);
               await hydrateQuestionsFromSupabase(p.role === 'admin');
               if (p.role === 'admin') {
                 const usersResult = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,created_at');
-                if (!usersResult.error && Array.isArray(usersResult.data)) db.users = usersResult.data.map(u => ({id:u.id,username:u.username||'',mobile:u.phone||'',displayName:u.display_name||'',role:u.role,status:u.approval_status,createdAt:u.created_at,showOnLeaderboard:true,email:''}));
+                if (!usersResult.error && Array.isArray(usersResult.data)) db.users = usersResult.data.map(u => ({id:u.id,username:u.username||'',mobile:u.phone||'',displayName:u.display_name||'',role:u.role,status:u.approval_status,isPrimaryAdmin:u.is_primary_admin===true,createdAt:u.created_at,showOnLeaderboard:true,email:''}));
               }
               await hydrateAttemptsFromSupabase();
             }
