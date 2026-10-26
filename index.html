@@ -6084,28 +6084,31 @@ table{max-width:100%;border-collapse:collapse}
                   </div>
                 </div>
 
-                <!-- File Upload: Supports Digital PDF, Scanned PDF, and Camera Photos of Question Papers -->
+                <!-- Single upload: questions, options and answers are read from this same paper -->
                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                  <label class="block font-bold text-slate-800">Upload PDF Paper or Scanned Question Paper Photo (<code>.pdf, .jpg, .png</code>):</label>
+                  <label class="block font-bold text-slate-800">Upload Question Paper (PDF or image)</label>
                   <input id="inpPdfFile" type="file" accept=".pdf,image/png,image/jpeg,image/webp" class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500" />
-                  <label class="block font-bold text-slate-800 mt-3">Optional Answer Key PDF (answers will be matched by question number):</label>
-                  <input id="inpAnswerKeyFile" type="file" accept=".pdf" class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-700 file:text-white hover:file:bg-emerald-600" />
-                  <p class="text-[11px] text-slate-500">Upload the question paper and answer key together. The answer key PDF should contain selectable text for best results. Review all answers before publishing.</p>
+                  <p class="text-[11px] text-slate-600">One upload only. Questions, options and answers written below each question (A/B/C/D) will be read from the same file. Review answers before publishing.</p>
                   <label class="inline-flex items-center gap-2 text-[11px] text-slate-700 font-medium cursor-pointer">
                     <input id="chkEnhanceScannedPaper" type="checkbox" checked class="rounded border-slate-300 text-indigo-600" />
-                    <span>Auto High-Contrast Document Filter (sharpens camera photos & scanned exam papers)</span>
+                    <span>Improve contrast for scanned papers</span>
                   </label>
+                  <div id="pdfImportProgressPanel" class="hidden mt-3 rounded-lg border border-indigo-100 bg-white p-3 space-y-2" role="status" aria-live="polite">
+                    <div class="flex items-center justify-between gap-3 text-xs">
+                      <span id="pdfImportProgressStatus" class="font-semibold text-slate-700">Preparing PDF…</span>
+                      <span id="pdfImportProgressPercent" class="font-bold tabular-nums text-indigo-700">0%</span>
+                    </div>
+                    <div class="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                      <div id="pdfImportProgressBar" class="h-full rounded-full bg-indigo-600 transition-all duration-200" style="width:0%"></div>
+                    </div>
+                    <p id="pdfImportProgressDetail" class="text-[11px] text-slate-500">Keep this page open while the file is processed.</p>
+                  </div>
                 </div>
 
                 <div class="flex flex-wrap gap-2">
                   <button id="btnRunPdfExtraction" type="button" class="px-3.5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow transition">
-                    📄 Extract PDF (Auto-Detects Digital or Scanned)
+                    📄 Upload & Create Questions
                   </button>
-                  <button id="btnRunOcrPaperScan" type="button" class="px-3.5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold shadow transition">
-                    🔍 Scan Printed / Scanned Paper (OCR Scanner)
-                  </button>
-                  
-                  
                 </div>
 
                 <!-- Live Visual Scanned Paper Preview & OCR Progress Box -->
