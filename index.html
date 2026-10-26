@@ -4495,6 +4495,8 @@ table{max-width:100%;border-collapse:collapse}
         document.getElementById('formStudentLogin').addEventListener('submit', function(e) {
           e.preventDefault();
           if (window.gyanManchSupabase) return;
+          showToast('Secure Supabase authentication is unavailable. Please refresh the page and try again.', 'error');
+          return;
           const iden = document.getElementById('loginStuIdentifier').value.trim().toLowerCase();
           const pass = document.getElementById('loginStuPassword').value;
           const found = db.users.find(u =>
@@ -4536,6 +4538,8 @@ table{max-width:100%;border-collapse:collapse}
         document.getElementById('formStudentRegister').addEventListener('submit', function(e) {
           e.preventDefault();
           if (window.gyanManchSupabase) return;
+          showToast('Secure Supabase authentication is unavailable. Please refresh the page and try again.', 'error');
+          return;
           const name = document.getElementById('regStuName').value.trim();
           const uname = document.getElementById('regStuUsername').value.trim().toLowerCase();
           const mob = document.getElementById('regStuMobile').value.trim();
@@ -4613,6 +4617,8 @@ table{max-width:100%;border-collapse:collapse}
         document.getElementById('formAdminLogin').addEventListener('submit', function(e) {
           e.preventDefault();
           if (window.gyanManchSupabase) return;
+          showToast('Secure Supabase authentication is unavailable. Please refresh the page and try again.', 'error');
+          return;
           const u = document.getElementById('admLoginUser').value.trim().toLowerCase();
           const p = document.getElementById('admLoginPass').value;
 
