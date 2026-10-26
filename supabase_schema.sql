@@ -342,3 +342,159 @@ grant execute on function public.submit_and_score_attempt(uuid,jsonb,integer,boo
 
 -- Storage bucket for teacher PDF uploads. Create the bucket in Storage UI as private, named "question-pdfs".
 -- Storage policies should restrict uploads/reads to approved staff; do not make the bucket public.
+
+
+-- ---------------------------------------------------------------------------
+-- Production hardening and compatibility fields (Gyan Manch)
+-- This script is intended for a new Supabase project; use the numbered
+-- migrations for an already-initialized database.
+-- ---------------------------------------------------------------------------
+alter table public.profiles add column if not exists username text;
+create unique index if not exists profiles_username_unique_idx on public.profiles(lower(username)) where username is not null;
+alter table public.exam_categories add column if not exists legacy_id text;
+create unique index if not exists exam_categories_legacy_id_unique on public.exam_categories(legacy_id) where legacy_id is not null;
+alter table public.exams add column if not exists legacy_id text;
+create unique index if not exists exams_legacy_id_unique on public.exams(legacy_id) where legacy_id is not null;
+alter table public.questions add column if not exists legacy_id text;
+create unique index if not exists questions_legacy_id_unique on public.questions(legacy_id) where legacy_id is not null;
+alter table public.tests add column if not exists legacy_id text;
+create unique index if not exists tests_legacy_id_unique on public.tests(legacy_id) where legacy_id is not null;
+
+create table if not exists public.question_answer_keys (
+  question_id uuid primary key references public.questions(id) on delete cascade,
+  correct_option int not null check (correct_option between 0 and 5),
+  explanation_en text not null default '',
+  explanation_hi text not null default '',
+  updated_at timestamptz not null default now()
+);
+alter table public.question_answer_keys enable row level security;
+drop policy if exists "staff manage question answer keys" on public.question_answer_keys;
+create policy "staff manage question answer keys" on public.question_answer_keys for all to authenticated using (public.is_staff()) with check (public.is_staff());
+grant select, insert, update, delete on public.question_answer_keys to authenticated;
+
+-- Preserve any existing answer keys before removing them from the student-readable table.
+do $$
+begin
+  if exists (select 1 from information_schema.columns where table_schema='public' and table_name='questions' and column_name='correct_option') then
+    execute 'insert into public.question_answer_keys(question_id,correct_option,explanation_en,explanation_hi) select id,correct_option,coalesce(explanation_en, ''''),coalesce(explanation_hi, '''') from public.questions on conflict (question_id) do nothing';
+  end if;
+end $$;
+
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer set search_path = public
+as $$
+begin
+  insert into public.profiles(id, display_name, phone, username, preferred_language, role, approval_status)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'display_name', ''),
+    nullif(new.raw_user_meta_data->>'phone',''),
+    nullif(lower(new.raw_user_meta_data->>'username'),''),
+    case when new.raw_user_meta_data->>'preferred_language' in ('hi','en','both') then new.raw_user_meta_data->>'preferred_language' else 'hi' end,
+    'student',
+    'pending'
+  ) on conflict (id) do nothing;
+  return new;
+end; $$;
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
+
+create or replace function public.is_approved_student()
+returns boolean language sql stable security definer set search_path = public
+as $$ select exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'student' and p.approval_status = 'approved'); $$;
+revoke execute on function public.is_approved_student() from public, anon;
+grant execute on function public.is_approved_student() to authenticated;
+
+drop policy if exists "published questions visible" on public.questions;
+create policy "published questions visible" on public.questions for select to authenticated
+using ((status = 'published' and public.is_approved_student()) or public.is_staff());
+drop policy if exists "published test question mapping visible" on public.test_questions;
+create policy "published test question mapping visible" on public.test_questions for select to authenticated
+using (exists (select 1 from public.tests t where t.id = test_id and t.status = 'published' and (public.is_approved_student() or public.is_staff())));
+drop policy if exists "students create own attempts" on public.attempts;
+create policy "students create own attempts" on public.attempts for insert to authenticated
+with check (user_id = auth.uid() and status = 'in_progress' and public.is_approved_student()
+  and exists (select 1 from public.tests t where t.id = test_id and t.status = 'published'));
+drop policy if exists "students save own in progress answers" on public.attempt_answers;
+create policy "students save own in progress answers" on public.attempt_answers for insert to authenticated
+with check (exists (select 1 from public.attempts a where a.id = attempt_id and a.user_id = auth.uid() and a.status = 'in_progress' and public.is_approved_student()));
+drop policy if exists "students update own in progress answers" on public.attempt_answers;
+create policy "students update own in progress answers" on public.attempt_answers for update to authenticated
+using (exists (select 1 from public.attempts a where a.id = attempt_id and a.user_id = auth.uid() and a.status = 'in_progress' and public.is_approved_student()))
+with check (exists (select 1 from public.attempts a where a.id = attempt_id and a.user_id = auth.uid() and a.status = 'in_progress' and public.is_approved_student()));
+
+-- Server-side grading; students cannot read answer keys from public.questions.
+create or replace function public.submit_and_score_attempt(
+  p_attempt_id uuid,
+  p_answers jsonb,
+  p_time_taken_seconds integer default 0,
+  p_auto_submit boolean default false
+)
+returns public.attempts language plpgsql security definer set search_path = public
+as $$
+declare
+  v_attempt public.attempts;
+  v_total integer;
+  v_attempted integer;
+  v_correct integer;
+  v_incorrect integer;
+  v_unattempted integer;
+  v_score numeric(10,2);
+  v_max numeric(10,2);
+begin
+  if not public.is_approved_student() then raise exception 'Approved student account required'; end if;
+  select * into v_attempt from public.attempts where id=p_attempt_id and user_id=auth.uid() for update;
+  if not found then raise exception 'Attempt not found or access denied'; end if;
+  if v_attempt.status <> 'in_progress' then raise exception 'Attempt already submitted'; end if;
+  if not exists (select 1 from public.tests where id=v_attempt.test_id and status='published') then raise exception 'Test is not published'; end if;
+  if jsonb_typeof(coalesce(p_answers,'[]'::jsonb)) <> 'array' then raise exception 'Answers must be a JSON array'; end if;
+  delete from public.attempt_answers where attempt_id=p_attempt_id;
+  insert into public.attempt_answers(attempt_id,question_id,selected_option,marked_for_review)
+  select p_attempt_id,x.question_id,x.selected_option,coalesce(x.marked_for_review,false)
+  from jsonb_to_recordset(coalesce(p_answers,'[]'::jsonb)) as x(question_id uuid,selected_option integer,marked_for_review boolean)
+  join public.test_questions tq on tq.test_id=v_attempt.test_id and tq.question_id=x.question_id
+  where x.selected_option between 0 and 5;
+  update public.attempt_answers aa
+  set is_correct=(aa.selected_option=ak.correct_option),
+      marks_awarded=case when aa.selected_option=ak.correct_option then coalesce(tq.positive_marks,t.positive_marks)
+                         else -coalesce(tq.negative_marks,t.negative_marks) end
+  from public.question_answer_keys ak,public.test_questions tq,public.tests t
+  where aa.attempt_id=p_attempt_id and aa.question_id=ak.question_id
+    and tq.test_id=v_attempt.test_id and tq.question_id=aa.question_id and t.id=v_attempt.test_id;
+  select count(*) into v_total from public.test_questions where test_id=v_attempt.test_id;
+  select count(*) into v_attempted from public.attempt_answers where attempt_id=p_attempt_id and selected_option is not null;
+  select count(*) into v_correct from public.attempt_answers where attempt_id=p_attempt_id and selected_option is not null and is_correct;
+  v_incorrect:=greatest(v_attempted-v_correct,0);
+  v_unattempted:=greatest(v_total-v_attempted,0);
+  select coalesce(sum(marks_awarded),0) into v_score from public.attempt_answers where attempt_id=p_attempt_id;
+  select coalesce(sum(coalesce(tq.positive_marks,t.positive_marks)),0) into v_max
+    from public.test_questions tq join public.tests t on t.id=tq.test_id where tq.test_id=v_attempt.test_id;
+  update public.attempts set status=case when p_auto_submit then 'auto_submitted' else 'submitted' end,
+    submitted_at=now(),
+    time_taken_seconds=greatest(0,least(coalesce(p_time_taken_seconds,0),(select duration_minutes*60 from public.tests where id=v_attempt.test_id))),
+    total_questions=v_total,attempted_count=v_attempted,correct_count=v_correct,incorrect_count=v_incorrect,
+    unattempted_count=v_unattempted,score=v_score,max_score=v_max,
+    accuracy=case when v_attempted=0 then 0 else round((v_correct::numeric/v_attempted)*100,2) end
+  where id=p_attempt_id returning * into v_attempt;
+  return v_attempt;
+end; $$;
+revoke execute on function public.submit_and_score_attempt(uuid,jsonb,integer,boolean) from public, anon;
+grant execute on function public.submit_and_score_attempt(uuid,jsonb,integer,boolean) to authenticated;
+
+-- Remove answer keys and explanations from the table queried by students.
+alter table public.questions drop column if exists correct_option;
+alter table public.questions drop column if exists explanation_en;
+alter table public.questions drop column if exists explanation_hi;
+alter function public.set_updated_at() set search_path = public;
+
+-- Private teacher PDF storage. Storage policies only permit approved staff.
+insert into storage.buckets (id,name,public,file_size_limit,allowed_mime_types)
+values ('question-pdfs','question-pdfs',false,52428800,array['application/pdf'])
+on conflict (id) do update set public=false,file_size_limit=52428800,allowed_mime_types=array['application/pdf'];
+drop policy if exists "approved staff upload question PDFs" on storage.objects;
+create policy "approved staff upload question PDFs" on storage.objects for insert to authenticated with check (bucket_id='question-pdfs' and public.is_staff());
+drop policy if exists "approved staff read question PDFs" on storage.objects;
+create policy "approved staff read question PDFs" on storage.objects for select to authenticated using (bucket_id='question-pdfs' and public.is_staff());
+drop policy if exists "approved staff update question PDFs" on storage.objects;
+create policy "approved staff update question PDFs" on storage.objects for update to authenticated using (bucket_id='question-pdfs' and public.is_staff()) with check (bucket_id='question-pdfs' and public.is_staff());
+drop policy if exists "approved staff delete question PDFs" on storage.objects;
+create policy "approved staff delete question PDFs" on storage.objects for delete to authenticated using (bucket_id='question-pdfs' and public.is_staff());
