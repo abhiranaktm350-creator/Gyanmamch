@@ -1566,26 +1566,26 @@ table{max-width:100%;border-collapse:collapse}
         });
       }
 
-      // Toast helper (replaces native alert)
+      // Quiet inline status feedback (no floating pop-ups or blocking alerts).
       function showToast(message, type) {
-        const container = document.getElementById('toastContainer');
-        if (!container) return;
-        const colors = {
-          success: 'bg-emerald-800 text-white border-emerald-600',
-          warning: 'bg-amber-700 text-white border-amber-500',
-          error: 'bg-rose-800 text-white border-rose-600',
-          info: 'bg-slate-900 text-white border-slate-700'
+        const main = document.getElementById('appMain');
+        if (!main) return;
+        let notice = document.getElementById('gmInlineNotice');
+        if (!notice) {
+          notice = document.createElement('div');
+          notice.id = 'gmInlineNotice';
+          notice.setAttribute('role', 'status');
+          notice.setAttribute('aria-live', 'polite');
+          main.prepend(notice);
+        }
+        const styles = {
+          success: 'bg-blue-50 border-blue-200 text-blue-900',
+          warning: 'bg-amber-50 border-amber-200 text-amber-900',
+          error: 'bg-rose-50 border-rose-200 text-rose-900',
+          info: 'bg-slate-50 border-slate-200 text-slate-700'
         };
-        const el = document.createElement('div');
-        el.className = 'pointer-events-auto px-4 py-3 rounded-xl shadow-lg border text-xs sm:text-sm font-medium flex items-center justify-between gap-3 transition-all ' + (colors[type] || colors.info);
-        el.innerHTML = '<span>' + escapeHtml(message) + '</span><button type="button" class="opacity-75 hover:opacity-100 font-bold">✕</button>';
-        el.querySelector('button').addEventListener('click', function() {
-          el.remove();
-        });
-        container.appendChild(el);
-        setTimeout(function() {
-          if (el.parentNode) el.remove();
-        }, 4500);
+        notice.className = 'mx-auto mb-4 max-w-7xl rounded-xl border px-4 py-3 text-sm font-medium ' + (styles[type] || styles.info);
+        notice.textContent = String(message || '');
       }
 
       function escapeHtml(str) {
@@ -5832,12 +5832,8 @@ table{max-width:100%;border-collapse:collapse}
                   <button id="btnRunOcrPaperScan" type="button" class="px-3.5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold shadow transition">
                     🔍 Scan Printed / Scanned Paper (OCR Scanner)
                   </button>
-                  <button id="btnDemoScannedPaperOcr" type="button" class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow transition">
-                    📷 Demo: Scan Printed Exam Paper (Live Visual Scan)
-                  </button>
-                  <button id="btnSimulateBilingualPdf" type="button" class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition">
-                    ⚡ Load 5-Q Sample Paper
-                  </button>
+                  
+                  
                 </div>
 
                 <!-- Live Visual Scanned Paper Preview & OCR Progress Box -->
@@ -5866,28 +5862,7 @@ table{max-width:100%;border-collapse:collapse}
               <p class="text-xs text-slate-500 mb-2">
                 Paste an entire question paper (any number of questions, with inline <code>Ans:</code> or an <code>Answer Key: 1-A, 2-C, 3-B...</code> block at the bottom):
               </p>
-              <textarea id="inpRawBlockExtract" rows="6" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono mb-2" placeholder="Paste 1 to 200+ questions here...">1. Which pass in Pithoragarh district connects Uttarakhand with Tibet? / पिथौरागढ़ जिले का कौन सा दर्रा उत्तराखंड को तिब्बत से जोड़ता है?
-(A) Lipulekh Pass / लिपुलेख दर्रा
-(B) Nathu La / नाथू ला
-(C) Rohtang Pass / रोहतांग दर्रा
-(D) Banihal Pass / बनिहाल दर्रा
-
-2. What is the minimum age required to become a member of the Lok Sabha in India? / भारत में लोकसभा का सदस्य बनने के लिए न्यूनतम आयु क्या है?
-(A) 30 Years / 30 वर्ष
-(B) 25 Years / 25 वर्ष
-(C) 21 Years / 21 वर्ष
-(D) 35 Years / 35 वर्ष
-
-3. If the cost price of 15 articles is equal to the selling price of 12 articles, find the profit percentage. / यदि 15 वस्तुओं का क्रय मूल्य 12 वस्तुओं के विक्रय मूल्य के बराबर है, तो लाभ प्रतिशत ज्ञात कीजिए।
-(A) 20%
-(B) 15%
-(C) 25%
-(D) 30%
-
-Answer Key:
-1 - A
-2 - B
-3 - C</textarea>
+              <textarea id="inpRawBlockExtract" rows="6" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono mb-2" placeholder="Paste 1 to 200+ questions here..." placeholder="Paste bilingual questions, options and the answer key here..."></textarea>
               <button id="btnParseRawBlock" type="button" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow transition">
                 Parse All Questions into Review Queue
               </button>
