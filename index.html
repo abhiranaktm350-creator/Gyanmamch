@@ -2240,249 +2240,13 @@ table{max-width:100%;border-collapse:collapse}
         ];
 
         // Users: Approved Students, Pending Student, Rejected Student, and Library Administrator
-        const users = [
-          {
-            id: 'usr_admin_1',
-            username: 'Admin',
-            mobile: '9412000001',
-            displayName: 'Chief Librarian (Admin)',
-            role: 'admin',
-            status: 'approved',
-            showOnLeaderboard: false,
-            passwordHash: hashSecret('Admin@123', 'usr_admin_1'),
-            createdAt: '2026-10-01T09:00:00Z'
-          },
-          {
-            id: 'usr_stu_aarav',
-            username: 'aarav_uk',
-            mobile: '9897011223',
-            displayName: 'Aarav Rawat',
-            role: 'student',
-            status: 'approved',
-            showOnLeaderboard: true,
-            passwordHash: hashSecret('Student@123', 'usr_stu_aarav'),
-            createdAt: '2026-10-05T10:15:00Z'
-          },
-          {
-            id: 'usr_stu_priya',
-            username: 'priya_joshi',
-            mobile: '9897044556',
-            displayName: 'Priya Joshi',
-            role: 'student',
-            status: 'approved',
-            showOnLeaderboard: true,
-            passwordHash: hashSecret('Student@123', 'usr_stu_priya'),
-            createdAt: '2026-10-06T11:20:00Z'
-          },
-          {
-            id: 'usr_stu_rohit',
-            username: 'rohit_negi',
-            mobile: '9897077889',
-            displayName: 'Rohit Negi',
-            role: 'student',
-            status: 'approved',
-            showOnLeaderboard: true,
-            passwordHash: hashSecret('Student@123', 'usr_stu_rohit'),
-            createdAt: '2026-10-08T14:00:00Z'
-          },
-          {
-            id: 'usr_stu_kavita',
-            username: 'kavita_bisht',
-            mobile: '9897099001',
-            displayName: 'Kavita Bisht (Pending Student)',
-            role: 'student',
-            status: 'pending',
-            showOnLeaderboard: true,
-            passwordHash: hashSecret('Student@123', 'usr_stu_kavita'),
-            createdAt: '2026-10-24T08:30:00Z'
-          }
-        ];
+        const users = [];
 
         // Sample Completed Attempts for Leaderboard, Progress Over Time & Chapter Analytics
-        const attempts = [
-          {
-            id: 'ATT-20261018-101',
-            userId: 'usr_stu_aarav',
-            testId: 'test_ssc_cgl_mock_1',
-            testVersion: 1,
-            attemptNumber: 1,
-            status: 'submitted',
-            startedAt: '2026-10-18T10:00:00Z',
-            submittedAt: '2026-10-18T10:14:20Z',
-            timeTakenSeconds: 860,
-            score: 15.0,
-            maxMarks: 24.0,
-            correctCount: 8,
-            incorrectCount: 2,
-            unansweredCount: 2,
-            accuracy: 80.0,
-            isSample: false,
-            answers: {
-              q_1: { selectedOption: 0, markedForReview: false, timeSpent: 65 },
-              q_2: { selectedOption: 0, markedForReview: false, timeSpent: 75 },
-              q_3: { selectedOption: 1, markedForReview: true, timeSpent: 80 }, // wrong
-              q_4: { selectedOption: 0, markedForReview: false, timeSpent: 70 },
-              q_5: { selectedOption: 0, markedForReview: false, timeSpent: 55 },
-              q_6: { selectedOption: 0, markedForReview: false, timeSpent: 85 },
-              q_7: { selectedOption: null, markedForReview: true, timeSpent: 90 },
-              q_8: { selectedOption: 1, markedForReview: false, timeSpent: 60 }, // wrong
-              q_9: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_10: { selectedOption: 0, markedForReview: false, timeSpent: 45 },
-              q_11: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_12: { selectedOption: null, markedForReview: false, timeSpent: 40 }
-            }
-          },
-          {
-            id: 'ATT-20261022-102',
-            userId: 'usr_stu_aarav',
-            testId: 'test_ssc_cgl_mock_1',
-            testVersion: 1,
-            attemptNumber: 2,
-            status: 'submitted',
-            startedAt: '2026-10-22T11:00:00Z',
-            submittedAt: '2026-10-22T11:12:10Z',
-            timeTakenSeconds: 730,
-            score: 19.5,
-            maxMarks: 24.0,
-            correctCount: 10,
-            incorrectCount: 1,
-            unansweredCount: 1,
-            accuracy: 90.91,
-            isSample: false,
-            answers: {
-              q_1: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_2: { selectedOption: 0, markedForReview: false, timeSpent: 60 },
-              q_3: { selectedOption: 0, markedForReview: false, timeSpent: 65 },
-              q_4: { selectedOption: 0, markedForReview: false, timeSpent: 60 },
-              q_5: { selectedOption: 0, markedForReview: false, timeSpent: 45 },
-              q_6: { selectedOption: 0, markedForReview: false, timeSpent: 70 },
-              q_7: { selectedOption: 0, markedForReview: false, timeSpent: 80 },
-              q_8: { selectedOption: 1, markedForReview: true, timeSpent: 55 }, // wrong in grammar
-              q_9: { selectedOption: null, markedForReview: false, timeSpent: 40 },
-              q_10: { selectedOption: 0, markedForReview: false, timeSpent: 35 },
-              q_11: { selectedOption: 0, markedForReview: false, timeSpent: 40 },
-              q_12: { selectedOption: 0, markedForReview: false, timeSpent: 35 }
-            }
-          },
-          {
-            id: 'ATT-20261023-201',
-            userId: 'usr_stu_priya',
-            testId: 'test_ssc_cgl_mock_1',
-            testVersion: 1,
-            attemptNumber: 1,
-            status: 'submitted',
-            startedAt: '2026-10-23T09:00:00Z',
-            submittedAt: '2026-10-23T09:11:30Z',
-            timeTakenSeconds: 690,
-            score: 21.5,
-            maxMarks: 24.0,
-            correctCount: 11,
-            incorrectCount: 1,
-            unansweredCount: 0,
-            accuracy: 91.67,
-            isSample: false,
-            answers: {
-              q_1: { selectedOption: 0, markedForReview: false, timeSpent: 55 },
-              q_2: { selectedOption: 0, markedForReview: false, timeSpent: 55 },
-              q_3: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_4: { selectedOption: 0, markedForReview: false, timeSpent: 60 },
-              q_5: { selectedOption: 0, markedForReview: false, timeSpent: 45 },
-              q_6: { selectedOption: 0, markedForReview: false, timeSpent: 60 },
-              q_7: { selectedOption: 2, markedForReview: false, timeSpent: 70 }, // wrong
-              q_8: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_9: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_10: { selectedOption: 0, markedForReview: false, timeSpent: 45 },
-              q_11: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_12: { selectedOption: 0, markedForReview: false, timeSpent: 45 }
-            }
-          },
-          {
-            id: 'ATT-20261023-301',
-            userId: 'usr_stu_rohit',
-            testId: 'test_ssc_cgl_mock_1',
-            testVersion: 1,
-            attemptNumber: 1,
-            status: 'submitted',
-            startedAt: '2026-10-23T14:00:00Z',
-            submittedAt: '2026-10-23T14:15:00Z',
-            timeTakenSeconds: 900,
-            score: 19.5,
-            maxMarks: 24.0,
-            correctCount: 10,
-            incorrectCount: 1,
-            unansweredCount: 1,
-            accuracy: 90.91,
-            isSample: false,
-            answers: {
-              q_1: { selectedOption: 0, markedForReview: false, timeSpent: 70 },
-              q_2: { selectedOption: 0, markedForReview: false, timeSpent: 70 },
-              q_3: { selectedOption: 0, markedForReview: false, timeSpent: 70 },
-              q_4: { selectedOption: 1, markedForReview: false, timeSpent: 80 },
-              q_5: { selectedOption: 0, markedForReview: false, timeSpent: 60 },
-              q_6: { selectedOption: 0, markedForReview: false, timeSpent: 75 },
-              q_7: { selectedOption: 0, markedForReview: false, timeSpent: 85 },
-              q_8: { selectedOption: 0, markedForReview: false, timeSpent: 65 },
-              q_9: { selectedOption: 0, markedForReview: false, timeSpent: 60 },
-              q_10: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_11: { selectedOption: 0, markedForReview: false, timeSpent: 55 },
-              q_12: { selectedOption: null, markedForReview: false, timeSpent: 50 }
-            }
-          },
-          {
-            id: 'ATT-20261024-103',
-            userId: 'usr_stu_aarav',
-            testId: 'test_ukpsc_mock_1',
-            testVersion: 1,
-            attemptNumber: 1,
-            status: 'submitted',
-            startedAt: '2026-10-24T07:00:00Z',
-            submittedAt: '2026-10-24T07:06:30Z',
-            timeTakenSeconds: 390,
-            score: 12.0,
-            maxMarks: 12.0,
-            correctCount: 6,
-            incorrectCount: 0,
-            unansweredCount: 0,
-            accuracy: 100.0,
-            isSample: false,
-            answers: {
-              q_10: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_13: { selectedOption: 0, markedForReview: false, timeSpent: 60 },
-              q_11: { selectedOption: 0, markedForReview: false, timeSpent: 65 },
-              q_12: { selectedOption: 0, markedForReview: false, timeSpent: 60 },
-              q_1: { selectedOption: 0, markedForReview: false, timeSpent: 80 },
-              q_5: { selectedOption: 0, markedForReview: false, timeSpent: 75 }
-            }
-          }
-        ];
+        const attempts = [];
 
         // Pre-staged PDF Import Review Queue item so Admin can immediately inspect or approve
-        const pdfImportQueue = [
-          {
-            id: 'imp_sample_1',
-            fileName: 'Uttarakhand_SSC_Bilingual_Sample_Set.pdf',
-            createdAt: '2026-10-24T08:00:00Z',
-            status: 'pending_review',
-            examId: 'ex_ukpsc_pcs',
-            subjectId: 'sub_ga',
-            chapterId: 'ch_geog',
-            text_en: 'Which is the highest mountain peak located entirely within Uttarakhand?',
-            text_hi: 'उत्तराखंड में स्थित सबसे ऊँची पर्वत चोटी कौन सी है?',
-            options_en: ['Nanda Devi', 'Kamet', 'Trishul', 'Panchachuli'],
-            options_hi: ['नंदा देवी', 'कामेट', 'त्रिशूल', 'पंचाचूली'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Nanda Devi (7,816 m) in Chamoli district is the highest peak in Uttarakhand.',
-            explanation_hi: 'चमोली जिले में स्थित नंदा देवी (7,816 मीटर) उत्तराखंड की सर्वोच्च पर्वत चोटी है।',
-            sourceType: 'public_domain',
-            verificationStatus: 'unverified',
-            examYearShift: '',
-            tags: ['UKPSC-PCS', 'UKSSSC-GRPC'],
-            isDuplicate: false,
-            extractionWarning: null
-          }
-        ];
+        const pdfImportQueue = [];
 
         return {
           categories: categories,
@@ -2509,12 +2273,13 @@ table{max-width:100%;border-collapse:collapse}
           if (raw) {
             const parsed = JSON.parse(raw);
             if (parsed && Array.isArray(parsed.exams) && Array.isArray(parsed.questions)) {
-              // Keep the requested administrator login consistent in existing browser data.
-              const admin = Array.isArray(parsed.users) ? parsed.users.find(u => u.id === 'usr_admin_1' && u.role === 'admin') : null;
-              if (admin) {
-                admin.username = 'Admin';
-                admin.passwordHash = hashSecret('Admin@123', admin.id);
-              }
+              // Remove hard-coded sample identities/results from old local demo data.
+              const sampleIds = new Set(['usr_admin_1','usr_stu_aarav','usr_stu_priya','usr_stu_rohit','usr_stu_kavita']);
+              if (Array.isArray(parsed.users)) parsed.users = parsed.users.filter(u => !sampleIds.has(u.id));
+              if (Array.isArray(parsed.attempts)) parsed.attempts = parsed.attempts.filter(a => !sampleIds.has(a.userId));
+              if (Array.isArray(parsed.pdfImportQueue)) parsed.pdfImportQueue = parsed.pdfImportQueue.filter(j => j.id !== 'imp_sample_1');
+              if (!Array.isArray(parsed.users)) parsed.users = [];
+              if (!Array.isArray(parsed.attempts)) parsed.attempts = [];
               if (!Array.isArray(parsed.announcements)) parsed.announcements = [];
               try { localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed)); } catch (e) {}
               return parsed;
@@ -4678,7 +4443,7 @@ table{max-width:100%;border-collapse:collapse}
         });
 
         const attempted = correctCount + incorrectCount;
-        const accuracy = attempted > 0 ? Number(((correctCount / attempted) * 100).toFixed(2)) : 0;
+        let accuracy = attempted > 0 ? Number(((correctCount / attempted) * 100).toFixed(2)) : 0;
         const timeTakenSeconds = Math.max(1, cbt.totalDurationSeconds - Math.max(0, cbt.remainingSeconds));
         let backendAttemptId = null;
         let backendStatus = null;
@@ -4726,6 +4491,7 @@ table{max-width:100%;border-collapse:collapse}
             correctCount = Number(serverRow.correct_count || 0);
             incorrectCount = Number(serverRow.incorrect_count || 0);
             unansweredCount = Number(serverRow.unattempted_count || 0);
+            accuracy = Number(serverRow.accuracy || 0);
           } catch (backendError) {
             showToast('Server result save failed; showing local result only. ' + (backendError.message || ''), 'warning');
           }
