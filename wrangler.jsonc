@@ -7,6 +7,7 @@
     "binding": "AI"
   },
   "vars": {
-    "SUPABASE_URL": "https://zpjpoolfkjdlqxioabnf.supabase.co"
+    "SUPABASE_URL": "https://zpjpoolfkjdlqxioabnf.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_KJ3nxQqRZmDORHpk35qpCQ_1rixBmi4"
   }
 }
