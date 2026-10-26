@@ -1394,850 +1394,10 @@ table{max-width:100%;border-collapse:collapse}
 
         // Authentic Bilingual Questions (English + Devanagari Unicode)
         // Strictly labeled as verified sample/admin-created/public-domain without claiming unverified official exam shifts
-        const questions = [
-          {
-            id: 'q_1',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_quant',
-            chapterId: 'ch_perc',
-            text_en: 'If the price of sugar increases by 25%, by what percentage must a family reduce its consumption so that total expenditure on sugar remains unchanged?',
-            text_hi: 'यदि चीनी के मूल्य में 25% की वृद्धि हो जाती है, तो एक परिवार को अपनी खपत में कितने प्रतिशत की कमी करनी चाहिए ताकि चीनी पर कुल खर्च अपरिवर्तित रहे?',
-            options_en: ['20%', '25%', '16.67%', '15%'],
-            options_hi: ['20%', '25%', '16.67%', '15%'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Required percentage reduction = [R / (100 + R)] × 100 = (25 / 125) × 100 = 20%.',
-            explanation_hi: 'अभीष्ट प्रतिशत कमी = [R / (100 + R)] × 100 = (25 / 125) × 100 = 20%।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL', 'SSC-CHSL', 'RRB-NTPC', 'IBPS-PO'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_2',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_quant',
-            chapterId: 'ch_pl',
-            text_en: 'A shopkeeper marks his goods 40% above the cost price and allows a discount of 15%. What is his net profit percentage?',
-            text_hi: 'एक दुकानदार अपनी वस्तुओं पर क्रय मूल्य से 40% अधिक मूल्य अंकित करता है और 15% की छूट देता है। उसका शुद्ध लाभ प्रतिशत क्या है?',
-            options_en: ['19%', '25%', '21%', '17.5%'],
-            options_hi: ['19%', '25%', '21%', '17.5%'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Let CP = 100. Marked Price (MP) = 140. Selling Price (SP) = 140 × (1 - 0.15) = 140 × 0.85 = 119. Net profit = 19%.',
-            explanation_hi: 'माना क्रय मूल्य (CP) = 100। अंकित मूल्य (MP) = 140। विक्रय मूल्य (SP) = 140 × 0.85 = 119। अतः शुद्ध लाभ = 19%।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL', 'SSC-MTS', 'IBPS-CLERK'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_3',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_quant',
-            chapterId: 'ch_ratio',
-            text_en: 'If A : B = 3 : 4 and B : C = 6 : 5, then what is the ratio of A : B : C?',
-            text_hi: 'यदि A : B = 3 : 4 तथा B : C = 6 : 5 है, तो A : B : C का अनुपात क्या होगा?',
-            options_en: ['9 : 12 : 10', '3 : 6 : 5', '9 : 10 : 12', '6 : 8 : 10'],
-            options_hi: ['9 : 12 : 10', '3 : 6 : 5', '9 : 10 : 12', '6 : 8 : 10'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Make B equal in both ratios (LCM of 4 and 6 is 12). A : B = 9 : 12 and B : C = 12 : 10. Thus A : B : C = 9 : 12 : 10.',
-            explanation_hi: 'दोनों अनुपातों में B को समान बनाएं (4 और 6 का ल.स.प. 12 है)। A : B = 9 : 12 और B : C = 12 : 10। अतः A : B : C = 9 : 12 : 10।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL', 'SSC-GD', 'RRB-GROUP-D'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_4',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_quant',
-            chapterId: 'ch_tw',
-            text_en: 'A can complete a piece of work in 12 days and B can complete the same work in 18 days. In how many days will they complete the work together?',
-            text_hi: 'A किसी कार्य को 12 दिनों में और B उसी कार्य को 18 दिनों में पूरा कर सकता है। वे दोनों मिलकर उस कार्य को कितने दिनों में पूरा करेंगे?',
-            options_en: ['7.2 days', '8 days', '6.5 days', '7.5 days'],
-            options_hi: ['7.2 दिन', '8 दिन', '6.5 दिन', '7.5 दिन'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Total work = LCM(12, 18) = 36 units. Efficiency of A = 3 units/day, B = 2 units/day. Together = 36 / (3 + 2) = 7.2 days.',
-            explanation_hi: 'कुल कार्य = LCM(12, 18) = 36 इकाई। A की क्षमता = 3 इकाई/दिन, B = 2 इकाई/दिन। दोनों द्वारा लगा समय = 36 / 5 = 7.2 दिन।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL', 'RRB-NTPC', 'IBPS-PO'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_5',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_reasoning',
-            chapterId: 'ch_coding',
-            text_en: 'In a certain code language, if "LIBRARY" is written as "MJCSBSZ", how will "STUDENT" be written in that code language?',
-            text_hi: 'एक निश्चित कूट भाषा में यदि "LIBRARY" को "MJCSBSZ" लिखा जाता है, तो उसी कूट भाषा में "STUDENT" को कैसे लिखा जाएगा?',
-            options_en: ['TUVEFOU', 'TUVEFNT', 'RTUCDMS', 'TUVFFOU'],
-            options_hi: ['TUVEFOU', 'TUVEFNT', 'RTUCDMS', 'TUVFFOU'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Each letter is shifted forward by +1 in the English alphabet: S→T, T→U, U→V, D→E, E→F, N→O, T→U => TUVEFOU.',
-            explanation_hi: 'प्रत्येक अक्षर को अंग्रेजी वर्णमाला में +1 स्थान आगे बढ़ाया गया है: S→T, T→U, U→V, D→E, E→F, N→O, T→U => TUVEFOU।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL', 'SSC-CHSL', 'RPF-SI-CONST'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_6',
-            examId: 'ex_ibps_po',
-            subjectId: 'sub_reasoning',
-            chapterId: 'ch_syllogism',
-            text_en: 'Statements: All mountains are rivers. Some rivers are forests.\nConclusion I: Some forests are rivers.\nConclusion II: All forests are mountains.',
-            text_hi: 'कथन: सभी पर्वत नदियाँ हैं। कुछ नदियाँ वन हैं।\nनिष्कर्ष I: कुछ वन नदियाँ हैं।\nनिष्कर्ष II: सभी वन पर्वत हैं।',
-            options_en: ['Only Conclusion I follows', 'Only Conclusion II follows', 'Both I and II follow', 'Neither I nor II follows'],
-            options_hi: ['केवल निष्कर्ष I अनुसरण करता है', 'केवल निष्कर्ष II अनुसरण करता है', 'I और II दोनों अनुसरण करते हैं', 'न तो I और न ही II अनुसरण करता है'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'From "Some rivers are forests", its converse "Some forests are rivers" (Conclusion I) definitely follows. Conclusion II is not definite.',
-            explanation_hi: '"कुछ नदियाँ वन हैं" से इसका व्युत्क्रम "कुछ वन नदियाँ हैं" (निष्कर्ष I) निश्चित रूप से सत्य है। निष्कर्ष II निश्चित नहीं है।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Banking & SSC Pattern',
-            tags: ['IBPS-PO', 'SBI-PO', 'SSC-CGL'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_7',
-            examId: 'ex_ibps_po',
-            subjectId: 'sub_reasoning',
-            chapterId: 'ch_seating',
-            text_en: 'Five friends P, Q, R, S and T are sitting in a row facing North. S is between T and Q. R is to the immediate left of Q, and T is at the extreme left end. Who is sitting in the middle of the row?',
-            text_hi: 'पाँच मित्र P, Q, R, S और T उत्तर की ओर मुख करके एक पंक्ति में बैठे हैं। S, T और Q के ठीक बीच में है, और T बाएँ छोर पर है। यदि P दाएँ छोर पर है, तो पंक्ति के ठीक मध्य में कौन बैठा है?',
-            options_en: ['Q', 'S', 'R', 'T'],
-            options_hi: ['Q', 'S', 'R', 'T'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Left to right arrangement: T - S - Q - R - P. The person sitting in the exact middle (3rd position) is Q.',
-            explanation_hi: 'बाएँ से दाएँ क्रम: T - S - Q - R - P। अतः पंक्ति के ठीक मध्य (तीसरे स्थान) में Q बैठा है।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['IBPS-PO', 'IBPS-CLERK', 'SSC-CGL'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_8',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_english',
-            chapterId: 'ch_grammar',
-            text_en: 'Identify the correct form of the verb to complete the sentence: "Neither the teacher nor the students ______ present in the seminar hall yesterday."',
-            text_hi: 'वाक्य को पूरा करने के लिए क्रिया का सही रूप चुनें: "Neither the teacher nor the students ______ present in the seminar hall yesterday." (न तो शिक्षक और न ही छात्र कल सेमिनार हॉल में उपस्थित थे।)',
-            options_en: ['were', 'was', 'are', 'have been'],
-            options_hi: ['were (बहुवचन भूतकाल)', 'was (एकवचन भूतकाल)', 'are (वर्तमान काल)', 'have been'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'With "Neither...nor", the verb agrees with the closer subject ("students", plural) and "yesterday" requires past tense ("were").',
-            explanation_hi: '"Neither...nor" के नियम के अनुसार क्रिया निकटतम कर्ता ("students" - बहुवचन) के अनुसार आती है तथा "yesterday" के कारण भूतकाल ("were") प्रयुक्त होगा।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL', 'SSC-CPO', 'UPSC-CDS'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_9',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_english',
-            chapterId: 'ch_vocab',
-            text_en: 'Select the most appropriate synonym of the word "EPHEMERAL".',
-            text_hi: 'अंग्रेजी शब्द "EPHEMERAL" (क्षणिक / अल्पकालिक) का सबसे उपयुक्त समानार्थी (Synonym) चुनें:',
-            options_en: ['Transient (Short-lived)', 'Permanent', 'Eternal', 'Rigid'],
-            options_hi: ['Transient (अल्पकालिक / क्षणभंगुर)', 'Permanent (स्थायी)', 'Eternal (शाश्वत)', 'Rigid (कठोर)'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: '"Ephemeral" means lasting for a very short time. "Transient" is its closest synonym.',
-            explanation_hi: '"Ephemeral" का अर्थ है बहुत कम समय तक रहने वाला (क्षणिक)। अतः "Transient" इसका सही पर्यायवाची है।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL', 'IAF-AFCAT', 'UPSC-NDA'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_10',
-            examId: 'ex_ukpsc_pcs',
-            subjectId: 'sub_ga',
-            chapterId: 'ch_geog',
-            text_en: 'At which holy confluence (Panch Prayag) in Uttarakhand do the Alaknanda and Bhagirathi rivers meet to form the main stream of the Ganga?',
-            text_hi: 'उत्तराखंड के किस पवित्र प्रयाग (पंच प्रयाग) में अलकनंदा और भागीरथी नदियाँ मिलकर गंगा की मुख्य धारा का निर्माण करती हैं?',
-            options_en: ['Devprayag', 'Rudraprayag', 'Karnaprayag', 'Vishnuprayag'],
-            options_hi: ['देवप्रयाग', 'रुद्रप्रयाग', 'कर्णप्रयाग', 'विष्णुप्रयाग'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'At Devprayag (Tehri Garhwal district, Uttarakhand), the Alaknanda and Bhagirathi rivers join to form the Ganga.',
-            explanation_hi: 'देवप्रयाग (टिहरी गढ़वाल, उत्तराखंड) में अलकनंदा और भागीरथी नदियों का संगम होता है, जहाँ से इसे गंगा नदी कहा जाता है।',
-            sourceType: 'public_domain',
-            verificationStatus: 'verified',
-            examYearShift: 'Official UKPSC / SSC Pattern',
-            tags: ['UKPSC-PCS', 'UKSSSC-GRPC', 'SSC-CGL'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_11',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_ga',
-            chapterId: 'ch_polity',
-            text_en: 'Which Article of the Constitution of India empowers the Supreme Court to issue writs for the enforcement of Fundamental Rights?',
-            text_hi: 'भारतीय संविधान का कौन सा अनुच्छेद सर्वोच्च न्यायालय को मौलिक अधिकारों के प्रवर्तन के लिए रिट (Writs) जारी करने की शक्ति प्रदान करता है?',
-            options_en: ['Article 32', 'Article 226', 'Article 14', 'Article 21'],
-            options_hi: ['अनुच्छेद 32', 'अनुच्छेद 226', 'अनुच्छेद 14', 'अनुच्छेद 21'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Article 32 (Right to Constitutional Remedies) empowers the Supreme Court to issue five types of writs, while Article 226 empowers High Courts.',
-            explanation_hi: 'अनुच्छेद 32 (संवैधानिक उपचारों का अधिकार) सर्वोच्च न्यायालय को रिट जारी करने की शक्ति देता है, जबकि अनुच्छेद 226 उच्च न्यायालयों से संबंधित है।',
-            sourceType: 'public_domain',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL', 'UPSC-CSE', 'UKPSC-PCS', 'RRB-NTPC'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_12',
-            examId: 'ex_rrb_ntpc',
-            subjectId: 'sub_ga',
-            chapterId: 'ch_sci_ca',
-            text_en: 'What is the SI unit of electric current?',
-            text_hi: 'विद्युत धारा (Electric Current) का एसआई (SI) मात्रक क्या है?',
-            options_en: ['Ampere', 'Volt', 'Ohm', 'Coulomb'],
-            options_hi: ['एम्पियर (Ampere)', 'वोल्ट (Volt)', 'ओम (Ohm)', 'कूलॉम (Coulomb)'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Ampere (A) is the SI base unit of electric current. Volt is for potential difference, Ohm for resistance, and Coulomb for electric charge.',
-            explanation_hi: 'विद्युत धारा का SI मात्रक एम्पियर (Ampere) है। विभवांतर का वोल्ट, प्रतिरोध का ओम और आवेश का मात्रक कूलॉम है।',
-            sourceType: 'public_domain',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Science Pattern',
-            tags: ['RRB-NTPC', 'RRB-GROUP-D', 'RRB-ALP', 'SSC-CGL'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_13',
-            examId: 'ex_ukpsc_pcs',
-            subjectId: 'sub_ga',
-            chapterId: 'ch_hist',
-            text_en: 'Jim Corbett National Park, the oldest national park in India established in 1936 as Hailey National Park, is located in which districts of Uttarakhand?',
-            text_hi: '1936 में हैली नेशनल पार्क के रूप में स्थापित भारत का सबसे पुराना राष्ट्रीय उद्यान "जिम कॉर्बेट राष्ट्रीय उद्यान" उत्तराखंड के किन जिलों में स्थित है?',
-            options_en: ['Nainital and Pauri Garhwal', 'Chamoli and Rudraprayag', 'Uttarkashi and Tehri', 'Haridwar and Dehradun'],
-            options_hi: ['नैनीताल और पौड़ी गढ़वाल', 'चमोली और रुद्रप्रयाग', 'उत्तरकाशी और टिहरी', 'हरिद्वार और देहरादून'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Jim Corbett National Park spans across Nainital and Pauri Garhwal districts of Uttarakhand (Ramnagar headquarters).',
-            explanation_hi: 'जिम कॉर्बेट राष्ट्रीय उद्यान उत्तराखंड के नैनीताल और पौड़ी गढ़वाल जिलों में फैला हुआ है (मुख्यालय: रामनगर)।',
-            sourceType: 'public_domain',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Uttarakhand GK',
-            tags: ['UKPSC-PCS', 'UKSSSC-GRPC', 'POLICE-SI'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_14',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_english',
-            chapterId: 'ch_rc',
-            text_en: 'Read the short passage: "Public libraries serve as equalizers in competitive exam preparation by providing disciplined study environments and digital mock testing to rural and urban aspirants alike." According to the passage, what is a key role of public libraries?',
-            text_hi: 'गद्यांश पढ़ें: "सार्वजनिक पुस्तकालय ग्रामीण और शहरी दोनों क्षेत्रों के अभ्यर्थियों को अनुशासित अध्ययन वातावरण और डिजिटल मॉक टेस्ट उपलब्ध कराकर प्रतियोगी परीक्षा की तैयारी में समानता लाते हैं।" गद्यांश के अनुसार सार्वजनिक पुस्तकालयों की मुख्य भूमिका क्या है?',
-            options_en: ['Providing equal access to disciplined study and digital mock tests', 'Charging high coaching fees from rural students', 'Replacing official examination boards', 'Limiting computer usage to urban students'],
-            options_hi: ['अनुशासित अध्ययन और डिजिटल मॉक टेस्ट तक समान पहुँच प्रदान करना', 'ग्रामीण छात्रों से उच्च कोचिंग शुल्क लेना', 'आधिकारिक परीक्षा बोर्डों का स्थान लेना', 'कंप्यूटर उपयोग को केवल शहरी छात्रों तक सीमित रखना'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'The passage directly states that public libraries act as equalizers by providing disciplined study spaces and digital mock testing to all aspirants.',
-            explanation_hi: 'गद्यांश में स्पष्ट रूप से कहा गया है कि सार्वजनिक पुस्तकालय सभी अभ्यर्थियों को अनुशासित अध्ययन और डिजिटल मॉक टेस्ट की समान सुविधा देते हैं।',
-            sourceType: 'original',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Reading Comprehension',
-            tags: ['SSC-CGL', 'IBPS-PO', 'CTET-UTET'],
-            isPublished: true,
-            isSample: false
-          },
-          // Additional Maths Topics (SI & CI, Time-Speed-Distance, Number System, Geometry/Mensuration)
-          {
-            id: 'q_15',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_quant',
-            chapterId: 'ch_si_ci',
-            text_en: 'Find the compound interest on ₹10,000 at 10% per annum for 2 years, compounded annually.',
-            text_hi: '₹10,000 की धनराशि पर 10% वार्षिक दर से 2 वर्ष का वार्षिक रूप से संयोजित चक्रवृद्धि ब्याज (Compound Interest) ज्ञात कीजिए।',
-            options_en: ['₹2,100', '₹2,000', '₹2,200', '₹1,900'],
-            options_hi: ['₹2,100', '₹2,000', '₹2,200', '₹1,900'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Effective CI rate for 2 years at 10% = 10 + 10 + (10×10)/100 = 21%. CI = 21% of 10,000 = ₹2,100.',
-            explanation_hi: '10% की दर से 2 वर्ष की प्रभावी चक्रवृद्धि ब्याज दर = 10 + 10 + 1 = 21%। अतः ब्याज = 10,000 का 21% = ₹2,100।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL-T1', 'IBPS-PO-PRE', 'RRB-NTPC-CBT1'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_16',
-            examId: 'ex_rrb_ntpc',
-            subjectId: 'sub_quant',
-            chapterId: 'ch_tsd',
-            text_en: 'A train 180 meters long is running at a speed of 54 km/hr. How much time will it take to cross a platform 120 meters long?',
-            text_hi: '180 मीटर लंबी एक रेलगाड़ी 54 किमी/घंटा की चाल से चल रही है। यह 120 मीटर लंबे प्लेटफॉर्म को पार करने में कितना समय लेगी?',
-            options_en: ['20 seconds', '18 seconds', '24 seconds', '15 seconds'],
-            options_hi: ['20 सेकंड', '18 सेकंड', '24 सेकंड', '15 सेकंड'],
-            correctOption: 0,
-            marks: 1.0,
-            negativeMarks: 0.33,
-            explanation_en: 'Speed = 54 × (5/18) = 15 m/s. Total distance = 180 + 120 = 300 m. Time = 300 / 15 = 20 seconds.',
-            explanation_hi: 'चाल = 54 × (5/18) = 15 मीटर/सेकंड। कुल दूरी = 180 + 120 = 300 मीटर। समय = 300 / 15 = 20 सेकंड।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Railway & SSC Pattern',
-            tags: ['RRB-NTPC-CBT1', 'RRB-ALP-CBT1', 'SSC-GD'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_17',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_quant',
-            chapterId: 'ch_geom_mens',
-            text_en: 'If the radius of a circle is increased by 10%, then by what percentage does its area increase?',
-            text_hi: 'यदि किसी वृत्त की त्रिज्या में 10% की वृद्धि कर दी जाए, तो उसके क्षेत्रफल में कितने प्रतिशत की वृद्धि होगी?',
-            options_en: ['21%', '20%', '19%', '25%'],
-            options_hi: ['21%', '20%', '19%', '25%'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Percentage increase in area = x + x + (x²/100) = 10 + 10 + 1 = 21%.',
-            explanation_hi: 'क्षेत्रफल में प्रतिशत वृद्धि = 10 + 10 + (10×10)/100 = 21%।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Mensuration Pattern',
-            tags: ['SSC-CGL-T1', 'UPSC-CDS', 'UPSC-NDA'],
-            isPublished: true,
-            isSample: false
-          },
-          // Additional Reasoning Topics (Blood Relations, Direction Sense, Number Series)
-          {
-            id: 'q_18',
-            examId: 'ex_ibps_po',
-            subjectId: 'sub_reasoning',
-            chapterId: 'ch_blood_rel',
-            text_en: 'Pointing to a photograph, Rohan said, "She is the daughter of the only son of my grandfather." How is the girl in the photograph related to Rohan?',
-            text_hi: 'एक तस्वीर की ओर इशारा करते हुए रोहन ने कहा, "वह मेरे दादाजी के इकलौते पुत्र की पुत्री है।" तस्वीर में दिख रही लड़की का रोहन से क्या संबंध है?',
-            options_en: ['Sister', 'Mother', 'Cousin', 'Aunt'],
-            options_hi: ['बहन (Sister)', 'माता', 'चचेरी बहन', 'बुआ'],
-            correctOption: 0,
-            marks: 1.0,
-            negativeMarks: 0.25,
-            explanation_en: 'The only son of Rohan’s grandfather is Rohan’s father. His daughter is Rohan’s sister.',
-            explanation_hi: 'रोहन के दादाजी का इकलौता पुत्र रोहन का पिता है, और उनकी पुत्री रोहन की बहन है।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Reasoning Pattern',
-            tags: ['IBPS-PO-PRE', 'SSC-CGL-T1', 'UKSSSC-VDO-PATWARI'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_19',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_reasoning',
-            chapterId: 'ch_dir_sense',
-            text_en: 'Karan walks 8 km North, then turns right and walks 6 km. What is the shortest straight-line distance from his starting point?',
-            text_hi: 'करण उत्तर दिशा में 8 किमी चलता है, फिर दाएँ मुड़कर 6 किमी चलता है। प्रारंभिक बिंदु से उसकी न्यूनतम सीधी दूरी कितनी है?',
-            options_en: ['10 km', '14 km', '12 km', '9 km'],
-            options_hi: ['10 किमी', '14 किमी', '12 किमी', '9 किमी'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'By Pythagoras theorem: √(8² + 6²) = √(64 + 36) = √100 = 10 km.',
-            explanation_hi: 'पाइथागोरस प्रमेय के अनुसार: √(8² + 6²) = √(64 + 36) = √100 = 10 किमी।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Reasoning Pattern',
-            tags: ['SSC-GD', 'RRB-GROUP-D', 'UK-POLICE-FOREST'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_20',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_reasoning',
-            chapterId: 'ch_num_series',
-            text_en: 'Find the next number in the series: 3, 7, 15, 31, 63, ?',
-            text_hi: 'दी गई संख्या श्रृंखला में अगली संख्या ज्ञात कीजिए: 3, 7, 15, 31, 63, ?',
-            options_en: ['127', '125', '126', '129'],
-            options_hi: ['127', '125', '126', '129'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Pattern is ×2 + 1: 3×2+1=7, 7×2+1=15, 15×2+1=31, 31×2+1=63, 63×2+1 = 127.',
-            explanation_hi: 'श्रृंखला का नियम (×2 + 1) है: 63 × 2 + 1 = 127।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Series Pattern',
-            tags: ['SSC-CGL-T1', 'IBPS-CLERK-PRE', 'RPF-SI-CONST'],
-            isPublished: true,
-            isSample: false
-          },
-          // General Hindi (सामान्य हिंदी — sub_hindi)
-          {
-            id: 'q_21',
-            examId: 'ex_uksssc_grp_c',
-            subjectId: 'sub_hindi',
-            chapterId: 'ch_hi_sandhi',
-            text_en: 'Select the correct Sandhi-Viched (संधि-विच्छेद) of the Hindi word "हिमालय" (Himalaya) and identify its Sandhi type:',
-            text_hi: '"हिमालय" शब्द का सही संधि-विच्छेद और संधि का नाम चुनिए:',
-            options_en: ['हिम + आलय (दीर्घ स्वर संधि)', 'हिमा + लय (गुण संधि)', 'हिम + अल्य (यण संधि)', 'हीम + आलय (वृद्धि संधि)'],
-            options_hi: ['हिम + आलय (दीर्घ स्वर संधि)', 'हिमा + लय (गुण संधि)', 'हिम + अल्य (यण संधि)', 'हीम + आलय (वृद्धि संधि)'],
-            correctOption: 0,
-            marks: 1.0,
-            negativeMarks: 0.25,
-            explanation_en: 'हिम + आलय = हिमालय (अ + आ = आ), जो दीर्घ स्वर संधि का उदाहरण है।',
-            explanation_hi: 'हिम + आलय = हिमालय (अ + आ = आ), यह दीर्घ स्वर संधि का उदाहरण है।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'UKSSSC / UPPSC General Hindi Pattern',
-            tags: ['UKSSSC-VDO-PATWARI', 'UK-POLICE-FOREST', 'UP-POLICE-SI', 'SSC-GD'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_22',
-            examId: 'ex_uksssc_grp_c',
-            subjectId: 'sub_hindi',
-            chapterId: 'ch_hi_vocab',
-            text_en: 'Which of the following is the correct Tatsam (तत्सम) form of the word "आग" (Fire)?',
-            text_hi: 'निम्नलिखित में से "आग" (तद्भव शब्द) का शुद्ध तत्सम रूप कौन सा है?',
-            options_en: ['अग्नि', 'अनिल', 'अनल', 'अंगार'],
-            options_hi: ['अग्नि', 'अनिल', 'अनल', 'अंगार'],
-            correctOption: 0,
-            marks: 1.0,
-            negativeMarks: 0.25,
-            explanation_en: '"अग्नि" संस्कृत का मूल तत्सम शब्द है जिसका तद्भव रूप "आग" है।',
-            explanation_hi: '"अग्नि" तत्सम शब्द है, जिससे हिंदी में तद्भव शब्द "आग" बना है।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official General Hindi Pattern',
-            tags: ['UKSSSC-VDO-PATWARI', 'UKPSC-RO-ARO', 'CTET-UTET'],
-            isPublished: true,
-            isSample: false
-          },
-          // Uttarakhand Special GK (sub_uk_gk)
-          {
-            id: 'q_23',
-            examId: 'ex_ukpsc_pcs',
-            subjectId: 'sub_uk_gk',
-            chapterId: 'ch_uk_hist',
-            text_en: 'On which date was the state of Uttarakhand (originally Uttaranchal) carved out as the 27th state of the Republic of India?',
-            text_hi: 'भारतीय गणराज्य के 27वें राज्य के रूप में उत्तराखंड (तत्कालीन उत्तरांचल) का गठन किस तिथि को हुआ था?',
-            options_en: ['9 November 2000', '1 November 2000', '15 November 2000', '26 January 2001'],
-            options_hi: ['9 नवंबर 2000', '1 नवंबर 2000', '15 नवंबर 2000', '26 जनवरी 2001'],
-            correctOption: 0,
-            marks: 1.0,
-            negativeMarks: 0.25,
-            explanation_en: 'Uttarakhand was formed on 9 November 2000 as the 27th state of India.',
-            explanation_hi: 'उत्तराखंड राज्य का गठन 9 नवंबर 2000 को भारत के 27वें राज्य के रूप में हुआ था।',
-            sourceType: 'public_domain',
-            verificationStatus: 'verified',
-            examYearShift: 'Official UKPSC / UKSSSC Pattern',
-            tags: ['UKPSC-PCS', 'UKSSSC-VDO-PATWARI', 'UK-POLICE-FOREST'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_24',
-            examId: 'ex_ukpsc_pcs',
-            subjectId: 'sub_uk_gk',
-            chapterId: 'ch_uk_geog',
-            text_en: 'Valley of Flowers National Park, a UNESCO World Heritage Site in Uttarakhand, is situated in which district?',
-            text_hi: 'उत्तराखंड में यूनेस्को (UNESCO) विश्व धरोहर स्थल "फूलों की घाटी राष्ट्रीय उद्यान" किस जिले में स्थित है?',
-            options_en: ['Chamoli', 'Uttarkashi', 'Pithoragarh', 'Rudraprayag'],
-            options_hi: ['चमोली', 'उत्तरकाशी', 'पिथौरागढ़', 'रुद्रप्रयाग'],
-            correctOption: 0,
-            marks: 1.0,
-            negativeMarks: 0.25,
-            explanation_en: 'Valley of Flowers National Park is located in Chamoli district of Uttarakhand.',
-            explanation_hi: 'फूलों की घाटी राष्ट्रीय उद्यान उत्तराखंड के चमोली जिले में स्थित है।',
-            sourceType: 'public_domain',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Uttarakhand GK',
-            tags: ['UKPSC-PCS', 'UKSSSC-VDO-PATWARI'],
-            isPublished: true,
-            isSample: false
-          },
-          // Computer Knowledge (sub_computer)
-          {
-            id: 'q_25',
-            examId: 'ex_ssc_cgl_t2',
-            subjectId: 'sub_computer',
-            chapterId: 'ch_comp_fund',
-            text_en: 'Which of the following memory types is volatile (loses its stored data when power is turned off)?',
-            text_hi: 'निम्नलिखित में से कौन सी कंप्यूटर मेमोरी "वोलेटाइल" (अस्थायी) है, अर्थात बिजली बंद होने पर डेटा नष्ट हो जाता है?',
-            options_en: ['RAM (Random Access Memory)', 'ROM (Read Only Memory)', 'Hard Disk Drive (HDD)', 'Flash Memory / SSD'],
-            options_hi: ['रैम (RAM - Random Access Memory)', 'रोम (ROM)', 'हार्ड डिस्क ड्राइव (HDD)', 'फ्लैश मेमोरी / SSD'],
-            correctOption: 0,
-            marks: 3.0,
-            negativeMarks: 1.0,
-            explanation_en: 'RAM is primary volatile memory, whereas ROM, HDD, and SSD retain data without power.',
-            explanation_hi: 'RAM एक अस्थायी (Volatile) प्राथमिक मेमोरी है, जिसमें बिजली बंद होते ही डेटा मिट जाता है।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'SSC CGL Tier-II & Banking Mains Pattern',
-            tags: ['SSC-CGL-T2', 'DELHI-POLICE', 'IBPS-PO-MAINS', 'UKSSSC-VDO-PATWARI'],
-            isPublished: true,
-            isSample: false
-          },
-          // General Science (sub_science)
-          {
-            id: 'q_26',
-            examId: 'ex_rrb_group_d',
-            subjectId: 'sub_science',
-            chapterId: 'ch_sci_chem_bio',
-            text_en: 'Which vitamin is water-soluble and its deficiency causes Scurvy?',
-            text_hi: 'कौन सा विटामिन जल में घुलनशील है तथा इसकी कमी से "स्कर्वी" (Scurvy) रोग होता है?',
-            options_en: ['Vitamin C (Ascorbic Acid)', 'Vitamin A (Retinol)', 'Vitamin D (Calciferol)', 'Vitamin K'],
-            options_hi: ['विटामिन C (एस्कॉर्बिक अम्ल)', 'विटामिन A (रेटिनॉल)', 'विटामिन D (कैल्सीफेरॉल)', 'विटामिन K'],
-            correctOption: 0,
-            marks: 1.0,
-            negativeMarks: 0.33,
-            explanation_en: 'Vitamins B and C are water-soluble. Deficiency of Vitamin C (Ascorbic Acid) causes Scurvy.',
-            explanation_hi: 'विटामिन B और C जल में घुलनशील हैं। विटामिन C (एस्कॉर्बिक अम्ल) की कमी से मसूड़ों का रोग स्कर्वी होता है।',
-            sourceType: 'public_domain',
-            verificationStatus: 'verified',
-            examYearShift: 'Official General Science Pattern',
-            tags: ['RRB-GROUP-D', 'RRB-ALP-CBT1', 'UPSC-NDA', 'SSC-CGL-T1'],
-            isPublished: true,
-            isSample: false
-          },
-          // Child Development & Pedagogy (sub_cdp)
-          {
-            id: 'q_27',
-            examId: 'ex_ctet_utet',
-            subjectId: 'sub_cdp',
-            chapterId: 'ch_cdp_growth',
-            text_en: 'According to Lev Vygotsky’s sociocultural theory, the gap between what a learner can do independently and what they can achieve with guidance is called:',
-            text_hi: 'लेव वाइगोत्स्की के सामाजिक-सांस्कृतिक सिद्धांत के अनुसार, एक बच्चा स्वतंत्र रूप से जो कर सकता है और मार्गदर्शन की सहायता से जो प्राप्त कर सकता है, उसके बीच के अंतर को क्या कहते हैं?',
-            options_en: ['Zone of Proximal Development (ZPD)', 'Sensory-Motor Stage', 'Classical Conditioning', 'Rote Memorization'],
-            options_hi: ['समीपस्थ विकास का क्षेत्र (ZPD)', 'संवेदी-पेशीय अवस्था', 'शास्त्रीय अनुबंधन', 'रटंत स्मरण'],
-            correctOption: 0,
-            marks: 1.0,
-            negativeMarks: 0.0,
-            explanation_en: 'Lev Vygotsky introduced the concept of Zone of Proximal Development (ZPD) and Scaffolding.',
-            explanation_hi: 'लेव वाइगोत्स्की ने समीपस्थ विकास का क्षेत्र (Zone of Proximal Development - ZPD) की अवधारणा दी।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official CTET / UTET / LT Pattern',
-            tags: ['CTET-UTET', 'UKSSSC-LT-LECT', 'KVS-NVS-EMRS'],
-            isPublished: true,
-            isSample: false
-          }
-        ];
+        const questions = [];
 
         // Official Exam-Pattern Mock Tests & Chapter-Wise Practice Tests
-        const tests = [
-          {
-            id: 'test_ssc_cgl_mock_1',
-            examId: 'ex_ssc_cgl',
-            chapterId: null,
-            title: 'SSC CGL Tier-I Official Pattern Mock Test #1 (60 Mins • +2.0 / -0.50)',
-            title_hi: 'एसएससी सीजीएल (SSC CGL) टियर-I आधिकारिक पैटर्न मॉक टेस्ट #1 (60 मिनट • +2.0 / -0.50)',
-            testType: 'full_mock',
-            durationMinutes: 60,
-            defaultMarks: 2.0,
-            defaultNegative: 0.50,
-            maxAttempts: null,
-            isPracticeMode: false,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_quant', name: 'Quantitative Aptitude', name_hi: 'मात्रात्मक अभियोग्यता', subjectId: 'sub_quant' },
-              { id: 'sec_reas', name: 'General Intelligence & Reasoning', name_hi: 'तर्कशक्ति', subjectId: 'sub_reasoning' },
-              { id: 'sec_eng', name: 'English Comprehension', name_hi: 'अंग्रेजी बोधगम्यता', subjectId: 'sub_english' },
-              { id: 'sec_ga', name: 'General Awareness', name_hi: 'सामान्य जागरूकता', subjectId: 'sub_ga' }
-            ],
-            questionIds: ['q_1', 'q_2', 'q_3', 'q_4', 'q_5', 'q_6', 'q_7', 'q_8', 'q_9', 'q_10', 'q_11', 'q_12', 'q_13', 'q_14']
-          },
-          {
-            id: 'test_ukpsc_mock_1',
-            examId: 'ex_ukpsc_pcs',
-            chapterId: null,
-            title: 'UKPSC / UKSSSC Uttarakhand Official Pattern Mock Test #1 (120 Mins • +1.0 / -0.25)',
-            title_hi: 'उत्तराखंड UKPSC / UKSSSC आधिकारिक पैटर्न मॉक टेस्ट #1 (120 मिनट • +1.0 / -0.25)',
-            testType: 'full_mock',
-            durationMinutes: 120,
-            defaultMarks: 1.0,
-            defaultNegative: 0.25,
-            maxAttempts: null,
-            isPracticeMode: false,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_uk_ga', name: 'Uttarakhand GK & General Studies', name_hi: 'उत्तराखंड सामान्य ज्ञान एवं अध्ययन', subjectId: 'sub_ga' },
-              { id: 'sec_uk_apt', name: 'Aptitude & Reasoning', name_hi: 'अभियोग्यता एवं तर्कशक्ति', subjectId: 'sub_quant' }
-            ],
-            questionIds: ['q_10', 'q_13', 'q_11', 'q_12', 'q_1', 'q_5', 'q_3', 'q_4']
-          },
-          {
-            id: 'test_ibps_po_mock_1',
-            examId: 'ex_ibps_po',
-            chapterId: null,
-            title: 'IBPS PO / SBI PO Official Sectional-Timed Prelims Mock #1 (20m + 20m + 20m = 60 Mins • +1.0 / -0.25)',
-            title_hi: 'IBPS PO / SBI PO सेक्शनल टाइमिंग प्रारंभिक मॉक #1 (20+20+20 = 60 मिनट • +1.0 / -0.25)',
-            testType: 'full_mock',
-            hasSectionalTiming: true,
-            durationMinutes: 60,
-            defaultMarks: 1.0,
-            defaultNegative: 0.25,
-            maxAttempts: null,
-            isPracticeMode: false,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_b_eng', name: 'Section 1: English (20 Mins)', name_hi: 'अंग्रेजी भाषा (20 मिनट)', subjectId: 'sub_english', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_b_quant', name: 'Section 2: Quant (20 Mins)', name_hi: 'गणित (20 मिनट)', subjectId: 'sub_quant', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_b_reas', name: 'Section 3: Reasoning (20 Mins)', name_hi: 'तर्कशक्ति (20 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 }
-            ],
-            questionIds: ['q_8', 'q_9', 'q_14', 'q_1', 'q_2', 'q_3', 'q_4', 'q_5', 'q_6', 'q_7']
-          },
-          {
-            id: 'test_ssc_mts_sessions_mock_1',
-            examId: 'ex_ssc_mts',
-            chapterId: null,
-            title: 'SSC MTS & Havaldar Official 2-Session CBT Mock #1 (Session-I 45m No-Neg + Session-II 45m +3/-1)',
-            title_hi: 'एसएससी एमटीएस (SSC MTS) आधिकारिक 2-सत्र मॉक टेस्ट #1 (सत्र-I 45m + सत्र-II 45m)',
-            testType: 'full_mock',
-            hasSectionalTiming: true,
-            durationMinutes: 90,
-            defaultMarks: 3.0,
-            defaultNegative: 1.0,
-            maxAttempts: null,
-            isPracticeMode: false,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sess_mts_1', name: 'Session I: Math & Reasoning (45m • +3 / 0 Neg)', name_hi: 'सत्र I: गणित एवं तर्कशक्ति (45 मिनट • नेगेटिव नहीं)', subjectId: 'sub_quant', durationMinutes: 45, posMarks: 3.0, negMarks: 0.00 },
-              { id: 'sess_mts_2', name: 'Session II: GA & English (45m • +3 / -1 Neg)', name_hi: 'सत्र II: सामान्य जागरूकता एवं अंग्रेजी (45 मिनट • +3/-1)', subjectId: 'sub_ga', durationMinutes: 45, posMarks: 3.0, negMarks: 1.00 }
-            ],
-            questionIds: ['q_1', 'q_2', 'q_3', 'q_4', 'q_5', 'q_8', 'q_9', 'q_10', 'q_11', 'q_12']
-          },
-          // Official Sessional / Sectional Tests (Separate from Full Mock & Chapter Practice)
-          {
-            id: 'test_sessional_ssc_quant_1',
-            examId: 'ex_ssc_cgl',
-            chapterId: null,
-            title: 'Sessional / Sectional Test: SSC CGL Quantitative Aptitude (25 Qs Pattern • 15 Mins • +2.0 / -0.50)',
-            title_hi: 'सेशनल (अनुभागीय) टेस्ट: एसएससी सीजीएल गणित (15 मिनट • +2.0 / -0.50)',
-            testType: 'sessional_test',
-            durationMinutes: 15,
-            defaultMarks: 2.0,
-            defaultNegative: 0.50,
-            maxAttempts: null,
-            isPracticeMode: false,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_sess_q', name: 'Quantitative Aptitude Sessional', name_hi: 'गणित सेशनल', subjectId: 'sub_quant' }
-            ],
-            questionIds: ['q_1', 'q_2', 'q_3', 'q_4']
-          },
-          {
-            id: 'test_sessional_bank_reas_1',
-            examId: 'ex_ibps_po',
-            chapterId: null,
-            title: 'Sessional / Sectional Test: Banking Prelims Reasoning Ability (20 Mins Official Sectional Timer • +1.0 / -0.25)',
-            title_hi: 'सेशनल (अनुभागीय) टेस्ट: बैंकिंग तर्कशक्ति क्षमता (20 मिनट आधिकारिक समय • +1.0 / -0.25)',
-            testType: 'sessional_test',
-            durationMinutes: 20,
-            defaultMarks: 1.0,
-            defaultNegative: 0.25,
-            maxAttempts: null,
-            isPracticeMode: false,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_sess_r', name: 'Reasoning Ability (20m Section)', name_hi: 'तर्कशक्ति सेशनल', subjectId: 'sub_reasoning' }
-            ],
-            questionIds: ['q_5', 'q_6', 'q_7']
-          },
-          {
-            id: 'test_sessional_uk_ga_1',
-            examId: 'ex_ukpsc_pcs',
-            chapterId: null,
-            title: 'Sessional / Sectional Test: Uttarakhand GK & General Studies Section (30 Mins • +1.0 / -0.25)',
-            title_hi: 'सेशनल टेस्ट: उत्तराखंड सामान्य ज्ञान एवं सामान्य अध्ययन (30 मिनट • +1.0 / -0.25)',
-            testType: 'sessional_test',
-            durationMinutes: 30,
-            defaultMarks: 1.0,
-            defaultNegative: 0.25,
-            maxAttempts: null,
-            isPracticeMode: false,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_sess_uk', name: 'Uttarakhand GK Section', name_hi: 'उत्तराखंड सामान्य ज्ञान', subjectId: 'sub_ga' }
-            ],
-            questionIds: ['q_10', 'q_11', 'q_12', 'q_13']
-          },
-          {
-            id: 'test_rrb_ntpc_mock_1',
-            examId: 'ex_rrb_ntpc',
-            chapterId: null,
-            title: 'Railway RRB NTPC & Group D Official CBT Mock #1 (90 Mins • +1.0 / -0.33)',
-            title_hi: 'रेलवे RRB NTPC एवं ग्रुप-डी आधिकारिक CBT मॉक #1 (90 मिनट • +1.0 / -0.33)',
-            testType: 'full_mock',
-            durationMinutes: 90,
-            defaultMarks: 1.0,
-            defaultNegative: 0.33,
-            maxAttempts: null,
-            isPracticeMode: false,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_r_ga', name: 'General Science & Awareness', name_hi: 'सामान्य विज्ञान एवं जागरूकता', subjectId: 'sub_ga' },
-              { id: 'sec_r_math', name: 'Mathematics & Reasoning', name_hi: 'गणित एवं तर्कशक्ति', subjectId: 'sub_quant' }
-            ],
-            questionIds: ['q_12', 'q_11', 'q_3', 'q_4', 'q_5', 'q_1', 'q_2', 'q_10']
-          },
-          // Chapter-Wise Practice Tests
-          {
-            id: 'test_chap_quant_perc_pl',
-            examId: 'ex_ssc_cgl',
-            chapterId: 'ch_perc',
-            title: 'Chapter Practice: Percentage, Profit & Loss, Ratio & Time-Work',
-            title_hi: 'अध्याय अभ्यास: प्रतिशत, लाभ-हानि, अनुपात एवं समय-कार्य',
-            testType: 'chapter_practice',
-            durationMinutes: 10,
-            defaultMarks: 2.0,
-            defaultNegative: 0.5,
-            maxAttempts: null,
-            isPracticeMode: true,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_ch_q', name: 'Quantitative Chapters', name_hi: 'गणित अध्याय', subjectId: 'sub_quant' }
-            ],
-            questionIds: ['q_1', 'q_2', 'q_3', 'q_4']
-          },
-          {
-            id: 'test_chap_reas_all',
-            examId: 'ex_ibps_po',
-            chapterId: 'ch_syllogism',
-            title: 'Chapter Practice: Coding-Decoding, Syllogism & Seating Arrangement',
-            title_hi: 'अध्याय अभ्यास: कोडिंग-डिकोडिंग, न्याय निगमन एवं बैठक व्यवस्था',
-            testType: 'chapter_practice',
-            durationMinutes: 10,
-            defaultMarks: 2.0,
-            defaultNegative: 0.5,
-            maxAttempts: null,
-            isPracticeMode: true,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_ch_r', name: 'Reasoning Chapters', name_hi: 'तर्कशक्ति अध्याय', subjectId: 'sub_reasoning' }
-            ],
-            questionIds: ['q_5', 'q_6', 'q_7']
-          },
-          {
-            id: 'test_chap_eng_all',
-            examId: 'ex_ssc_cgl',
-            chapterId: 'ch_grammar',
-            title: 'Chapter Practice: Grammar, Vocabulary & Reading Comprehension',
-            title_hi: 'अध्याय अभ्यास: व्याकरण, शब्दावली एवं अपठित गद्यांश',
-            testType: 'chapter_practice',
-            durationMinutes: 10,
-            defaultMarks: 2.0,
-            defaultNegative: 0.5,
-            maxAttempts: null,
-            isPracticeMode: true,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_ch_e', name: 'English Chapters', name_hi: 'अंग्रेजी अध्याय', subjectId: 'sub_english' }
-            ],
-            questionIds: ['q_8', 'q_9', 'q_14']
-          },
-          {
-            id: 'test_chap_ga_uk',
-            examId: 'ex_ukpsc_pcs',
-            chapterId: 'ch_geog',
-            title: 'Chapter Practice: History, Geography, Polity, Science & Uttarakhand GK',
-            title_hi: 'अध्याय अभ्यास: इतिहास, भूगोल, राजव्यवस्था, विज्ञान एवं उत्तराखंड सामान्य ज्ञान',
-            testType: 'chapter_practice',
-            durationMinutes: 10,
-            defaultMarks: 2.0,
-            defaultNegative: 0.5,
-            maxAttempts: null,
-            isPracticeMode: true,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_ch_g', name: 'General Awareness Chapters', name_hi: 'सामान्य जागरूकता अध्याय', subjectId: 'sub_ga' }
-            ],
-            questionIds: ['q_10', 'q_11', 'q_12', 'q_13']
-          }
-        ];
+        const tests = [];
 
         // Users: Approved Students, Pending Student, Rejected Student, and Library Administrator
         const users = [];
@@ -2278,6 +1438,12 @@ table{max-width:100%;border-collapse:collapse}
               if (Array.isArray(parsed.users)) parsed.users = parsed.users.filter(u => !sampleIds.has(u.id));
               if (Array.isArray(parsed.attempts)) parsed.attempts = parsed.attempts.filter(a => !sampleIds.has(a.userId));
               if (Array.isArray(parsed.pdfImportQueue)) parsed.pdfImportQueue = parsed.pdfImportQueue.filter(j => j.id !== 'imp_sample_1');
+              const builtInTestIds = new Set(['test_ssc_cgl_mock_1','test_ukpsc_mock_1','test_ibps_po_mock_1','test_ssc_mts_sessions_mock_1','test_sessional_ssc_quant_1','test_sessional_bank_reas_1','test_sessional_uk_ga_1','test_rrb_ntpc_mock_1','test_chap_quant_perc_pl','test_chap_reas_all','test_chap_eng_all','test_chap_ga_uk']);
+              if (Array.isArray(parsed.tests)) parsed.tests = parsed.tests.filter(t => !builtInTestIds.has(t.id));
+              if (Array.isArray(parsed.questions)) {
+                parsed.questions = parsed.questions.filter(q => !/^q_\\d+$/.test(String(q.id || '')));
+                parsed.questions.forEach(q => { delete q.correctOption; delete q.explanation_en; delete q.explanation_hi; });
+              }
               if (!Array.isArray(parsed.users)) parsed.users = [];
               if (!Array.isArray(parsed.attempts)) parsed.attempts = [];
               if (!Array.isArray(parsed.announcements)) parsed.announcements = [];
@@ -3783,7 +2949,8 @@ table{max-width:100%;border-collapse:collapse}
 
         const questionsList = test.questionIds
           .map(qId => db.questions.find(q => q.id === qId))
-          .filter(Boolean);
+          .filter(Boolean)
+          .map(q => Object.assign({}, q));
 
         if (questionsList.length === 0) {
           showToast('This test has no published questions yet.', 'warning');
@@ -4492,6 +3659,16 @@ table{max-width:100%;border-collapse:collapse}
             incorrectCount = Number(serverRow.incorrect_count || 0);
             unansweredCount = Number(serverRow.unattempted_count || 0);
             accuracy = Number(serverRow.accuracy || 0);
+            const reviewResult = await client.rpc('get_attempt_review', { p_attempt_id: backendAttemptId });
+            if (!reviewResult.error && Array.isArray(reviewResult.data)) {
+              const reviewMap = {};
+              reviewResult.data.forEach(row => {
+                if (!row.legacy_id) return;
+                reviewMap[row.legacy_id] = { correctOption:Number(row.correct_option), explanation_en:row.explanation_en || '', explanation_hi:row.explanation_hi || '', selectedOption:row.selected_option, isCorrect:row.is_correct, marksAwarded:row.marks_awarded };
+              });
+              cbt.questions.forEach(q => { if (reviewMap[q.id]) { q.correctOption=reviewMap[q.id].correctOption; q.explanation_en=reviewMap[q.id].explanation_en; q.explanation_hi=reviewMap[q.id].explanation_hi; } });
+              cbt.backendReview = reviewMap;
+            }
           } catch (backendError) {
             showToast('Server result save failed; showing local result only. ' + (backendError.message || ''), 'warning');
           }
@@ -4515,7 +3692,8 @@ table{max-width:100%;border-collapse:collapse}
           unansweredCount: unansweredCount,
           accuracy: accuracy,
           isSample: false,
-          answers: JSON.parse(JSON.stringify(cbt.answers))
+          answers: JSON.parse(JSON.stringify(cbt.answers)),
+          review: cbt.backendReview || {}
         };
 
         db.attempts.push(completedAttempt);
@@ -4607,6 +3785,10 @@ table{max-width:100%;border-collapse:collapse}
               ${questions.map(function(q, idx) {
                 const ans = attempt.answers && attempt.answers[q.id];
                 const sel = ans ? ans.selectedOption : null;
+                const review = attempt.review && attempt.review[q.id] ? attempt.review[q.id] : {};
+                const correctOption = review.correctOption !== undefined ? review.correctOption : q.correctOption;
+                const explanationEn = review.explanation_en || q.explanation_en || '';
+                const explanationHi = review.explanation_hi || q.explanation_hi || '';
                 const isUnans = sel === null || sel === undefined;
                 const isRight = !isUnans && Number(sel) === Number(q.correctOption);
                 const statusBadge = isUnans
@@ -8171,6 +7353,7 @@ Answer Key:
               const user = { id: profileRow.id, username: profileRow.username || email, mobile: profileRow.phone || '', displayName: profileRow.display_name || email, role: profileRow.role, status: profileRow.approval_status, showOnLeaderboard: true, email };
               state.currentUser = user; savePersistentSession(user);
               if (form.id === 'formAdminLogin') {
+                await hydrateQuestionsFromSupabase(true);
                 const { data: profiles, error: listError } = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,created_at');
                 if (!listError && Array.isArray(profiles)) {
                   db.users = profiles.map(p => ({ id:p.id, username:p.username || '', mobile:p.phone || '', displayName:p.display_name || '', role:p.role, status:p.approval_status, createdAt:p.created_at, showOnLeaderboard:true, email:'' }));
@@ -8178,6 +7361,7 @@ Answer Key:
                 navigateTo('admin-dashboard');
                 showToast('Administrator login successful.', 'success');
               } else {
+                await hydrateQuestionsFromSupabase(false);
                 db.users = db.users.filter(u => u.id !== user.id).concat(user);
                 navigateTo('home');
                 showToast('Welcome back, ' + user.displayName + '.', 'success');
@@ -8190,6 +7374,36 @@ Answer Key:
           }
         }, true);
 
+
+        async function hydrateQuestionsFromSupabase(isStaff) {
+          const client = window.gyanManchSupabase;
+          if (!client) return;
+          const [examResult, questionResult] = await Promise.all([
+            client.from('exams').select('id,legacy_id'),
+            client.from('questions').select('id,legacy_id,exam_id,question_en,question_hi,options,subject,topic,difficulty,source_type,source_year,status')
+          ]);
+          if (examResult.error) throw examResult.error;
+          if (questionResult.error) throw questionResult.error;
+          const examIds = {};
+          (examResult.data || []).forEach(e => { examIds[e.id] = e.legacy_id; });
+          let answerKeys = {};
+          if (isStaff) {
+            const keyResult = await client.from('question_answer_keys').select('question_id,correct_option,explanation_en,explanation_hi');
+            if (keyResult.error) throw keyResult.error;
+            (keyResult.data || []).forEach(k => { answerKeys[k.question_id] = k; });
+          }
+          db.questions = (questionResult.data || []).filter(q => q.legacy_id).map(q => {
+            const row = { id:q.legacy_id, examId:examIds[q.exam_id] || '', subjectId:q.subject || '', chapterId:q.topic || '',
+              text_en:q.question_en || '', text_hi:q.question_hi || '', options_en:(q.options && Array.isArray(q.options.en)) ? q.options.en : [],
+              options_hi:(q.options && Array.isArray(q.options.hi)) ? q.options.hi : [], marks:1, negativeMarks:0.25,
+              sourceType:q.source_type || 'mock', verificationStatus:q.status === 'published' ? 'verified' : 'draft',
+              isPublished:q.status === 'published', isSample:false, tags:[] };
+            const key = answerKeys[q.id];
+            if (key) { row.correctOption = Number(key.correct_option); row.explanation_en = key.explanation_en || ''; row.explanation_hi = key.explanation_hi || ''; }
+            return row;
+          });
+          saveDatabase(db);
+        }
 
         // Pull the shared published test catalogue from Supabase, keeping stable legacy IDs for the existing test runner.
         async function hydratePublishedTestsFromSupabase() {
@@ -8244,6 +7458,7 @@ Answer Key:
             } else {
               state.currentUser = { id:p.id, username:p.username || session.user.email, mobile:p.phone || '', displayName:p.display_name || session.user.email, role:p.role, status:p.approval_status, showOnLeaderboard:true, email:session.user.email };
               savePersistentSession(state.currentUser);
+              await hydrateQuestionsFromSupabase(p.role === 'admin');
               if (p.role === 'admin') {
                 const usersResult = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,created_at');
                 if (!usersResult.error && Array.isArray(usersResult.data)) db.users = usersResult.data.map(u => ({id:u.id,username:u.username||'',mobile:u.phone||'',displayName:u.display_name||'',role:u.role,status:u.approval_status,createdAt:u.created_at,showOnLeaderboard:true,email:''}));
