@@ -1640,6 +1640,7 @@ table{max-width:100%;border-collapse:collapse}
               if (!Array.isArray(parsed.users)) parsed.users = [];
               if (!Array.isArray(parsed.attempts)) parsed.attempts = [];
               if (!Array.isArray(parsed.announcements)) parsed.announcements = [];
+              if (!Array.isArray(parsed.pdfImportQueue)) parsed.pdfImportQueue = [];
               try { localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed)); } catch (e) {}
               return parsed;
             }
