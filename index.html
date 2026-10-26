@@ -6304,11 +6304,56 @@ table{max-width:100%;border-collapse:collapse}
             }
             const buttons = ['btnRunPdfExtraction','btnRunOcrPaperScan'].map(id => document.getElementById(id)).filter(Boolean);
             buttons.forEach(b => { b.disabled = true; });
+            const progressPanel = document.getElementById('pdfImportProgressPanel');
+            const progressStatus = document.getElementById('pdfImportProgressStatus');
+            const progressPercent = document.getElementById('pdfImportProgressPercent');
+            const progressBar = document.getElementById('pdfImportProgressBar');
+            const progressDetail = document.getElementById('pdfImportProgressDetail');
+            function showUploadProgress(percent, status, detail) {
+              if (progressPanel) progressPanel.classList.remove('hidden');
+              if (progressStatus) progressStatus.textContent = status;
+              if (progressPercent) progressPercent.textContent = Math.round(percent) + '%';
+              if (progressBar) progressBar.style.width = Math.round(percent) + '%';
+              if (progressDetail) progressDetail.textContent = detail || '';
+            }
             try {
               const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g,'_').slice(-120);
               const path = state.currentUser.id + '/' + Date.now() + '_' + safeName;
-              const upload = await window.gyanManchSupabase.storage.from('question-pdfs').upload(path,file,{upsert:false,contentType:file.type || 'application/pdf'});
-              if (upload.error) throw upload.error;
+              const sessionResult = await window.gyanManchSupabase.auth.getSession();
+              const accessToken = sessionResult && sessionResult.data && sessionResult.data.session && sessionResult.data.session.access_token;
+              if (!accessToken) throw new Error('Session expired. Please log in again.');
+              const supabaseUrl = (window.GYAN_MANCH_SUPABASE_URL || window.SUPABASE_URL || '').replace(/\/$/, '');
+              const publishableKey = window.GYAN_MANCH_SUPABASE_KEY || window.SUPABASE_PUBLISHABLE_KEY || '';
+              if (!supabaseUrl || !publishableKey) {
+                // SDK upload fallback: upload still works, but browser cannot expose byte-level progress.
+                showUploadProgress(5, 'Uploading PDF…', file.name + ' • ' + (file.size / 1048576).toFixed(2) + ' MB');
+                const fallbackUpload = await window.gyanManchSupabase.storage.from('question-pdfs').upload(path,file,{upsert:false,contentType:file.type || 'application/pdf'});
+                if (fallbackUpload.error) throw fallbackUpload.error;
+                showUploadProgress(100, 'PDF uploaded', 'Saved privately. Next, select “Upload & Create Questions”.');
+              } else {
+                await new Promise(function(resolve, reject) {
+                  const xhr = new XMLHttpRequest();
+                  xhr.open('POST', supabaseUrl + '/storage/v1/object/question-pdfs/' + path.split('/').map(encodeURIComponent).join('/'));
+                  xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+                  xhr.setRequestHeader('apikey', publishableKey);
+                  xhr.setRequestHeader('Content-Type', file.type || 'application/pdf');
+                  xhr.setRequestHeader('x-upsert', 'false');
+                  xhr.upload.onprogress = function(event) {
+                    if (event.lengthComputable) showUploadProgress((event.loaded / event.total) * 100, 'Uploading PDF… ' + Math.round((event.loaded / event.total) * 100) + '%', (event.loaded / 1048576).toFixed(2) + ' MB of ' + (event.total / 1048576).toFixed(2) + ' MB uploaded');
+                  };
+                  xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) { showUploadProgress(100, 'PDF uploaded', 'Saved privately. Next, select “Upload & Create Questions”.'); resolve(); }
+                    else {
+                      let msg = 'Storage upload failed (' + xhr.status + ')';
+                      try { const body = JSON.parse(xhr.responseText); if (body.message) msg = body.message; else if (body.error) msg = body.error; } catch (_) {}
+                      reject(new Error(msg));
+                    }
+                  };
+                  xhr.onerror = function() { reject(new Error('Network error while uploading PDF.')); };
+                  xhr.onabort = function() { reject(new Error('PDF upload cancelled.')); };
+                  xhr.send(file);
+                });
+              }
               const examLookup = await window.gyanManchSupabase.from('exams').select('id').eq('legacy_id',pdfExSel ? pdfExSel.value : '').maybeSingle();
               if (examLookup.error) throw examLookup.error;
               const job = await window.gyanManchSupabase.from('pdf_import_jobs').insert({
