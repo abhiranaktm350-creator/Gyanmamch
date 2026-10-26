@@ -4639,6 +4639,9 @@ table{max-width:100%;border-collapse:collapse}
                 <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold shadow transition">
                   Log In as Student
                 </button>
+                <div class="text-center pt-1">
+                  <button type="button" id="studentForgotPassword" class="text-sm font-semibold text-indigo-700 hover:text-indigo-900 underline underline-offset-4">Forgot password?</button>
+                </div>
               </form>
 
             </div>
@@ -7700,6 +7703,61 @@ Answer Key:
           reports.push({questionId:q.id, testId:cbt.test.id, attemptId:cbt.attemptId, userId:state.currentUser ? state.currentUser.id : null, questionNumber:cbt.currentIndex+1, reason:'Question issue reported', reportedAt:new Date().toISOString()});
           try { localStorage.setItem('gyanManchQuestionReports', JSON.stringify(reports)); } catch(e) {}
           showToast('Question report note ho gayi. Shukriya!', 'success');
+        });
+
+        // Password recovery: Supabase sends a secure recovery link to the registered email.
+        document.addEventListener('click', async function(event) {
+          const button = event.target && event.target.closest ? event.target.closest('#studentForgotPassword') : null;
+          if (!button) return;
+          event.preventDefault();
+          const client = window.gyanManchSupabase;
+          if (!client) { showToast('Backend connection is unavailable. Please refresh and try again.', 'error'); return; }
+          const email = window.prompt('Apna registered email address enter karein. Password reset link isi email par bheja jayega:');
+          if (email === null) return;
+          const cleanEmail = email.trim().toLowerCase();
+          if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(cleanEmail)) { showToast('Valid registered email address enter karein.', 'error'); return; }
+          button.disabled = true;
+          try {
+            const { error } = await client.auth.resetPasswordForEmail(cleanEmail, { redirectTo: window.location.origin + window.location.pathname + '?reset-password=1' });
+            if (error) throw error;
+            showToast('Agar is email par account hai, password reset link bhej diya gaya hai. Email inbox/spam check karein.', 'success');
+          } catch (error) {
+            showToast(error.message || 'Password reset request failed. Please try again.', 'error');
+          } finally { button.disabled = false; }
+        });
+
+        // Show a secure password update form after a valid Supabase recovery link is opened.
+        window.gyanManchSupabase.auth.onAuthStateChange(function(event, session) {
+          if (event !== 'PASSWORD_RECOVERY') return;
+          let panel = document.getElementById('gmPasswordRecoveryPanel');
+          if (!panel) {
+            panel = document.createElement('div');
+            panel.id = 'gmPasswordRecoveryPanel';
+            panel.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 p-4';
+            panel.innerHTML = '<form id="gmPasswordRecoveryForm" class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-4"><h2 class="text-xl font-extrabold text-slate-900">Set a new password</h2><p class="text-sm text-slate-600">Naya password kam se kam 8 characters ka rakhein.</p><div><label for="gmRecoveryPassword" class="mb-1 block text-sm font-semibold text-slate-700">New password</label><input id="gmRecoveryPassword" type="password" minlength="8" autocomplete="new-password" required class="w-full rounded-xl border border-slate-300 px-3 py-2.5" placeholder="At least 8 characters"></div><div><label for="gmRecoveryPasswordConfirm" class="mb-1 block text-sm font-semibold text-slate-700">Confirm new password</label><input id="gmRecoveryPasswordConfirm" type="password" minlength="8" autocomplete="new-password" required class="w-full rounded-xl border border-slate-300 px-3 py-2.5" placeholder="Enter it again"></div><button type="submit" class="w-full rounded-xl bg-indigo-600 px-4 py-3 font-bold text-white">Update password</button><p id="gmRecoveryError" class="hidden text-sm font-semibold text-red-700" role="alert"></p></form>';
+            document.body.appendChild(panel);
+            panel.querySelector('form').addEventListener('submit', async function(e) {
+              e.preventDefault();
+              const password = document.getElementById('gmRecoveryPassword').value;
+              const confirm = document.getElementById('gmRecoveryPasswordConfirm').value;
+              const errorBox = document.getElementById('gmRecoveryError');
+              if (password.length < 8 || password !== confirm) {
+                errorBox.textContent = password.length < 8 ? 'Password kam se kam 8 characters ka hona chahiye.' : 'Dono passwords match nahi karte.';
+                errorBox.classList.remove('hidden'); return;
+              }
+              const submit = this.querySelector('button[type="submit"]');
+              submit.disabled = true; submit.textContent = 'Updating…';
+              const { error } = await window.gyanManchSupabase.auth.updateUser({ password });
+              if (error) {
+                errorBox.textContent = error.message || 'Password update nahi ho paya. Reset link dobara mangayein.';
+                errorBox.classList.remove('hidden'); submit.disabled = false; submit.textContent = 'Update password'; return;
+              }
+              panel.remove();
+              history.replaceState({}, document.title, window.location.pathname);
+              showToast('Password successfully update ho gaya. Ab naye password se login karein.', 'success');
+              await window.gyanManchSupabase.auth.signOut();
+            });
+          }
         });
 
         // Official Supabase authentication bridge: local/demo credentials are not accepted.
