@@ -28,20 +28,15 @@ where lower(email) = lower('OWNER_EMAIL');
 
 New public signups receive the student role and pending approval. The browser cannot call the initial-admin bootstrap function or grant itself an administrator role.
 
-## Cloudflare Pages deployment
+## Deployment status after disabling Cloudflare
 
-Cloudflare hosts the website; Supabase handles sign-in and database/storage. You need Cloudflare only if you want Cloudflare to publish the site.
+Cloudflare deployment is intentionally disabled. Do not recreate the old Worker service or run `npx wrangler deploy`.
 
-1. Open Cloudflare Dashboard → Workers & Pages → Create → Pages → Connect to Git.
-2. Select GitHub repository `abhiranaktm350-creator/Gyanmamch`.
-3. Choose branch `main` after the reviewed changes have been merged there.
-4. This is a static HTML site: set the build command to `npm run build` and the build output directory to `dist`. The build only copies `index.html` and `_headers`, so SQL and setup files are not published. No framework is required.
-5. In Cloudflare Pages → Settings → Variables and Secrets, add `SUPABASE_PUBLISHABLE_KEY` with the project's publishable key. This is a public client key, not a service-role secret. The `wrangler.jsonc` file declares the Workers AI binding used by the private extraction endpoint; confirm the deployment reports the binding as available.
-6. Deploy and copy the generated `https://….pages.dev` URL.
-7. Add that URL to Supabase Authentication → URL Configuration, then redeploy if needed.
-8. Every new commit merged/pushed to the connected branch should trigger a new Pages deployment. Check the deployment status in Cloudflare before sharing the URL.
+The static production build is prepared with `npm run build`; its output directory is `dist` and contains only `index.html`, `_headers`, and `manifest.webmanifest`. SQL setup files and internal documentation are not copied into the public build output.
 
-If the repository is already connected to Cloudflare Pages, do not create a second project; open the existing Pages project and confirm its connected repository and production branch.
+**Important hosting limitation:** `functions/api/extract-questions.js` is a Cloudflare Pages Function and uses the Cloudflare Workers AI binding `env.AI`. It will not work unchanged on Vercel, Netlify, GitHub Pages, or another host. Before switching hosts, port this endpoint to that platform or move it to a Supabase Edge Function and configure an AI provider. The normal Supabase login, database, and scoring remain separate from the static hosting choice.
+
+Never put a Supabase service-role key or private API secret in browser code. Do not claim the site is production-ready until the selected host, authentication, student approval, mock submission/scoring, and PDF import workflow have been tested end-to-end.
 
 ## PDF / question paper workflow
 
