@@ -3713,14 +3713,29 @@ table{max-width:100%;border-collapse:collapse}
       // =========================================================================
       // 5. IMMEDIATE RESULT & BILINGUAL ANSWER KEY REVIEW VIEW
       // =========================================================================
-      function renderAttemptResultView(container) {
+      async function renderAttemptResultView(container) {
         const attempt = db.attempts.find(a => a.id === state.selectedResultAttemptId) || db.attempts[db.attempts.length - 1];
         if (!attempt) {
           navigateTo('home');
           return;
         }
+        if (window.gyanManchSupabase && state.currentUser && !attempt.review || (window.gyanManchSupabase && state.currentUser && attempt.review && Object.keys(attempt.review).length === 0)) {
+          if (['submitted','auto_submitted'].includes(attempt.status)) {
+            container.innerHTML = '<div class="p-6 text-center text-sm text-slate-600">Loading your secure answer review…</div>';
+            const reviewResult = await window.gyanManchSupabase.rpc('get_attempt_review', { p_attempt_id: attempt.id });
+            if (!reviewResult.error && Array.isArray(reviewResult.data)) {
+              attempt.review = {};
+              reviewResult.data.forEach(row => { if (row.legacy_id) attempt.review[row.legacy_id] = { correctOption:Number(row.correct_option), explanation_en:row.explanation_en||'', explanation_hi:row.explanation_hi||'', selectedOption:row.selected_option, isCorrect:row.is_correct, marksAwarded:row.marks_awarded }; });
+              reviewResult.data.forEach(row => {
+                if (!row.legacy_id) return;
+                if (!attempt.answers[row.legacy_id]) attempt.answers[row.legacy_id] = { selectedOption:row.selected_option, markedForReview:false, timeSpent:0 };
+              });
+              saveDatabase(db);
+            }
+          }
+        }
         const test = db.tests.find(t => t.id === attempt.testId) || db.tests[0];
-        const questions = test.questionIds.map(id => db.questions.find(q => q.id === id)).filter(Boolean);
+        const questions = test && Array.isArray(test.questionIds) ? test.questionIds.map(id => db.questions.find(q => q.id === id)).filter(Boolean) : [];
         const letters = ['A', 'B', 'C', 'D'];
 
         container.innerHTML = `
@@ -7358,10 +7373,12 @@ Answer Key:
                 if (!listError && Array.isArray(profiles)) {
                   db.users = profiles.map(p => ({ id:p.id, username:p.username || '', mobile:p.phone || '', displayName:p.display_name || '', role:p.role, status:p.approval_status, createdAt:p.created_at, showOnLeaderboard:true, email:'' }));
                 }
+                await hydrateAttemptsFromSupabase();
                 navigateTo('admin-dashboard');
                 showToast('Administrator login successful.', 'success');
               } else {
                 await hydrateQuestionsFromSupabase(false);
+                await hydrateAttemptsFromSupabase();
                 db.users = db.users.filter(u => u.id !== user.id).concat(user);
                 navigateTo('home');
                 showToast('Welcome back, ' + user.displayName + '.', 'success');
@@ -7401,6 +7418,47 @@ Answer Key:
             const key = answerKeys[q.id];
             if (key) { row.correctOption = Number(key.correct_option); row.explanation_en = key.explanation_en || ''; row.explanation_hi = key.explanation_hi || ''; }
             return row;
+          });
+          saveDatabase(db);
+        }
+
+        async function hydrateAttemptsFromSupabase() {
+          const client = window.gyanManchSupabase;
+          if (!client || !state.currentUser) return;
+          const isAdmin = state.currentUser.role === 'admin';
+          let attemptQuery = client.from('attempts').select('id,user_id,test_id,status,started_at,submitted_at,time_taken_seconds,total_questions,attempted_count,correct_count,incorrect_count,unattempted_count,score,max_score,accuracy').order('started_at',{ascending:false});
+          if (!isAdmin) attemptQuery = attemptQuery.eq('user_id', state.currentUser.id);
+          const attemptResult = await attemptQuery;
+          if (attemptResult.error) throw attemptResult.error;
+          const rows = attemptResult.data || [];
+          if (!rows.length) { db.attempts = []; saveDatabase(db); return; }
+          const ids = rows.map(a => a.id);
+          const [testsResult, questionsResult, answersResult] = await Promise.all([
+            client.from('tests').select('id,legacy_id'),
+            client.from('questions').select('id,legacy_id'),
+            client.from('attempt_answers').select('attempt_id,question_id,selected_option,marked_for_review,is_correct,marks_awarded').in('attempt_id', ids)
+          ]);
+          if (testsResult.error) throw testsResult.error;
+          if (questionsResult.error) throw questionsResult.error;
+          if (answersResult.error) throw answersResult.error;
+          const testLegacy = {}; (testsResult.data || []).forEach(t => { testLegacy[t.id] = t.legacy_id; });
+          const questionLegacy = {}; (questionsResult.data || []).forEach(q => { questionLegacy[q.id] = q.legacy_id; });
+          const answerMap = {};
+          (answersResult.data || []).forEach(a => {
+            const qid = questionLegacy[a.question_id];
+            if (!qid) return;
+            if (!answerMap[a.attempt_id]) answerMap[a.attempt_id] = {};
+            answerMap[a.attempt_id][qid] = { selectedOption:a.selected_option, markedForReview:!!a.marked_for_review, timeSpent:0 };
+          });
+          const numberByUserTest = {};
+          db.attempts = rows.map(a => {
+            const testId = testLegacy[a.test_id] || '';
+            const key = a.user_id + ':' + testId;
+            numberByUserTest[key] = (numberByUserTest[key] || 0) + 1;
+            return { id:a.id, userId:a.user_id, testId, testVersion:1, attemptNumber:numberByUserTest[key],
+              status:a.status, startedAt:a.started_at, submittedAt:a.submitted_at, timeTakenSeconds:a.time_taken_seconds,
+              score:Number(a.score), maxMarks:Number(a.max_score), correctCount:a.correct_count, incorrectCount:a.incorrect_count,
+              unansweredCount:a.unattempted_count, accuracy:Number(a.accuracy), isSample:false, answers:answerMap[a.id] || {}, review:{} };
           });
           saveDatabase(db);
         }
@@ -7463,6 +7521,7 @@ Answer Key:
                 const usersResult = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,created_at');
                 if (!usersResult.error && Array.isArray(usersResult.data)) db.users = usersResult.data.map(u => ({id:u.id,username:u.username||'',mobile:u.phone||'',displayName:u.display_name||'',role:u.role,status:u.approval_status,createdAt:u.created_at,showOnLeaderboard:true,email:''}));
               }
+              await hydrateAttemptsFromSupabase();
             }
             syncHeaderUI();
             renderCurrentView();
