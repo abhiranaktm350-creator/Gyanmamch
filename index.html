@@ -253,26 +253,7 @@ table{max-width:100%;border-collapse:collapse}
 </head>
 <body class="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
 
-  <!-- OFFICIAL LIBRARY LOCALHOST & LAN NETWORK SYNC BAR -->
-  <div id="topSampleBanner" class="bg-emerald-950 border-b border-emerald-800 px-3 py-1.5 text-xs text-emerald-100 flex flex-wrap items-center justify-between gap-2">
-    <div class="flex items-center gap-2">
-      <span id="lanServerStatusPill" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded font-bold bg-emerald-600 text-white">
-        <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-        <span>OFFICIAL EDITION • LOCALHOST / LAN READY</span>
-      </span>
-      <span id="lanServerStatusText">Works 100% offline on this PC or across all Library Computers via <code>gyan_manch_lan_server.py</code> (Persistent Login & Real Exam Schemes).</span>
-    </div>
-    <div class="flex items-center gap-2">
-      <button id="btnExportFullDbBackup" type="button" class="px-2 py-0.5 rounded bg-emerald-800 hover:bg-emerald-700 text-white font-semibold transition">⬇ Backup Library DB (.json)</button>
-      <label class="px-2 py-0.5 rounded bg-indigo-800 hover:bg-indigo-700 text-white font-semibold cursor-pointer transition">
-        ⬆ Restore / Sync DB
-        <input id="inpImportFullDbBackup" type="file" accept=".json" class="hidden" />
-      </label>
-      <button id="btnQuickWalkthrough" type="button" class="underline font-semibold text-emerald-300 hover:text-white">Run End-to-End Flow Guide</button>
-      <span class="text-emerald-700">|</span>
-      <button id="btnResetDemoData" type="button" class="text-emerald-300 hover:text-rose-300 font-medium">Reset Demo DB</button>
-    </div>
-  </div>
+
 
   <!-- MAIN NAVIGATION HEADER (Hidden during active fullscreen CBT test) -->
   <header id="mainHeader" class="bg-slate-900 text-white shadow-md sticky top-0 z-30">
@@ -7102,23 +7083,21 @@ Answer Key:
           navigateTo('student-login');
         });
 
-        // Top Bar Walkthrough & Reset Demo DB
-        document.getElementById('btnQuickWalkthrough').addEventListener('click', function() {
-          document.getElementById('modalWalkthrough').classList.remove('hidden');
+        // Optional walkthrough modal controls; the demo reset control has been removed.
+        const btnQuickWalkthrough = document.getElementById('btnQuickWalkthrough');
+        if (btnQuickWalkthrough) btnQuickWalkthrough.addEventListener('click', function() {
+          const modal = document.getElementById('modalWalkthrough');
+          if (modal) modal.classList.remove('hidden');
         });
-        document.getElementById('btnCloseWalkthrough').addEventListener('click', function() {
-          document.getElementById('modalWalkthrough').classList.add('hidden');
+        const btnCloseWalkthrough = document.getElementById('btnCloseWalkthrough');
+        if (btnCloseWalkthrough) btnCloseWalkthrough.addEventListener('click', function() {
+          const modal = document.getElementById('modalWalkthrough');
+          if (modal) modal.classList.add('hidden');
         });
-        document.getElementById('btnDismissWalkthrough').addEventListener('click', function() {
-          document.getElementById('modalWalkthrough').classList.add('hidden');
-        });
-
-        document.getElementById('btnResetDemoData').addEventListener('click', function() {
-          db = createDefaultDatabase();
-          saveDatabase(db);
-          state.currentUser = db.users.find(u => u.id === 'usr_stu_aarav');
-          showToast('Sample database reset to initial state!', 'info');
-          navigateTo('home');
+        const btnDismissWalkthrough = document.getElementById('btnDismissWalkthrough');
+        if (btnDismissWalkthrough) btnDismissWalkthrough.addEventListener('click', function() {
+          const modal = document.getElementById('modalWalkthrough');
+          if (modal) modal.classList.add('hidden');
         });
 
         // CBT Side Panel Collapse / Expand & Font Size Zoom Controls
