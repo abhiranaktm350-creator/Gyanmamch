@@ -7017,7 +7017,7 @@ Answer Key:
           const posInput = document.getElementById('admTestPos');
           const negInput = document.getElementById('pdfTestNegativeOverride');
           const marks = Number(posInput && posInput.value !== '' ? posInput.value : (exam.posMarks !== undefined ? exam.posMarks : 2));
-          const negative = Number(negInput && negInput.value !== '' ? negInput.value : (exam.negMarks !== undefined ? negInput.value : (exam.negMarks !== undefined ? exam.negMarks : 0.5)));
+          const negative = Number(negInput && negInput.value !== '' ? negInput.value : (exam.negMarks !== undefined ? exam.negMarks : 0.5));
           const mode = (document.getElementById('pdfTargetModeSelect') && document.getElementById('pdfTargetModeSelect').value) || 'full_mock';
           let staged = 0;
           extractedItems.forEach((item, idx) => {
