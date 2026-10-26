@@ -2535,7 +2535,7 @@ table{max-width:100%;border-collapse:collapse}
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }"
               >
-                <span>📋 Full Exam Mock Tests (पूर्ण मॉक टेस्ट)</span>
+                <span>📋 Full Exam Mock Tests</span>
               </button>
               <button
                 id="btnExamModeChapter"
@@ -2546,7 +2546,7 @@ table{max-width:100%;border-collapse:collapse}
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }"
               >
-                <span>📚 Chapter-Wise Topic Practice (अध्याय एवं टॉपिक अभ्यास)</span>
+                <span>📚 Chapter-Wise Topic Practice</span>
               </button>
             </div>
             <div class="text-xs text-slate-500 px-2">
@@ -2621,7 +2621,7 @@ table{max-width:100%;border-collapse:collapse}
             <div>
               <div class="flex items-center justify-between mb-3">
                 <div>
-                  <h2 class="text-lg font-bold text-slate-900">2. Sessional / Sectional Timed Tests (सेशनल / अनुभागीय टेस्ट)</h2>
+                  <h2 class="text-lg font-bold text-slate-900">2. Sessional / Sectional Timed Tests</h2>
                   <p class="text-xs text-slate-500">Practice individual exam sessions with official sectional time limits and negative marking.</p>
                 </div>
               </div>
@@ -2656,7 +2656,7 @@ table{max-width:100%;border-collapse:collapse}
             <div>
               <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <div>
-                  <h2 class="text-lg font-bold text-slate-900">Select Subject & Topic for ${escapeHtml(exam.name)} (अध्याय एवं टॉपिक-वार अभ्यास)</h2>
+                  <h2 class="text-lg font-bold text-slate-900">Select Subject & Topic for ${escapeHtml(exam.name)}</h2>
                   <p class="text-xs text-slate-500">Click any subject below — choosing <strong>Reasoning</strong> shows ONLY Reasoning topics, choosing <strong>Maths</strong> shows ONLY Maths topics, choosing <strong>GK</strong> shows ONLY GK topics.</p>
                 </div>
                 <button id="btnGoFullChapterPage" type="button" class="px-3.5 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-xs hover:bg-indigo-100">
@@ -3984,7 +3984,7 @@ table{max-width:100%;border-collapse:collapse}
 
           <!-- Detailed Question-by-Question Answer Key & Bilingual Solutions -->
           <div>
-            <h2 class="text-lg font-bold text-slate-900 mb-3">Detailed Answer Key & Bilingual Explanations (English / हिंदी)</h2>
+            <h2 class="text-lg font-bold text-slate-900 mb-3">Detailed Answer Key & Bilingual Explanations (English / Hindi)</h2>
             <div class="space-y-4">
               ${questions.map(function(q, idx) {
                 const ans = attempt.answers && attempt.answers[q.id];
@@ -5539,34 +5539,34 @@ table{max-width:100%;border-collapse:collapse}
                 <div>
                   <label class="block font-semibold text-slate-700 mb-1">Option A (English / Hindi)</label>
                   <input id="admQOptAEn" type="text" required placeholder="Option A (English)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 mb-1" />
-                  <input id="admQOptAHi" type="text" placeholder="विकल्प A (हिंदी)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 hindi-text" />
+                  <input id="admQOptAHi" type="text" placeholder="Option A (Hindi)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 hindi-text" />
                 </div>
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Option B (EN / हिं)</label>
+                  <label class="block font-semibold text-slate-700 mb-1">Option B (English / Hindi)</label>
                   <input id="admQOptBEn" type="text" required placeholder="Option B (English)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 mb-1" />
-                  <input id="admQOptBHi" type="text" placeholder="विकल्प B (हिंदी)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 hindi-text" />
+                  <input id="admQOptBHi" type="text" placeholder="Option B (Hindi)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 hindi-text" />
                 </div>
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Option C (EN / हिं)</label>
+                  <label class="block font-semibold text-slate-700 mb-1">Option C (English / Hindi)</label>
                   <input id="admQOptCEn" type="text" required placeholder="Option C (English)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 mb-1" />
-                  <input id="admQOptCHi" type="text" placeholder="विकल्प C (हिंदी)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 hindi-text" />
+                  <input id="admQOptCHi" type="text" placeholder="Option C (Hindi)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 hindi-text" />
                 </div>
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Option D (EN / हिं)</label>
+                  <label class="block font-semibold text-slate-700 mb-1">Option D (English / Hindi)</label>
                   <input id="admQOptDEn" type="text" required placeholder="Option D (English)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 mb-1" />
-                  <input id="admQOptDHi" type="text" placeholder="विकल्प D (हिंदी)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 hindi-text" />
+                  <input id="admQOptDHi" type="text" placeholder="Option D (Hindi)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 hindi-text" />
                 </div>
                 <div>
                   <label class="block font-semibold text-slate-700 mb-1">Option E (optional)</label>
                   <input id="admQOptEEn" type="text" placeholder="Option E (English)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 mb-1" />
-                  <input id="admQOptEHi" type="text" placeholder="विकल्प E (हिंदी)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 hindi-text" />
+                  <input id="admQOptEHi" type="text" placeholder="Option E (Hindi)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 hindi-text" />
                 </div>
               </div>
 
               <!-- Row 5: Bilingual Solution / Explanation -->
               <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <input id="admQExpEn" type="text" required placeholder="Step-by-step explanation / formula in English..." class="w-full rounded-lg border border-slate-300 px-3 py-2" />
-                <input id="admQExpHi" type="text" placeholder="विस्तृत व्याख्या / सूत्र (हिंदी में)..." class="w-full rounded-lg border border-slate-300 px-3 py-2 hindi-text" />
+                <input id="admQExpHi" type="text" placeholder="Detailed explanation or formula in Hindi..." class="w-full rounded-lg border border-slate-300 px-3 py-2 hindi-text" />
                 <select id="admQSource" class="w-full rounded-lg border border-slate-300 px-2.5 py-2 bg-white">
                   <option value="admin_created">Source: Admin-Created Official Pattern</option>
                   <option value="public_domain">Source: Public-Domain / PYQ Pattern</option>
@@ -6059,7 +6059,7 @@ table{max-width:100%;border-collapse:collapse}
             <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
               <div class="flex items-center justify-between mb-2">
                 <h3 class="font-bold text-slate-900 text-base">1. Digital & Scanned Question Paper PDF / Photo Scanner</h3>
-                <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[11px] font-bold">PDF + Scanned OCR (EN + हिं)</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[11px] font-bold">PDF + Scanned OCR (English + Hindi)</span>
               </div>
               <p class="text-xs text-slate-500 mb-3">
                 PDF ke options ko jaisa paper mein hai waisa hi review karein; “None of the above” / “उपर्युक्त में से कोई नहीं” ko badalna nahi. Upload a <strong>Digital PDF</strong>, a <strong>Scanned Question Paper PDF</strong>, or a <strong>Photo/Scan of a Printed Exam Paper (<code>.pdf, .jpg, .png</code>)</strong>. If a PDF is scanned from a physical paper, the built-in <strong>Visual OCR Scanner</strong> scans every page image and extracts all questions & options!
@@ -6202,7 +6202,7 @@ table{max-width:100%;border-collapse:collapse}
                           <input type="text" data-stg-field="text_en" data-stg-id="${item.id}" value="${escapeHtml(item.text_en)}" class="stg-edit-inp w-full rounded-lg border border-slate-300 px-3 py-1.5 bg-white" />
                         </div>
                         <div>
-                          <label class="block font-semibold text-slate-700 mb-1">Hindi Question Text (हिंदी)</label>
+                          <label class="block font-semibold text-slate-700 mb-1">Hindi Question Text</label>
                           <input type="text" data-stg-field="text_hi" data-stg-id="${item.id}" value="${escapeHtml(item.text_hi)}" class="stg-edit-inp w-full rounded-lg border border-slate-300 px-3 py-1.5 bg-white hindi-text" />
                         </div>
                       </div>
@@ -6595,7 +6595,7 @@ Answer Key:
               });
 
               if (window.Tesseract) {
-                if (statusEl) statusEl.textContent = '🔍 Running Bilingual OCR (English + हिंदी) on Scanned Paper...';
+                if (statusEl) statusEl.textContent = '🔍 Running bilingual OCR (English + Hindi) on scanned paper...';
                 const res = await window.Tesseract.recognize(canvas, 'eng+hin', {
                   logger: function(m) {
                     if (m.status === 'recognizing text' && pctEl && barEl) {
@@ -7443,7 +7443,7 @@ Answer Key:
             renderCbtCurrentQuestion();
           }
           syncHeaderUI();
-          showToast('डिफ़ॉल्ट मॉक टेस्ट भाषा हिंदी (देवनागरी) में सेट की गई।', 'info');
+          showToast('Default mock test language set to Hindi (Devanagari).', 'info');
         });
 
         // Workstation Bar: Only Student Login/Register & Password-Protected Admin Console
