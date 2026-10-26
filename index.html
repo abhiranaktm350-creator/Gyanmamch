@@ -397,6 +397,38 @@ table{max-width:100%;border-collapse:collapse}
     body:not(.exam-active) #appMain .border-slate-200 { border-color: #c5d1de !important; }
   </style>
 
+
+  <!-- Unified professional white-and-blue design system -->
+  <style id="gm-unified-professional-design">
+    :root { color-scheme: light; --gm-brand:#1769d2; --gm-brand-dark:#124fa3; --gm-ink:#172b4d; --gm-muted:#52677d; --gm-line:#d8e3ef; --gm-page:#f3f7fc; }
+    html, body { background:var(--gm-page) !important; color:var(--gm-ink) !important; }
+    #mainHeader { background:#fff !important; color:var(--gm-ink) !important; border-bottom:1px solid var(--gm-line) !important; box-shadow:0 2px 10px rgba(23,43,77,.05) !important; }
+    #mainHeader .text-white, #mainHeader .text-slate-200, #mainHeader .text-slate-300 { color:#274767 !important; }
+    #mainHeader .bg-indigo-600, #mainHeader button.bg-indigo-600 { background:var(--gm-brand) !important; color:#fff !important; }
+    #mainHeader nav button, #mainHeader #btnMobileMenu { color:#274767 !important; }
+    #mainHeader nav button:hover, #mainHeader #btnMobileMenu:hover { background:#edf5ff !important; color:#124fa3 !important; }
+    #libraryQuickSwitcher { background:#eaf3ff !important; color:#274767 !important; border-color:#d4e5fa !important; }
+    #libraryQuickSwitcher .text-indigo-300, #libraryQuickSwitcher .text-indigo-200 { color:#1558a6 !important; }
+    #appMain { color:var(--gm-ink); }
+    #appMain .gm-home-hero { background:linear-gradient(135deg,#ffffff 0%,#f2f8ff 100%) !important; border-color:#cfe1f7 !important; box-shadow:0 16px 42px rgba(30,64,110,.09) !important; }
+    #appMain .gm-home-hero h1 { color:#142f50 !important; }
+    #appMain .gm-home-hero p { color:#52677d !important; }
+    #appMain .gm-home-hero button { background:#1769d2 !important; color:#fff !important; border:1px solid #1769d2 !important; }
+    #appMain .gm-home-hero button:hover { background:#124fa3 !important; }
+    #appMain .bg-indigo-600, #appMain .bg-blue-600 { background-color:#1769d2 !important; color:#fff !important; }
+    #appMain .hover\\:bg-indigo-700:hover, #appMain .hover\\:bg-blue-700:hover { background-color:#124fa3 !important; }
+    #appMain .text-indigo-600, #appMain .text-indigo-700, #appMain .text-blue-600, #appMain .text-blue-700 { color:#1558a6 !important; }
+    #appMain .bg-indigo-50, #appMain .bg-blue-50 { background:#edf5ff !important; }
+    #appMain .border-indigo-200, #appMain .border-blue-200 { border-color:#cfe1f7 !important; }
+    #appMain .bg-white, #appMain .bg-slate-50 { border-color:#d8e3ef; }
+    #appMain :is(input,select,textarea) { background:#f5f8fc !important; color:#172b4d !important; border:1px solid #b9cadd !important; border-radius:9px; }
+    #appMain :is(input,select,textarea)::placeholder { color:#667b91 !important; opacity:1; }
+    #appMain label { color:#1c426b !important; font-weight:650; }
+    #mainFooter { background:#fff !important; color:#52677d !important; border-color:#d8e3ef !important; }
+    #toastContainer,.toast-container,.toast,.gm-toast,[role="status"].toast { display:none !important; }
+    @media(max-width:640px) { #appMain .gm-home-hero { padding:24px 20px !important; border-radius:20px !important; } }
+  </style>
+
 </head>
 <body class="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
 
@@ -1840,8 +1872,8 @@ table{max-width:100%;border-collapse:collapse}
         }
 
         if (!user) {
-          sessionBadge.textContent = 'Guest (Log in via Student Login)';
-          sessionBadge.className = 'px-2.5 py-0.5 rounded bg-slate-700 text-slate-200 font-medium';
+          sessionBadge.textContent = '';
+          sessionBadge.className = 'hidden';
           authArea.innerHTML = `
             <button id="hdrBtnStuLogin" type="button" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition">Student Login</button>
             <button id="hdrBtnAdmLogin" type="button" class="hidden sm:inline-flex px-3 py-1.5 rounded-lg border border-amber-400/50 text-amber-300 hover:bg-slate-800 text-xs font-semibold transition">Admin</button>
@@ -1853,7 +1885,7 @@ table{max-width:100%;border-collapse:collapse}
           if (aBtn) aBtn.addEventListener('click', function() { navigateTo('admin-login'); });
         } else {
           sessionBadge.textContent = user.displayName + (user.role === 'admin' ? ' (Admin Console)' : ' (Student)');
-          sessionBadge.className = 'px-2.5 py-0.5 rounded font-semibold ' + (user.role === 'admin' ? 'bg-purple-700 text-white' : 'bg-indigo-600 text-white');
+          sessionBadge.className = 'px-2.5 py-0.5 rounded font-semibold ' + (user.role === 'admin' ? 'bg-purple-700 text-white' : 'bg-blue-700 text-white');
 
           authArea.innerHTML = `
             <div class="hidden sm:flex flex-col text-right">
@@ -2037,12 +2069,12 @@ table{max-width:100%;border-collapse:collapse}
             <section class="max-w-5xl mx-auto my-6 sm:my-10 px-1">
               <div class="flex items-center justify-between gap-3 mb-3"><div class="text-xs text-slate-500">Welcome to Gyan Manch</div></div>
               ${renderGmAnnouncementBar()}
-              <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-7 sm:p-12 text-white shadow-xl border border-indigo-800/40">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 text-xs font-semibold mb-4">Competitive Exam Practice • English / हिंदी</div>
-                <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight mb-3">Gyan Manch <span class="text-indigo-400 hindi-text">(ज्ञान मंच)</span></h1>
-                <p class="text-sm sm:text-lg text-slate-300 max-w-3xl mb-7">SSC, Banking, Railway, Defence aur anya competitive exams ke mock tests aur chapter-wise practice ek hi jagah.</p>
+              <div class="gm-home-hero bg-white rounded-3xl p-7 sm:p-12 text-slate-900 shadow-xl border border-blue-100">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-800 text-xs font-bold mb-4">Competitive Exam Practice • English / हिंदी</div>
+                <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight mb-3 text-slate-900">Gyan Manch <span class="text-blue-700 hindi-text">(ज्ञान मंच)</span></h1>
+                <p class="text-sm sm:text-lg text-slate-600 max-w-3xl mb-7">SSC, Banking, Railway, Defence aur anya competitive exams ke mock tests aur chapter-wise practice ek hi jagah.</p>
                 <div class="flex flex-col sm:flex-row gap-3">
-                  <button id="frontStudentLoginBtn" type="button" class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold shadow">Student Login / Register</button>
+                  <button id="frontStudentLoginBtn" type="button" class="px-6 py-3 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold shadow-md">Student Login / Register</button>
                   <button id="frontAdminLoginBtn" type="button" class="px-6 py-3 rounded-xl border border-amber-300/50 text-amber-200 hover:bg-slate-800 font-bold">Admin Login</button>
                 </div>
               </div>
