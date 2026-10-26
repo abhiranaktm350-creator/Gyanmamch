@@ -4791,7 +4791,7 @@ wireGmAnnouncementClose(container); applyGmTheme();
             const sId = btn.getAttribute('data-stu-id');
             const newSt = btn.getAttribute('data-new-status');
             const target = db.users.find(u => u.id === sId);
-            if (!target || !window.gyanManchSupabase || !state.currentUser || state.currentUser.role !== 'admin') return;
+            if (!target || !window.gyanManchSupabase || !state.currentUser || !['admin','teacher'].includes(state.currentUser.role)) return;
             btn.disabled = true;
             const { error } = await window.gyanManchSupabase.from('profiles')
               .update({ approval_status: newSt })
@@ -7359,7 +7359,7 @@ const termsModal = document.getElementById('examTermsModal');
               if (error) throw error;
               const { data: profileRow, error: profileError } = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,preferred_language').eq('id', data.user.id).single();
               if (profileError || !profileRow) { await client.auth.signOut(); throw new Error('Account profile missing. Please contact the administrator.'); }
-              if (form.id === 'formAdminLogin' && !(profileRow.role === 'admin' && profileRow.approval_status === 'approved')) {
+              if (form.id === 'formAdminLogin' && !(['admin','teacher'].includes(profileRow.role) && profileRow.approval_status === 'approved')) {
                 await client.auth.signOut(); throw new Error('Is account ko administrator access nahi mila hai.');
               }
               if (form.id === 'formStudentLogin' && profileRow.role !== 'student') {
@@ -7431,7 +7431,7 @@ const termsModal = document.getElementById('examTermsModal');
         async function hydrateAttemptsFromSupabase() {
           const client = window.gyanManchSupabase;
           if (!client || !state.currentUser) return;
-          const isAdmin = state.currentUser.role === 'admin';
+          const isAdmin = ['admin','teacher'].includes(state.currentUser.role);
           let attemptQuery = client.from('attempts').select('id,user_id,test_id,status,started_at,submitted_at,time_taken_seconds,total_questions,attempted_count,correct_count,incorrect_count,unattempted_count,score,max_score,accuracy').order('started_at',{ascending:false});
           if (!isAdmin) attemptQuery = attemptQuery.eq('user_id', state.currentUser.id);
           const attemptResult = await attemptQuery;
@@ -7522,8 +7522,8 @@ const termsModal = document.getElementById('examTermsModal');
             } else {
               state.currentUser = { id:p.id, username:p.username || session.user.email, mobile:p.phone || '', displayName:p.display_name || session.user.email, role:p.role, status:p.approval_status, showOnLeaderboard:true, email:session.user.email };
               savePersistentSession(state.currentUser);
-              await hydrateQuestionsFromSupabase(p.role === 'admin');
-              if (p.role === 'admin') {
+              await hydrateQuestionsFromSupabase(['admin','teacher'].includes(p.role));
+              if (['admin','teacher'].includes(p.role)) {
                 const usersResult = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,created_at');
                 if (!usersResult.error && Array.isArray(usersResult.data)) db.users = usersResult.data.map(u => ({id:u.id,username:u.username||'',mobile:u.phone||'',displayName:u.display_name||'',role:u.role,status:u.approval_status,createdAt:u.created_at,showOnLeaderboard:true,email:''}));
               }
