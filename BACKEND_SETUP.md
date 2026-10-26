@@ -40,9 +40,10 @@ Cloudflare hosts the website; Supabase handles sign-in and database/storage. You
 2. Select GitHub repository `abhiranaktm350-creator/Gyanmamch`.
 3. Choose branch `main` after the reviewed changes have been merged there.
 4. This is a static HTML site: leave the build command blank and set the build output directory to `/` or `.` as accepted by the Pages setup screen. No framework build is required.
-5. Deploy and copy the generated `https://….pages.dev` URL.
-6. Add that URL to Supabase Authentication → URL Configuration, then redeploy if needed.
-7. Every new commit merged/pushed to the connected branch should trigger a new Pages deployment. Check the deployment status in Cloudflare before sharing the URL.
+5. In Cloudflare Pages → Settings → Variables and Secrets, add `SUPABASE_PUBLISHABLE_KEY` with the project's publishable key. This is a public client key, not a service-role secret. The `wrangler.jsonc` file declares the Workers AI binding used by the private extraction endpoint; confirm the deployment reports the binding as available.
+6. Deploy and copy the generated `https://….pages.dev` URL.
+7. Add that URL to Supabase Authentication → URL Configuration, then redeploy if needed.
+8. Every new commit merged/pushed to the connected branch should trigger a new Pages deployment. Check the deployment status in Cloudflare before sharing the URL.
 
 If the repository is already connected to Cloudflare Pages, do not create a second project; open the existing Pages project and confirm its connected repository and production branch.
 
