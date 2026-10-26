@@ -1,3 +1,7 @@
 dist/
 node_modules/
+.vercel/
 .wrangler/
+.env
+.env.*
+!.env.example
