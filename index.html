@@ -6431,53 +6431,48 @@ Answer Key:
         // Real Multi-Page PDF.js Extraction (Preserves line coordinates so ALL questions are extracted)
         document.getElementById('btnRunPdfExtraction').addEventListener('click', async function() {
           const fileInput = document.getElementById('inpPdfFile');
+          const progressPanel = document.getElementById('pdfImportProgressPanel');
+          const progressStatus = document.getElementById('pdfImportProgressStatus');
+          const progressPercent = document.getElementById('pdfImportProgressPercent');
+          const progressBar = document.getElementById('pdfImportProgressBar');
+          const progressDetail = document.getElementById('pdfImportProgressDetail');
+          const runButton = document.getElementById('btnRunPdfExtraction');
+          function setImportProgress(percent, status, detail) {
+            const safePercent = Math.max(0, Math.min(100, Math.round(percent)));
+            if (progressPanel) progressPanel.classList.remove('hidden');
+            if (progressStatus) progressStatus.textContent = status;
+            if (progressPercent) progressPercent.textContent = safePercent + '%';
+            if (progressBar) progressBar.style.width = safePercent + '%';
+            if (progressDetail) progressDetail.textContent = detail || 'Keep this page open while the file is processed.';
+          }
           if (!fileInput.files || fileInput.files.length === 0) {
-            showToast('Please choose a PDF file from your computer first.', 'warning');
+            showToast('Please choose a question paper first.', 'warning');
             return;
           }
           const file = fileInput.files[0];
-          const answerKeyFile = document.getElementById('inpAnswerKeyFile') && document.getElementById('inpAnswerKeyFile').files[0];
-          let answerKeyText = '';
-          if (answerKeyFile) {
-            if (!window.pdfjsLib) {
-              showToast('PDF.js is unavailable; remove the answer key file or try again online.', 'warning');
-              return;
-            }
-            try {
-              const keyPdf = await window.pdfjsLib.getDocument({ data: await answerKeyFile.arrayBuffer() }).promise;
-              const keyPages = [];
-              for (let kp = 1; kp <= keyPdf.numPages; kp++) {
-                const page = await keyPdf.getPage(kp);
-                const content = await page.getTextContent();
-                keyPages.push(content.items.map(item => item.str).join(' '));
-              }
-              answerKeyText = keyPages.join('\n').trim();
-              if (answerKeyText.length < 5) {
-                showToast('No selectable text found in the answer key PDF. Use a text-based answer key PDF.', 'warning');
-                return;
-              }
-            } catch (keyError) {
-              showToast('Could not read answer key PDF: ' + keyError.message, 'error');
-              return;
-            }
-          }
           const targetExId = document.getElementById('pdfTargetExamSelect').value;
           const targetSubId = document.getElementById('pdfTargetSubjectSelect').value;
-
-          if (!window.pdfjsLib) {
-            showToast('PDF.js library unavailable offline—please paste text into Box #2.', 'warning');
-            return;
-          }
+          if (runButton) { runButton.disabled = true; runButton.classList.add('opacity-60'); }
+          setImportProgress(2, 'Reading selected file…', file.name + ' • ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB');
           try {
-            showToast('Reading all pages from "' + file.name + '"...', 'info');
+            if (!window.pdfjsLib && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
+              throw new Error('PDF reader is unavailable. Connect to the internet and reload the page.');
+            }
+            if (file.type.startsWith('image/')) {
+              setImportProgress(8, 'Preparing scanned paper…', 'Image selected; starting automatic text recognition.');
+              await runVisualOcrOnFile(file, targetExId, targetSubId);
+              setImportProgress(100, 'Finished processing image', 'Check the question review queue before publishing.');
+              return;
+            }
             const arrayBuf = await file.arrayBuffer();
+            setImportProgress(5, 'Opening PDF…', 'Reading PDF page count.');
             const pdf = await window.pdfjsLib.getDocument({ data: arrayBuf }).promise;
             let fullLines = [];
-
+            let pageWithText = 0;
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+              setImportProgress(8 + (pageNum - 1) / pdf.numPages * 62, 'Reading PDF page ' + pageNum + ' of ' + pdf.numPages + '…', 'Extracting text, options and any answer labels from the same PDF.');
               const page = await pdf.getPage(pageNum);
               const content = await page.getTextContent();
-              // Group text items by vertical Y coordinate so line breaks are preserved accurately
               const rowMap = {};
               content.items.forEach(function(item) {
                 const yKey = Math.round(item.transform[5] / 4) * 4;
@@ -6485,24 +6480,34 @@ Answer Key:
                 rowMap[yKey].push({ x: item.transform[4], str: item.str });
               });
               const sortedY = Object.keys(rowMap).map(Number).sort((a, b) => b - a);
+              let pageText = '';
               sortedY.forEach(function(y) {
                 const rowItems = rowMap[y].sort((a, b) => a.x - b.x);
                 const lineStr = rowItems.map(i => i.str).join(' ').trim();
-                if (lineStr) fullLines.push(lineStr);
+                if (lineStr) { fullLines.push(lineStr); pageText += lineStr + '\n'; }
               });
+              if (pageText.trim().length > 15) pageWithText++;
             }
-
             const combinedText = fullLines.join('\n');
-            if (!combinedText.trim() || combinedText.trim().length < 25) {
-              showToast('Scanned PDF detected (no selectable text)! Automatically launching Visual OCR Paper Scanner...', 'warning');
+            if (!combinedText.trim() || combinedText.trim().length < 25 || pageWithText === 0) {
+              setImportProgress(72, 'Scanned PDF detected…', 'Starting automatic recognition for the scanned pages.');
               await runVisualOcrOnFile(file, targetExId, targetSubId);
+              setImportProgress(100, 'Finished processing scanned PDF', 'Check the question review queue before publishing.');
               return;
             }
-            const backgroundExtracted = await tryBackgroundExtractQuestions(combinedText, file.name, targetExId, targetSubId, answerKeyText);
-            if (!backgroundExtracted) parseAllQuestionsFromText(combinedText + (answerKeyText ? '\n\nAnswer Key:\n' + answerKeyText : ''), file.name, targetExId, targetSubId);
+            setImportProgress(74, 'Identifying questions and answers…', 'AI is separating question text, options and answer labels.');
+            const backgroundExtracted = await tryBackgroundExtractQuestions(combinedText, file.name, targetExId, targetSubId, '');
+            if (!backgroundExtracted) {
+              setImportProgress(88, 'Using built-in question parser…', 'Reading question and answer labels from the extracted PDF text.');
+              parseAllQuestionsFromText(combinedText, file.name, targetExId, targetSubId);
+            }
+            setImportProgress(100, 'Processing complete', 'Questions are in the review queue. Check every option and answer before publishing.');
             renderAdminDashboardView(document.getElementById('appMain'));
           } catch (err) {
-            showToast('PDF Extraction Error: ' + err.message, 'error');
+            setImportProgress(0, 'Could not process this file', err && err.message ? err.message : 'Please try another PDF.');
+            showToast('PDF Extraction Error: ' + (err && err.message ? err.message : 'Please try again.'), 'error');
+          } finally {
+            if (runButton) { runButton.disabled = false; runButton.classList.remove('opacity-60'); }
           }
         });
 
