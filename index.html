@@ -5513,7 +5513,7 @@ table{max-width:100%;border-collapse:collapse}
           renderAdminQuestionsTab(pane);
         });
 
-        document.getElementById('formAdminAddQuestion').addEventListener('submit', function(e) {
+        document.getElementById('formAdminAddQuestion').addEventListener('submit', async function(e) {
           e.preventDefault();
           const newQId = 'q_custom_' + Date.now();
           const qScope = document.getElementById('admQScope').value; // 'full_mock', 'sessional_test', 'chapter_only'
@@ -5657,6 +5657,13 @@ table{max-width:100%;border-collapse:collapse}
             saveDatabase(db);
             showToast('Question added to Full-Length Mock Test for ' + exObj.name + '!', 'success');
           }
+          try {
+            await persistAdminQuestionToSupabase(newQ, targetExId);
+            saveDatabase(db);
+            showToast('Question saved to the shared question bank.', 'success');
+          } catch (backendError) {
+            showToast('Question remains local only because the shared save failed: ' + (backendError.message || 'Please retry.'), 'error');
+          }
           renderAdminDashboardView(document.getElementById('appMain'));
         });
 
@@ -5685,6 +5692,52 @@ table{max-width:100%;border-collapse:collapse}
       }
 
       // --- ADMIN TAB 4: FULL MULTI-QUESTION PDF-TO-QUESTIONS EXTRACTOR, BULK APPROVAL & MOCK TEST GENERATOR ---
+      async function persistAdminQuestionToSupabase(question, examLegacyId) {
+        const client = window.gyanManchSupabase;
+        if (!client || !state.currentUser || !['admin','teacher'].includes(state.currentUser.role)) throw new Error('Approved administrator session required.');
+        const auth = await client.auth.getUser();
+        if (auth.error || !auth.data.user) throw new Error('Supabase session expired. Please sign in again.');
+        const userId = auth.data.user.id;
+        const examResult = await client.from('exams').select('id').eq('legacy_id',examLegacyId).single();
+        if (examResult.error) throw examResult.error;
+        const savedQuestion = await client.from('questions').upsert({
+          legacy_id:question.id, exam_id:examResult.data.id, question_en:question.text_en || '', question_hi:question.text_hi || '',
+          options:{en:question.options_en || [], hi:question.options_hi || question.options_en || []},
+          subject:question.subjectId || '', topic:question.chapterId || '', difficulty:question.difficulty || 'medium',
+          source_type:question.sourceType === 'pyq' ? 'pyq' : (question.sourceType === 'practice' ? 'practice' : 'mock'),
+          status:question.isPublished === false ? 'draft' : 'published', created_by:userId
+        }, {onConflict:'legacy_id'}).select('id').single();
+        if (savedQuestion.error) throw savedQuestion.error;
+        const keySave = await client.from('question_answer_keys').upsert({
+          question_id:savedQuestion.data.id, correct_option:Number(question.correctOption),
+          explanation_en:question.explanation_en || '', explanation_hi:question.explanation_hi || ''
+        }, {onConflict:'question_id'});
+        if (keySave.error) throw keySave.error;
+        const testObj = db.tests.find(t => Array.isArray(t.questionIds) && t.questionIds.includes(question.id));
+        if (!testObj) return;
+        const type = testObj.testType === 'chapter_practice' ? 'practice' : (testObj.testType === 'sessional_test' || testObj.testType === 'sectional' ? 'sectional' : 'mock');
+        const testSave = await client.from('tests').upsert({
+          legacy_id:testObj.id, exam_id:examResult.data.id, title_en:testObj.title, title_hi:testObj.title_hi || testObj.title,
+          description:'Teacher-managed question set', test_type:type, duration_minutes:Number(testObj.durationMinutes || 60),
+          positive_marks:Number(testObj.defaultMarks || question.marks || 1), negative_marks:Number(testObj.defaultNegative || question.negativeMarks || 0),
+          status:testObj.isPublished === false ? 'draft' : 'published',
+          instructions:{sections:testObj.sections || [], questionIds:testObj.questionIds, maxAttempts:testObj.maxAttempts ?? null, showResultsImmediately:testObj.showResultsImmediately !== false},
+          published_at:testObj.isPublished === false ? null : new Date().toISOString(), created_by:userId
+        }, {onConflict:'legacy_id'}).select('id').single();
+        if (testSave.error) throw testSave.error;
+        const questionLookup = await client.from('questions').select('id,legacy_id').in('legacy_id',testObj.questionIds);
+        if (questionLookup.error) throw questionLookup.error;
+        const idByLegacy = {}; (questionLookup.data || []).forEach(q => { idByLegacy[q.legacy_id] = q.id; });
+        const links = testObj.questionIds.filter(id => idByLegacy[id]).map((id,index)=>({
+          test_id:testSave.data.id, question_id:idByLegacy[id], section_name:'', question_order:index+1,
+          positive_marks:Number(testObj.defaultMarks || question.marks || 1), negative_marks:Number(testObj.defaultNegative || question.negativeMarks || 0)
+        }));
+        if (links.length) {
+          const linkSave = await client.from('test_questions').upsert(links,{onConflict:'test_id,question_id'});
+          if (linkSave.error) throw linkSave.error;
+        }
+      }
+
       async function persistApprovedPdfBatchToSupabase(exam, newTest, createdQIds, batchFileName, currentPaperItems) {
         const client = window.gyanManchSupabase;
         if (!client || !state.currentUser || !['admin','teacher'].includes(state.currentUser.role)) throw new Error('Approved administrator session required.');
