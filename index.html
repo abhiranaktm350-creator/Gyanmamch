@@ -7760,6 +7760,30 @@ Answer Key:
           }
         });
 
+        // Clear invalid-password styling while the user corrects their credentials.
+        ['loginStuPassword', 'admLoginPass'].forEach(function(id) {
+          const field = document.getElementById(id);
+          if (field) field.addEventListener('input', function() {
+            field.removeAttribute('aria-invalid');
+            field.classList.remove('border-red-500');
+          });
+        });
+        const confirmStudentPassword = document.getElementById('regStuPasswordConfirm');
+        const newStudentPassword = document.getElementById('regStuPassword');
+        function validateStudentPasswordMatch() {
+          if (!confirmStudentPassword || !newStudentPassword) return true;
+          const matches = newStudentPassword.value === confirmStudentPassword.value;
+          confirmStudentPassword.setCustomValidity(matches ? '' : 'Passwords match nahi karte. Dono password same likhein.');
+          confirmStudentPassword.setAttribute('aria-invalid', matches ? 'false' : 'true');
+          confirmStudentPassword.classList.toggle('border-red-500', !matches && confirmStudentPassword.value.length > 0);
+          return matches;
+        }
+        if (newStudentPassword && confirmStudentPassword) {
+          newStudentPassword.addEventListener('input', validateStudentPasswordMatch);
+          confirmStudentPassword.addEventListener('input', validateStudentPasswordMatch);
+          confirmStudentPassword.addEventListener('blur', validateStudentPasswordMatch);
+        }
+
         // Official Supabase authentication bridge: local/demo credentials are not accepted.
         document.addEventListener('submit', async function(event) {
           const form = event.target;
@@ -7834,7 +7858,18 @@ Answer Key:
               }
             }
           } catch (error) {
-            showToast(error && error.message ? error.message : 'Authentication failed. Please try again.', 'error');
+            let message = error && error.message ? error.message : 'Authentication failed. Please try again.';
+            const authMessage = String(message).toLowerCase();
+            if (authMessage.includes('invalid login credentials') || authMessage.includes('invalid_credentials') || authMessage.includes('email or password')) {
+              message = form.id === 'formAdminLogin'
+                ? 'Admin email ya password galat hai. Details check karke dobara try karein.'
+                : 'Email ya password galat hai. Details check karke dobara try karein.';
+              const passwordInput = document.getElementById(form.id === 'formAdminLogin' ? 'admLoginPass' : 'loginStuPassword');
+              if (passwordInput) { passwordInput.setAttribute('aria-invalid', 'true'); passwordInput.classList.add('border-red-500'); }
+            } else if (authMessage.includes('email not confirmed')) {
+              message = 'Pehle apni registered email verify karein, phir login karein.';
+            }
+            showToast(message, 'error');
           } finally {
             if (submit) { submit.disabled = false; submit.textContent = submit.dataset.originalText || 'Submit'; }
           }
