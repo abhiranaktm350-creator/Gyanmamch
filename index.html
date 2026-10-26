@@ -5704,6 +5704,66 @@ table{max-width:100%;border-collapse:collapse}
       }
 
       // --- ADMIN TAB 4: FULL MULTI-QUESTION PDF-TO-QUESTIONS EXTRACTOR, BULK APPROVAL & MOCK TEST GENERATOR ---
+      async function persistApprovedPdfBatchToSupabase(exam, newTest, createdQIds, batchFileName, currentPaperItems) {
+        const client = window.gyanManchSupabase;
+        if (!client || !state.currentUser || !['admin','teacher'].includes(state.currentUser.role)) throw new Error('Approved administrator session required.');
+        const auth = await client.auth.getUser();
+        if (auth.error || !auth.data.user) throw new Error('Supabase session expired. Please sign in again.');
+        const userId = auth.data.user.id;
+        const examResult = await client.from('exams').select('id').eq('legacy_id', exam.id).single();
+        if (examResult.error) throw examResult.error;
+        const questionRows = [];
+        for (const legacyId of createdQIds) {
+          const q = db.questions.find(item => item.id === legacyId);
+          if (!q) continue;
+          const saved = await client.from('questions').upsert({
+            legacy_id:q.id, exam_id:examResult.data.id, question_en:q.text_en || '', question_hi:q.text_hi || '',
+            options:{en:q.options_en || [], hi:q.options_hi || q.options_en || []}, subject:q.subjectId || '', topic:q.chapterId || '',
+            difficulty:'medium', source_type:'mock', status:'published', created_by:userId
+          }, { onConflict:'legacy_id' }).select('id').single();
+          if (saved.error) throw saved.error;
+          const keySave = await client.from('question_answer_keys').upsert({
+            question_id:saved.data.id, correct_option:Number(q.correctOption), explanation_en:q.explanation_en || '', explanation_hi:q.explanation_hi || ''
+          }, { onConflict:'question_id' });
+          if (keySave.error) throw keySave.error;
+          questionRows.push({ legacy_id:q.id, id:saved.data.id, positive:Number(q.marks || newTest.defaultMarks || 1), negative:Number(q.negativeMarks || newTest.defaultNegative || 0) });
+        }
+        if (!questionRows.length) throw new Error('No questions were ready to publish.');
+        const type = newTest.testType === 'chapter_practice' ? 'practice' : (newTest.testType === 'sessional_test' ? 'sectional' : 'mock');
+        const testSave = await client.from('tests').upsert({
+          legacy_id:newTest.id, exam_id:examResult.data.id, title_en:newTest.title, title_hi:newTest.title_hi || newTest.title,
+          description:'Teacher-reviewed paper: ' + batchFileName, test_type:type, duration_minutes:Number(newTest.durationMinutes || 60),
+          positive_marks:Number(newTest.defaultMarks || 1), negative_marks:Number(newTest.defaultNegative || 0),
+          status:'published', instructions:{sections:newTest.sections || [], questionIds:questionRows.map(q => q.legacy_id), maxAttempts:newTest.maxAttempts ?? null, showResultsImmediately:true},
+          published_at:new Date().toISOString(), created_by:userId
+        }, { onConflict:'legacy_id' }).select('id').single();
+        if (testSave.error) throw testSave.error;
+        const mappingSave = await client.from('test_questions').upsert(questionRows.map((q,index)=>({
+          test_id:testSave.data.id, question_id:q.id, section_name:'', question_order:index+1,
+          positive_marks:q.positive, negative_marks:q.negative
+        })), { onConflict:'test_id,question_id' });
+        if (mappingSave.error) throw mappingSave.error;
+        const payload = (currentPaperItems || []).map(item => ({
+          question_en:item.text_en || '', question_hi:item.text_hi || '', options_en:item.options_en || [], options_hi:item.options_hi || [],
+          correct_option:item.correctOption, explanation_en:item.explanation_en || '', explanation_hi:item.explanation_hi || ''
+        }));
+        if (window.gyanManchPdfJobId) {
+          const jobUpdate = await client.from('pdf_import_jobs').update({
+            status:'published', extracted_payload:payload, target_exam_id:examResult.data.id, target_test_id:testSave.data.id, reviewed_by:userId
+          }).eq('id',window.gyanManchPdfJobId);
+          if (jobUpdate.error) throw jobUpdate.error;
+        } else {
+          const jobInsert = await client.from('pdf_import_jobs').insert({
+            uploaded_by:userId, file_path:'manual-import/' + newTest.id, original_filename:batchFileName || 'Manual question import',
+            status:'published', extracted_payload:payload, target_exam_id:examResult.data.id, target_test_id:testSave.data.id, reviewed_by:userId
+          });
+          if (jobInsert.error) throw jobInsert.error;
+        }
+        window.gyanManchPdfJobId = null;
+        window.gyanManchPdfFilePath = null;
+        return { testId:testSave.data.id, questionCount:questionRows.length };
+      }
+
       function renderAdminPdfImportTab(pane) {
         pane.innerHTML = `
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -5982,6 +6042,40 @@ Answer Key:
         const pdfExSel = document.getElementById('pdfTargetExamSelect');
         const pdfSubSel = document.getElementById('pdfTargetSubjectSelect');
         const pdfChapSel = document.getElementById('pdfTargetChapterSelect');
+        const pdfFileInput = document.getElementById('inpPdfFile');
+        if (pdfFileInput) {
+          pdfFileInput.addEventListener('change', async function() {
+            const file = pdfFileInput.files && pdfFileInput.files[0];
+            if (!file) return;
+            if (!window.gyanManchSupabase || !state.currentUser || !['admin','teacher'].includes(state.currentUser.role)) {
+              showToast('Sign in as an approved administrator before uploading question papers.', 'error');
+              pdfFileInput.value = '';
+              return;
+            }
+            const buttons = ['btnRunPdfExtraction','btnRunOcrPaperScan'].map(id => document.getElementById(id)).filter(Boolean);
+            buttons.forEach(b => { b.disabled = true; });
+            try {
+              const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g,'_').slice(-120);
+              const path = state.currentUser.id + '/' + Date.now() + '_' + safeName;
+              const upload = await window.gyanManchSupabase.storage.from('question-pdfs').upload(path,file,{upsert:false,contentType:file.type || 'application/pdf'});
+              if (upload.error) throw upload.error;
+              const examLookup = await window.gyanManchSupabase.from('exams').select('id').eq('legacy_id',pdfExSel ? pdfExSel.value : '').maybeSingle();
+              if (examLookup.error) throw examLookup.error;
+              const job = await window.gyanManchSupabase.from('pdf_import_jobs').insert({
+                uploaded_by:state.currentUser.id, file_path:path, original_filename:file.name, status:'uploaded', target_exam_id:examLookup.data ? examLookup.data.id : null
+              }).select('id').single();
+              if (job.error) throw job.error;
+              window.gyanManchPdfJobId = job.data.id;
+              window.gyanManchPdfFilePath = path;
+              window.gyanManchPdfFileName = file.name;
+              showToast('Question paper stored privately. Run extraction, review answers, then publish.', 'success');
+            } catch (error) {
+              showToast('Private upload failed: ' + (error.message || 'Please retry.'), 'error');
+            } finally {
+              buttons.forEach(b => { b.disabled = false; });
+            }
+          });
+        }
 
         function syncPdfChapDropdown() {
           if (!pdfSubSel || !pdfChapSel) return;
@@ -6386,7 +6480,7 @@ Answer Key:
         // Approve ALL Staged Questions & Create Official Mock Test automatically
         const btnApproveAll = document.getElementById('btnApproveAllStaged');
         if (btnApproveAll) {
-          btnApproveAll.addEventListener('click', function() {
+          btnApproveAll.addEventListener('click', async function() {
             const missingKey = db.pdfImportQueue.find(it => it.correctOption === null || it.correctOption < 0 || it.correctOption > 3);
             if (missingKey) {
               showToast('Some staged questions are missing an Answer Key. Please select Option A/B/C/D for highlighted items first.', 'error');
@@ -6477,6 +6571,13 @@ Answer Key:
             };
             if (!createdQIds.length) {
               showToast('No new questions were published. All questions in this PDF were duplicates or already in the database.', 'warning');
+              return;
+            }
+            try {
+              const result = await persistApprovedPdfBatchToSupabase(exam, newTest, createdQIds, batchFileName, currentPaperItems);
+              showToast('Saved ' + result.questionCount + ' reviewed questions and the test to the shared database.', 'success');
+            } catch (backendError) {
+              showToast('Could not publish to the shared database: ' + (backendError.message || 'Please retry.'), 'error');
               return;
             }
             db.tests.unshift(newTest);
