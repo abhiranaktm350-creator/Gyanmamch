@@ -7568,7 +7568,7 @@ Answer Key:
         });
       }
 
-      // Lightweight offline subject suggestion for PDF imports. This is a keyword heuristic, not cloud AI; admin can correct every suggestion before approval.
+      // Lightweight offline subject suggestion for PDF imports. This uses keyword matching; the administrator can correct every suggestion before approval.
       function suggestSubjectForQuestion(text) {
         const t = String(text || '').toLowerCase();
         const rules = [
