@@ -1,9 +1,9 @@
 {
   "name": "gyan-manch",
   "private": true,
-  "version": "1.0.0",
-  "description": "Gyan Manch static site for Cloudflare Pages",
+  "version": "1.0.1",
+  "description": "Gyan Manch bilingual competitive-exam practice website",
   "scripts": {
-    "build": "rm -rf dist && mkdir -p dist && cp index.html _headers dist/"
+    "build": "rm -rf dist && mkdir -p dist && cp index.html _headers manifest.webmanifest dist/"
   }
 }
