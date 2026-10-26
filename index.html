@@ -3639,7 +3639,7 @@ wireGmAnnouncementClose(container); applyGmTheme();
           navigateTo('home');
           return;
         }
-        if (window.gyanManchSupabase && state.currentUser && !attempt.review || (window.gyanManchSupabase && state.currentUser && attempt.review && Object.keys(attempt.review).length === 0)) {
+        if (window.gyanManchSupabase && state.currentUser && (!attempt.review || Object.keys(attempt.review).length === 0)) {
           if (['submitted','auto_submitted'].includes(attempt.status)) {
             container.innerHTML = '<div class="p-6 text-center text-sm text-slate-600">Loading your secure answer review…</div>';
             const reviewResult = await window.gyanManchSupabase.rpc('get_attempt_review', { p_attempt_id: attempt.id });
@@ -3655,7 +3655,8 @@ wireGmAnnouncementClose(container); applyGmTheme();
           }
         }
         const test = db.tests.find(t => t.id === attempt.testId) || db.tests[0];
-        const questions = test && Array.isArray(test.questionIds) ? test.questionIds.map(id => db.questions.find(q => q.id === id)).filter(Boolean) : [];
+        if (!test) { container.innerHTML = '<div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">Test details are still syncing. Return to the catalogue and reopen this result in a moment.</div>'; return; }
+        const questions = Array.isArray(test.questionIds) ? test.questionIds.map(id => db.questions.find(q => q.id === id)).filter(Boolean) : [];
         const letters = ['A', 'B', 'C', 'D'];
 
         container.innerHTML = `
@@ -3676,7 +3677,7 @@ wireGmAnnouncementClose(container); applyGmTheme();
               <div>
                 <div class="flex items-center gap-2 mb-1">
                   <span class="px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-xs font-bold uppercase">
-                    ${attempt.status === 'auto_submitted_timeout' ? 'Auto-Submitted (Timer Expired)' : 'Official Scorecard'}
+                    ${['auto_submitted_timeout','auto_submitted'].includes(attempt.status) ? 'Auto-Submitted (Timer Expired)' : 'Official Scorecard'}
                   </span>
                   <span class="text-xs text-slate-400 font-mono">Attempt ID: ${escapeHtml(attempt.id)} (Attempt #${attempt.attemptNumber})</span>
                 </div>
