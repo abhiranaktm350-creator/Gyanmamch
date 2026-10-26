@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#2563eb" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -56,61 +56,7 @@
       background-color: #f8fafc;
       color: #0f172a;
     }
-    /* Home-page theme switch: saved per browser. Keep exam question text readable in either theme. */
-    body.gm-dark-theme { background:#0b1220 !important; color:#e5e7eb !important; }
-    body.gm-dark-theme #appMain { color:#e5e7eb; }
-    body.gm-dark-theme #appMain .bg-white:not(.gm-keep-light),
-    body.gm-dark-theme #appMain .bg-slate-50:not(.gm-keep-light),
-    body.gm-dark-theme #appMain .bg-slate-100:not(.gm-keep-light) { background-color:#172033 !important; }
-    body.gm-dark-theme #appMain .text-slate-900,
-    body.gm-dark-theme #appMain .text-slate-800,
-    body.gm-dark-theme #appMain .text-slate-700,
-    body.gm-dark-theme #appMain .text-slate-600 { color:#e5e7eb !important; }
-    body.gm-dark-theme #appMain .border-slate-200,
-    body.gm-dark-theme #appMain .border-slate-300 { border-color:#334155 !important; }
-    body.gm-dark-theme #appMain input:not([type=checkbox]),
-    body.gm-dark-theme #appMain textarea,
-    body.gm-dark-theme #appMain select { background:#0f172a !important; color:#f8fafc !important; border-color:#475569 !important; }
-    /* Consistent dark theme for every non-exam page and interactive surface. The CBT exam overlay is intentionally excluded. */
-    body.gm-dark-theme #appMain { background-color:transparent !important; }
-    body.gm-dark-theme #appMain .bg-white,
-    body.gm-dark-theme #appMain .bg-slate-50,
-    body.gm-dark-theme #appMain .bg-slate-100,
-    body.gm-dark-theme #appMain .bg-gray-50,
-    body.gm-dark-theme #appMain .bg-gray-100 { background-color:#172033 !important; }
-    body.gm-dark-theme #appMain .bg-slate-200,
-    body.gm-dark-theme #appMain .bg-gray-200 { background-color:#263449 !important; }
-    body.gm-dark-theme #appMain .text-slate-500,
-    body.gm-dark-theme #appMain .text-gray-500,
-    body.gm-dark-theme #appMain .text-slate-400,
-    body.gm-dark-theme #appMain .text-gray-400 { color:#cbd5e1 !important; }
-    body.gm-dark-theme #appMain .text-black,
-    body.gm-dark-theme #appMain .text-gray-900,
-    body.gm-dark-theme #appMain .text-gray-800,
-    body.gm-dark-theme #appMain .text-gray-700,
-    body.gm-dark-theme #appMain .text-gray-600 { color:#e5e7eb !important; }
-    body.gm-dark-theme #appMain [class*="border-"] { border-color:#334155; }
-    body.gm-dark-theme #appMain button:focus-visible,
-    body.gm-dark-theme #appMain a:focus-visible,
-    body.gm-dark-theme #appMain input:focus-visible,
-    body.gm-dark-theme #appMain select:focus-visible,
-    body.gm-dark-theme #appMain textarea:focus-visible { outline:2px solid #a5b4fc !important; outline-offset:2px; }
-    /* Touch/hover states keep labels readable instead of letting dark text disappear on a darkened button. */
-    body.gm-dark-theme #appMain button:hover,
-    body.gm-dark-theme #appMain [role="button"]:hover,
-    body.gm-dark-theme #appMain button:active,
-    body.gm-dark-theme #appMain [role="button"]:active { text-shadow:none; }
-    body.gm-dark-theme #appMain .hover\:bg-white:hover,
-    body.gm-dark-theme #appMain .hover\:bg-slate-50:hover,
-    body.gm-dark-theme #appMain .hover\:bg-slate-100:hover { background-color:#334155 !important; color:#f8fafc !important; }
-    body.gm-dark-theme #appMain .hover\:text-slate-900:hover,
-    body.gm-dark-theme #appMain .hover\:text-slate-800:hover,
-    body.gm-dark-theme #appMain .hover\:text-gray-900:hover { color:#ffffff !important; }
-    body.gm-dark-theme #mainHeader { background-color:#020617 !important; }
-    body.gm-dark-theme #mainHeader .text-slate-400,
-    body.gm-dark-theme #mainHeader .text-slate-300 { color:#cbd5e1 !important; }
-    /* Keep all exam UI colors and layout isolated from the site theme. */
-    body.gm-dark-theme #cbtOverlay { color:inherit; }
+    /* Light-only site theme; keep the exam interface isolated. */
     #cbtOverlay { width:100vw; height:100vh; height:100dvh; max-height:100dvh; }
     #cbtQuestionStemContainer, #cbtQuestionStemContainer * { color:#0f172a !important; -webkit-text-fill-color:#0f172a !important; }
     #cbtQuestionStemContainer { background-color:#f8fafc !important; visibility:visible; opacity:1; }
@@ -2643,19 +2589,10 @@ table{max-width:100%;border-collapse:collapse}
 
       // Homepage appearance and announcement helpers (local browser storage unless LAN DB sync is configured).
       function applyGmTheme() {
-        let theme = 'light';
-        try { theme = localStorage.getItem('gm_theme') || 'light'; } catch(e) {}
-        document.body.classList.toggle('gm-dark-theme', theme === 'dark');
-        document.querySelectorAll('[data-gm-theme-toggle]').forEach(function(btn){
-          btn.textContent = theme === 'dark' ? '☀ Light mode' : '☾ Dark mode';
-          btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
-        });
+        document.body.classList.remove('gm-dark-theme');
+        try { localStorage.setItem('gm_theme', 'light'); } catch(e) {}
       }
-      function toggleGmTheme() {
-        const dark = !document.body.classList.contains('gm-dark-theme');
-        try { localStorage.setItem('gm_theme', dark ? 'dark' : 'light'); } catch(e) {}
-        applyGmTheme();
-      }
+      function toggleGmTheme() { applyGmTheme(); }
       function getActiveGmAnnouncement() {
         if (!Array.isArray(db.announcements)) db.announcements = [];
         return db.announcements.find(function(a){ return a && a.active && String(a.text || '').trim(); }) || null;
@@ -3019,7 +2956,7 @@ table{max-width:100%;border-collapse:collapse}
         if (!user) {
           container.innerHTML = `
             <section class="max-w-5xl mx-auto my-6 sm:my-10 px-1">
-              <div class="flex items-center justify-between gap-3 mb-3"><div class="text-xs text-slate-500">Welcome to Gyan Manch</div><button type="button" data-gm-theme-toggle class="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700">☾ Dark mode</button></div>
+              <div class="flex items-center justify-between gap-3 mb-3"><div class="text-xs text-slate-500">Welcome to Gyan Manch</div></div>
               ${renderGmAnnouncementBar()}
               <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-7 sm:p-12 text-white shadow-xl border border-indigo-800/40">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 text-xs font-semibold mb-4">Competitive Exam Practice • English / हिंदी</div>
@@ -3102,7 +3039,7 @@ table{max-width:100%;border-collapse:collapse}
         `;
 
         container.innerHTML = `
-          <div class="flex items-center justify-between gap-3 mb-3"><div class="text-xs text-slate-500">Gyan Manch Home</div><button type="button" data-gm-theme-toggle class="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700">☾ Dark mode</button></div>
+          <div class="flex items-center justify-between gap-3 mb-3"><div class="text-xs text-slate-500">Gyan Manch Home</div></div>
           ${renderGmAnnouncementBar()}
           ${studentStepBar}
           ${accountStatusBanner}
