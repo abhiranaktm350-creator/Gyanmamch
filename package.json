@@ -1,8 +1,12 @@
 {
   "name": "gyan-manch",
   "private": true,
-  "version": "1.0.1",
+  "type": "module",
+  "version": "1.0.2",
   "description": "Gyan Manch bilingual competitive-exam practice website",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "rm -rf dist && mkdir -p dist && cp index.html _headers manifest.webmanifest dist/"
   }
