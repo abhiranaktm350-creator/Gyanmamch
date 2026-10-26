@@ -28,19 +28,33 @@ where lower(email) = lower('OWNER_EMAIL');
 
 New public signups receive the student role and pending approval. The browser cannot call the initial-admin bootstrap function or grant itself an administrator role.
 
-## Deployment status after disabling Cloudflare
+## Vercel deployment (Cloudflare not required)
 
-Cloudflare deployment is intentionally disabled. Do not recreate the old Worker service or run `npx wrangler deploy`.
+The repository is configured for Vercel:
+- Build command: `npm run build`
+- Output directory: `dist`
+- Serverless endpoint: `api/extract-questions.js` → `/api/extract-questions`
+- The static output contains the website, headers file and web-app manifest only. The Supabase SQL files and `.env.example` are not copied into `dist`.
 
-The static production build is prepared with `npm run build`; its output directory is `dist` and contains only `index.html`, `_headers`, and `manifest.webmanifest`. SQL setup files and internal documentation are not copied into the public build output.
+### Deploy from Android
 
-**Important hosting limitation:** `functions/api/extract-questions.js` is a Cloudflare Pages Function and uses the Cloudflare Workers AI binding `env.AI`. It will not work unchanged on Vercel, Netlify, GitHub Pages, or another host. Before switching hosts, port this endpoint to that platform or move it to a Supabase Edge Function and configure an AI provider. The normal Supabase login, database, and scoring remain separate from the static hosting choice.
+1. Open [Vercel](https://vercel.com/) and sign in with GitHub.
+2. Choose **Add New → Project**, import `abhiranaktm350-creator/Gyanmamch`, and select `main`.
+3. Use framework preset **Other** if requested. Confirm `npm run build` and `dist`; `vercel.json` also defines these settings.
+4. Under Project Settings → Environment Variables, add:
+   - `SUPABASE_URL` — existing project URL.
+   - `SUPABASE_PUBLISHABLE_KEY` — existing publishable key (not a service-role key).
+   - `AI_API_KEY` — required only for AI question extraction; add the provider key privately in Vercel, never GitHub.
+   - Optional `AI_API_URL` and `AI_MODEL` if using a different OpenAI-compatible provider.
+5. Deploy a preview and test it before promoting to production. The API verifies the Supabase bearer token and requires an approved `admin` or `teacher` profile before it sends document text to the configured AI provider.
+6. In Supabase Authentication → URL Configuration, set the final Vercel HTTPS URL as Site URL and add it to Redirect URLs.
+7. Test student sign-up, pending approval, admin login, mock scoring/results, and staff-only PDF extraction end-to-end.
 
-Never put a Supabase service-role key or private API secret in browser code. Do not claim the site is production-ready until the selected host, authentication, student approval, mock submission/scoring, and PDF import workflow have been tested end-to-end.
+The AI extraction API returns a clear `503` if its private AI key is not configured. This prevents silently pretending the feature is working when the provider is unavailable. A successful GitHub build alone does not prove the Vercel deployment or authentication is live.
 
 ## PDF / question paper workflow
 
-Approved staff can upload PDFs/scans to the private `question-pdfs` storage bucket. The current website includes browser-side PDF text extraction/OCR and a manual review/publish workflow. Background model-based extraction is **not yet verified as deployed**; it needs a secured server endpoint and a successful Cloudflare deployment before being described as live.
+Approved staff can upload PDFs/scans to the private `question-pdfs` storage bucket. The current website includes browser-side PDF text extraction/OCR and a manual review/publish workflow. Background model-based extraction is implemented as a Vercel Node.js function in `api/extract-questions.js`. It requires a configured `AI_API_KEY` and a deployed Vercel project; do not describe it as live until tested with an approved staff session and a working provider key.
 
 ## Database status and limitations
 
