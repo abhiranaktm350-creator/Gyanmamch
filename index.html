@@ -4630,7 +4630,7 @@ table{max-width:100%;border-collapse:collapse}
         document.getElementById('modalConfirmSubmit').classList.remove('hidden');
       }
 
-      function finalizeAndScoreAttempt(isAutoTimeout) {
+      async function finalizeAndScoreAttempt(isAutoTimeout) {
         const cbt = state.activeCbt;
         if (!cbt) return;
 
@@ -4680,14 +4680,65 @@ table{max-width:100%;border-collapse:collapse}
         const attempted = correctCount + incorrectCount;
         const accuracy = attempted > 0 ? Number(((correctCount / attempted) * 100).toFixed(2)) : 0;
         const timeTakenSeconds = Math.max(1, cbt.totalDurationSeconds - Math.max(0, cbt.remainingSeconds));
+        let backendAttemptId = null;
+        let backendStatus = null;
+        if (window.gyanManchSupabase && state.currentUser && state.currentUser.role === 'student') {
+          try {
+            const client = window.gyanManchSupabase;
+            const testLookup = await client.from('tests').select('id').eq('legacy_id', cbt.test.id).eq('status', 'published').single();
+            if (testLookup.error) throw testLookup.error;
+            const legacyQuestionIds = cbt.questions.map(q => q.id);
+            const questionLookup = await client.from('questions').select('id,legacy_id').in('legacy_id', legacyQuestionIds);
+            if (questionLookup.error) throw questionLookup.error;
+            const questionUuidByLegacy = {};
+            (questionLookup.data || []).forEach(q => { questionUuidByLegacy[q.legacy_id] = q.id; });
+            const attemptInsert = await client.from('attempts').insert({
+              user_id: state.currentUser.id,
+              test_id: testLookup.data.id,
+              status: 'in_progress',
+              total_questions: cbt.questions.length
+            }).select('id').single();
+            if (attemptInsert.error) throw attemptInsert.error;
+            const serverAnswers = [];
+            cbt.questions.forEach(q => {
+              const answer = cbt.answers[q.id];
+              if (answer && answer.selectedOption !== null && answer.selectedOption !== undefined && questionUuidByLegacy[q.id]) {
+                serverAnswers.push({
+                  question_id: questionUuidByLegacy[q.id],
+                  selected_option: Number(answer.selectedOption),
+                  marked_for_review: !!answer.markedForReview
+                });
+              }
+            });
+            const scored = await client.rpc('submit_and_score_attempt', {
+              p_attempt_id: attemptInsert.data.id,
+              p_answers: serverAnswers,
+              p_time_taken_seconds: timeTakenSeconds,
+              p_auto_submit: !!isAutoTimeout
+            });
+            if (scored.error) throw scored.error;
+            const serverRow = Array.isArray(scored.data) ? scored.data[0] : scored.data;
+            if (!serverRow) throw new Error('Server did not return a scored attempt.');
+            backendAttemptId = serverRow.id;
+            backendStatus = serverRow.status;
+            totalScore = Number(serverRow.score || 0);
+            maxMarks = Number(serverRow.max_score || 0);
+            correctCount = Number(serverRow.correct_count || 0);
+            incorrectCount = Number(serverRow.incorrect_count || 0);
+            unansweredCount = Number(serverRow.unattempted_count || 0);
+          } catch (backendError) {
+            showToast('Server result save failed; showing local result only. ' + (backendError.message || ''), 'warning');
+          }
+        }
+        const finalAttemptId = backendAttemptId || cbt.attemptId;
 
         const completedAttempt = {
-          id: cbt.attemptId,
-          userId: state.currentUser ? state.currentUser.id : 'usr_stu_aarav',
+          id: finalAttemptId,
+          userId: state.currentUser ? state.currentUser.id : null,
           testId: cbt.test.id,
           testVersion: cbt.test.version || 1,
           attemptNumber: cbt.attemptNumber,
-          status: isAutoTimeout ? 'auto_submitted_timeout' : 'submitted',
+          status: backendStatus || (isAutoTimeout ? 'auto_submitted_timeout' : 'submitted'),
           startedAt: cbt.startedAtIso,
           submittedAt: new Date().toISOString(),
           timeTakenSeconds: timeTakenSeconds,
@@ -8373,6 +8424,42 @@ Answer Key:
           }
         }, true);
 
+
+        // Pull the shared published test catalogue from Supabase, keeping stable legacy IDs for the existing test runner.
+        async function hydratePublishedTestsFromSupabase() {
+          const client = window.gyanManchSupabase;
+          if (!client) return;
+          try {
+            const [examResult, testResult] = await Promise.all([
+              client.from('exams').select('id,legacy_id'),
+              client.from('tests').select('legacy_id,exam_id,title_en,title_hi,description,test_type,duration_minutes,positive_marks,negative_marks,status,instructions').eq('status','published')
+            ]);
+            if (examResult.error || testResult.error) throw examResult.error || testResult.error;
+            const examIds = {};
+            (examResult.data || []).forEach(e => { examIds[e.id] = e.legacy_id; });
+            const remoteTests = (testResult.data || []).filter(t => t.legacy_id && t.instructions && Array.isArray(t.instructions.questionIds) && t.instructions.questionIds.length).map(t => ({
+              id:t.legacy_id, examId:examIds[t.exam_id] || '', chapterId:null, title:t.title_en, title_hi:t.title_hi || t.title_en,
+              testType:t.test_type === 'practice' ? 'chapter_practice' : (t.test_type === 'sectional' ? 'sectional' : 'full_mock'),
+              durationMinutes:t.duration_minutes, defaultMarks:Number(t.positive_marks), defaultNegative:Number(t.negative_marks),
+              maxAttempts:t.instructions.maxAttempts ?? null, isPracticeMode:t.test_type === 'practice',
+              showResultsImmediately:t.instructions.showResultsImmediately !== false, isPublished:true, isSample:false, version:1,
+              sections:Array.isArray(t.instructions.sections) ? t.instructions.sections : [], questionIds:t.instructions.questionIds,
+              description:t.description || ''
+            }));
+            if (!remoteTests.length) return;
+            const remoteById = {};
+            remoteTests.forEach(t => { remoteById[t.id] = t; });
+            const merged = db.tests.map(t => remoteById[t.id] || t);
+            const existingIds = new Set(merged.map(t => t.id));
+            remoteTests.forEach(t => { if (!existingIds.has(t.id)) merged.push(t); });
+            db.tests = merged;
+            saveDatabase(db);
+            renderCurrentView();
+          } catch (error) {
+            console.warn('Supabase catalogue sync:', error && error.message ? error.message : error);
+          }
+        }
+        hydratePublishedTestsFromSupabase();
 
         // Restore only a real Supabase session; never trust browser-local demo users.
         if (window.gyanManchSupabase) {
