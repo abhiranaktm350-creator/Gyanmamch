@@ -6368,8 +6368,12 @@ table{max-width:100%;border-collapse:collapse}
               // One upload action should continue directly into extraction; no second button tap needed.
               if (progressPanel) showUploadProgress(100, 'PDF uploaded — starting extraction…', 'The same file is now being read for questions, options and inline answers.');
               setTimeout(function() {
-                const extractButton = document.getElementById('btnRunPdfExtraction');
-                if (extractButton) extractButton.click();
+                if (typeof window.gyanManchRunPdfExtraction === 'function') {
+                  window.gyanManchRunPdfExtraction();
+                } else {
+                  showUploadProgress(0, 'Extraction did not start', 'Reload the page and try again.');
+                  showToast('Question extraction handler is not ready. Reload the page and retry.', 'error');
+                }
               }, 150);
             } catch (error) {
               showUploadProgress(0, 'Upload failed', error.message || 'Please retry.');
@@ -6482,7 +6486,7 @@ Answer Key:
         });
 
         // Real Multi-Page PDF.js Extraction (Preserves line coordinates so ALL questions are extracted)
-        document.getElementById('btnRunPdfExtraction').addEventListener('click', async function() {
+        window.gyanManchRunPdfExtraction = async function() {
           const fileInput = document.getElementById('inpPdfFile');
           const progressPanel = document.getElementById('pdfImportProgressPanel');
           const progressStatus = document.getElementById('pdfImportProgressStatus');
@@ -6571,7 +6575,8 @@ Answer Key:
           } finally {
             if (runButton) { runButton.disabled = false; runButton.classList.remove('opacity-60'); }
           }
-        });
+        };
+        document.getElementById('btnRunPdfExtraction').addEventListener('click', window.gyanManchRunPdfExtraction);
 
         // Visual OCR Scanner for Scanned PDFs & Printed Exam Paper Photos (.pdf, .jpg, .png, .webp)
         async function runVisualOcrOnFile(file, targetExId, targetSubId) {
