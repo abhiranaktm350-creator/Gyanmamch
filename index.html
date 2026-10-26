@@ -6958,31 +6958,69 @@ Answer Key:
           const sessionResult = await client.auth.getSession();
           const accessToken = sessionResult && sessionResult.data && sessionResult.data.session && sessionResult.data.session.access_token;
           if (!accessToken) return false;
-          const extractionResult = await client.functions.invoke('extract-questions', {
-            body: { text: String(rawText || '').slice(0, 24000), answer_key: String(answerKeyText || '').slice(0, 12000) }
+
+          // Process long papers in smaller line-preserving chunks instead of silently truncating after 24k.
+          const sourceLines = String(rawText || '').replace(/\r/g, '').split('\n');
+          const chunks = [];
+          let chunkLines = [];
+          let chunkLength = 0;
+          const maxChunkChars = 15000;
+          sourceLines.forEach(function(line) {
+            const lineLength = line.length + 1;
+            if (chunkLines.length && chunkLength + lineLength > maxChunkChars) {
+              chunks.push(chunkLines.join('\n'));
+              chunkLines = [];
+              chunkLength = 0;
+            }
+            chunkLines.push(line);
+            chunkLength += lineLength;
           });
-          if (extractionResult.error) {
-            let failureMessage = extractionResult.error.message || 'Request failed';
-            try {
-              const context = extractionResult.error.context;
-              if (context && typeof context.json === 'function') {
-                const failure = await context.json();
-                if (failure && failure.error) failureMessage = failure.error;
+          if (chunkLines.length) chunks.push(chunkLines.join('\n'));
+          if (!chunks.length) return false;
+
+          const extractedItems = [];
+          for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+            const extractionResult = await client.functions.invoke('extract-questions', {
+              body: {
+                text: chunks[chunkIndex].slice(0, 18000),
+                answer_key: String(answerKeyText || '').slice(0, 12000),
+                chunk_number: chunkIndex + 1,
+                total_chunks: chunks.length
               }
-            } catch (_) {}
-            showToast('AI extraction unavailable: ' + failureMessage + '. Trying built-in parser next.', 'warning');
+            });
+            if (extractionResult.error) {
+              let failureMessage = extractionResult.error.message || 'Request failed';
+              try {
+                const context = extractionResult.error.context;
+                if (context && typeof context.json === 'function') {
+                  const failure = await context.json();
+                  if (failure && failure.error) failureMessage = failure.error;
+                }
+              } catch (_) {}
+              showToast('PDF extraction failed: ' + failureMessage + '. Try a smaller PDF or check the scanned pages.', 'error');
+              return false;
+            }
+            const payload = extractionResult.data;
+            if (!payload || !Array.isArray(payload.questions)) {
+              showToast('PDF extraction returned an invalid result. Please retry.', 'error');
+              return false;
+            }
+            extractedItems.push(...payload.questions);
+          }
+
+          if (!extractedItems.length) {
+            showToast('No questions were recognized. If this is a scanned PDF, try a clearer scan or OCR.', 'warning');
             return false;
           }
-          const payload = extractionResult.data;
-          if (!payload || !Array.isArray(payload.questions) || !payload.questions.length) return false;
+
           const exam = db.exams.find(e => e.id === targetExamId) || db.exams[0];
           const posInput = document.getElementById('admTestPos');
           const negInput = document.getElementById('pdfTestNegativeOverride');
           const marks = Number(posInput && posInput.value !== '' ? posInput.value : (exam.posMarks !== undefined ? exam.posMarks : 2));
-          const negative = Number(negInput && negInput.value !== '' ? negInput.value : (exam.negMarks !== undefined ? exam.negMarks : 0.5));
+          const negative = Number(negInput && negInput.value !== '' ? negInput.value : (exam.negMarks !== undefined ? negInput.value : (exam.negMarks !== undefined ? exam.negMarks : 0.5)));
           const mode = (document.getElementById('pdfTargetModeSelect') && document.getElementById('pdfTargetModeSelect').value) || 'full_mock';
           let staged = 0;
-          payload.questions.forEach((item, idx) => {
+          extractedItems.forEach((item, idx) => {
             const textEn = String(item.question_en || '').trim();
             const textHi = String(item.question_hi || '').trim();
             if (!textEn && !textHi) return;
@@ -7000,6 +7038,7 @@ Answer Key:
               return (normalizedEn && (normalizedEn === qEn || normalizedEn === qHi)) || (normalizedHi && (normalizedHi === qEn || normalizedHi === qHi));
             });
             const suggested = suggestSubjectForQuestion(textEn + ' ' + textHi);
+            const correctOption = Number.isInteger(item.correct_option) && item.correct_option >= 0 && item.correct_option <= 3 ? item.correct_option : -1;
             db.pdfImportQueue.unshift({
               id: 'imp_bg_' + Date.now() + '_' + idx + '_' + Math.floor(Math.random() * 99999),
               fileName: sourceFileName, createdAt: new Date().toISOString(), status: 'pending_review',
@@ -7007,19 +7046,20 @@ Answer Key:
               subjectId: mode === 'full_mock' ? suggested.subjectId : (targetSubjectId || suggested.subjectId),
               subjectSuggestion: suggested.subjectId, subjectConfidence: suggested.confidence, chapterId: 'ch_polity',
               text_en: textEn, text_hi: textHi || textEn, options_en: optionsEn, options_hi: optionsHi.map((v,i) => v || optionsEn[i] || ''),
-              correctOption: Number.isInteger(item.correct_option) && item.correct_option >= 0 && item.correct_option <= 3 ? item.correct_option : -1,
+              correctOption,
               marks, negativeMarks: negative,
               explanation_en: String(item.explanation_en || ''), explanation_hi: String(item.explanation_hi || ''),
               sourceType: 'admin_created', verificationStatus: 'needs_review', isDuplicate: duplicate,
-              extractionWarning: Number.isInteger(item.correct_option) && item.correct_option >= 0 && item.correct_option <= 3 ? null : 'Please verify/select the answer key before publishing.'
+              extractionWarning: correctOption >= 0 ? null : 'Answer not confidently identified. Please select the correct option before publishing.'
             });
             staged++;
           });
           if (!staged) return false;
           saveDatabase(db);
-          showToast('Extracted ' + staged + ' question(s) into the review queue. Verify wording, options and every answer before publishing.', 'success');
+          showToast('Extracted ' + staged + ' question(s) from ' + chunks.length + ' PDF section(s). Check the answer written below each question, then review before publishing.', 'success');
           return true;
         } catch (error) {
+          showToast('PDF extraction error: ' + (error && error.message ? error.message : 'Please retry.'), 'error');
           return false;
         }
       }
