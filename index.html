@@ -7341,7 +7341,7 @@ const termsModal = document.getElementById('examTermsModal');
               if (password !== confirm) throw new Error('Dono passwords match nahi karte.');
               const { data, error } = await client.auth.signUp({
                 email, password,
-                options: { data: { display_name: name, username, phone, preferred_language: 'both' } }
+                options: { emailRedirectTo: window.location.origin, data: { display_name: name, username, phone, preferred_language: 'both' } }
               });
               if (error) throw error;
               if (!data.user) throw new Error('Account create nahi hua. Email check karke dobara try karein.');
@@ -7534,7 +7534,7 @@ const termsModal = document.getElementById('examTermsModal');
           }).catch(function(){});
         }
         document.addEventListener('click', function(event) {
-          const logout = event.target && event.target.closest && event.target.closest('#mobileMenuLogout, #btnLockAdminSession');
+          const logout = event.target && event.target.closest && event.target.closest('#mobileMenuLogout, #hdrBtnLogout, #btnLockAdminSession');
           if (logout && window.gyanManchSupabase) window.gyanManchSupabase.auth.signOut().catch(function(){});
         }, true);
 
