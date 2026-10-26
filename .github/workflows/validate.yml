@@ -16,9 +16,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Validate Cloudflare configuration
+      - name: Validate JSON configuration
         run: |
           node -e "JSON.parse(require('fs').readFileSync('wrangler.jsonc','utf8')); console.log('wrangler.jsonc is valid JSON')"
+          node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8')); console.log('manifest.webmanifest is valid JSON')"
+          node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('package.json is valid JSON')"
       - name: Check inline JavaScript in index.html
         run: |
           python3 - <<'PY'
@@ -54,3 +56,12 @@ jobs:
           for f in /tmp/gyan-inline-*.js; do node --check "$f"; done
       - name: Check question extraction endpoint syntax
         run: cp functions/api/extract-questions.js /tmp/extract-questions.mjs && node --check /tmp/extract-questions.mjs
+      - name: Build production assets
+        run: |
+          npm run build
+          test -s dist/index.html
+          test -s dist/_headers
+          test -s dist/manifest.webmanifest
+          test ! -e dist/supabase_schema.sql
+          test ! -e dist/supabase_seed.sql
+          echo "Production build output verified."
