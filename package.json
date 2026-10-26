@@ -1,0 +1,9 @@
+{
+  "name": "gyan-manch",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Gyan Manch static site for Cloudflare Pages",
+  "scripts": {
+    "build": "rm -rf dist && mkdir -p dist && cp index.html _headers dist/"
+  }
+}

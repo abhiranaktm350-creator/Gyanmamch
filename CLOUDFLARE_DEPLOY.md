@@ -1,10 +1,10 @@
 # Cloudflare Pages deployment — Gyan Manch
 
-This repository is a static HTML application. Cloudflare Pages serves the website; Supabase handles accounts, database access, private PDF storage and test scoring.
+This repository is a static HTML application (built into `dist/` by `npm run build`). Cloudflare Pages serves the website; Supabase handles accounts, database access, private PDF storage and test scoring.
 
 ## Fix for `Missing entry-point to Worker script or to assets directory`
 
-The repository is configured as a **Pages** project (`pages_build_output_dir: "./"`), but the failing Cloudflare build is running `npx wrangler deploy`, which deploys a **Worker**. That command mismatch is the cause of the reported build failure; this error does not by itself indicate a Supabase database failure.
+The repository is configured as a **Pages** project (`pages_build_output_dir: "./dist"`), but the failing Cloudflare build is running `npx wrangler deploy`, which deploys a **Worker**. That command mismatch is the cause of the reported build failure; this error does not by itself indicate a Supabase database failure.
 
 **Do not fix this by adding a made-up Worker entry point or by deploying the repository root as Worker assets.** The root contains SQL seed/schema and setup documents that should not be published as website assets.
 
@@ -30,7 +30,7 @@ Use the Cloudflare Pages Git integration instead:
 1. In Cloudflare Dashboard, open **Workers & Pages → Create → Pages → Connect to Git**.
 2. Select `abhiranaktm350-creator/Gyanmamch`.
 3. Production branch: `main` (after reviewed changes are merged).
-4. Framework preset: **None**. Build command: leave empty. Build output directory: `.`. There is no package build step.
+4. Framework preset: **None**. Build command: `npm run build` (copies only `index.html` and `_headers` into `dist/`, so SQL and setup files are never published). Build output directory: `dist`.
 5. Save and deploy. Wait for deployment status to show **Success**, then open the generated `pages.dev` URL.
 6. Test registration, email verification, login, admin approval, mock submission and result review before sharing the site.
 7. If a Pages project is already connected to this repository, edit that project instead of creating a duplicate.
