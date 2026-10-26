@@ -6496,7 +6496,7 @@ Answer Key:
               return;
             }
             const backgroundExtracted = await tryBackgroundExtractQuestions(combinedText, file.name, targetExId, targetSubId, answerKeyText);
-            if (!backgroundExtracted) parseAllQuestionsFromText(combinedText, file.name, targetExId, targetSubId);
+            if (!backgroundExtracted) parseAllQuestionsFromText(combinedText + (answerKeyText ? '\n\nAnswer Key:\n' + answerKeyText : ''), file.name, targetExId, targetSubId);
             renderAdminDashboardView(document.getElementById('appMain'));
           } catch (err) {
             showToast('PDF Extraction Error: ' + err.message, 'error');
