@@ -1,0 +1,13 @@
+{
+  "id": "./",
+  "name": "Gyan Manch — ज्ञान मंच",
+  "short_name": "Gyan Manch",
+  "description": "Hindi and English competitive exam practice and mock tests.",
+  "lang": "hi",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f5f9ff",
+  "theme_color": "#2563eb"
+}
