@@ -1,53 +1,63 @@
-# Gyan Manch — Supabase backend
+# Gyan Manch — backend and deployment setup
 
-The live Supabase project provisioned for this repository is **gyan-manch** (project reference: zpjpoolfkjdlqxioabnf) in ap-south-1, India. The website's public client configuration points to this project. The publishable key is intentionally public; never add a service-role/secret key to browser code or GitHub.
+## Connected Supabase project
 
-## Current backend contents
+- Project: `gyan-manch`
+- Project reference: `zpjpoolfkjdlqxioabnf`
+- Region: `ap-south-1` (India)
+- Website uses the Supabase **publishable** key in the browser. Never commit a service-role/secret key.
 
-- 9 exam categories and 62 exam definitions.
-- 27 bilingual starter questions, with answer keys and explanations kept in a separate staff-only table.
-- 30 published test records and 255 question-to-test links. Eighteen are explicitly labelled starter mock sets; they reuse the current starter bank and must be expanded/reviewed before being presented as full-length official-pattern papers.
-- Auth-created profiles default to role student and status pending.
-- RLS policies protect profiles, question bank, answer keys, attempts, PDF job metadata, and private Storage.
-- Attempts are graded by submit_and_score_attempt; the answer review RPC releases answer keys only after the attempt is submitted and authorized.
-- The frontend now uses Supabase email/password authentication, approval checks, shared test catalogue hydration, attempt saving/history, and private PDF upload plus reviewed-batch publishing.
+The database has 9 categories, 62 exams, 27 bilingual starter questions, 30 tests and 255 test-question links. Several starter sets reuse the small question bank and need expansion before they can be called complete official-length mocks.
 
-## Fresh-project setup
+## Authentication: make the first administrator
 
-For a new empty Supabase project only:
+Email/password authentication is configured in the website. There is not yet an owner/admin account in the database. Do this once:
 
-1. Run supabase_schema.sql in Supabase SQL Editor.
-2. Run supabase_seed.sql to add the catalogue and starter tests.
-3. In Authentication → URL Configuration, set the real website URL and allowed redirects.
-4. Keep email/password enabled. New registrations may need email confirmation depending on Auth settings.
+1. Deploy the site on Cloudflare Pages and copy the final HTTPS URL.
+2. In Supabase Dashboard → Authentication → URL Configuration, set **Site URL** to that URL and add it under **Redirect URLs**.
+3. In Authentication → Sign In / Providers, ensure Email is enabled. If email confirmation is enabled, verify the registration email.
+4. Open the deployed website → Student Registration. Register with the owner's own email address and a strong password, then verify the email if requested.
+5. In Supabase → SQL Editor, run the query below after replacing `OWNER_EMAIL` with the exact registered email:
 
-Do not rerun the full schema file against the already-provisioned gyan-manch project; its migrations are already applied. The repository schema file is a reproducible reference for fresh installations.
+```sql
+update public.profiles
+set role = 'admin', approval_status = 'approved'
+where id = (
+  select id from auth.users
+  where lower(email) = lower('OWNER_EMAIL')
+);
+```
 
-## Create the first administrator
+Confirm exactly one profile row was updated. Then use **Administrator Login** with that same email/password. Do not share the password or any secret key.
 
-No public signup is allowed to grant itself administrator privileges. First, register your owner account from the website using your own email address and verify it if email confirmation is enabled. Then run this one-time SQL in the project's SQL Editor, replacing OWNER_EMAIL with that same email:
+New public signups always receive the student role and pending approval. Never grant admin role from browser-side form data.
 
-    update public.profiles
-    set role = 'admin', approval_status = 'approved'
-    where id = (
-      select id from auth.users where lower(email) = lower('OWNER_EMAIL')
-    );
+## Cloudflare Pages deployment
 
-Confirm exactly one row was updated. Then sign in through Administrator Email using the same email and password. Never share your password or any secret key in chat.
+Cloudflare hosts the website; Supabase handles sign-in and database/storage. You need Cloudflare only if you want Cloudflare to publish the site.
+
+1. Open Cloudflare Dashboard → Workers & Pages → Create → Pages → Connect to Git.
+2. Select GitHub repository `abhiranaktm350-creator/Gyanmamch`.
+3. Choose branch `main` after the reviewed changes have been merged there.
+4. This is a static HTML site: leave the build command blank and set the build output directory to `/` or `.` as accepted by the Pages setup screen. No framework build is required.
+5. In Cloudflare Pages → Settings → Variables and Secrets, add `SUPABASE_PUBLISHABLE_KEY` with the project's publishable key. This is a public client key, not a service-role secret. The `wrangler.jsonc` file declares the Workers AI binding used by the private extraction endpoint; confirm the deployment reports the binding as available.
+6. Deploy and copy the generated `https://….pages.dev` URL.
+7. Add that URL to Supabase Authentication → URL Configuration, then redeploy if needed.
+8. Every new commit merged/pushed to the connected branch should trigger a new Pages deployment. Check the deployment status in Cloudflare before sharing the URL.
+
+If the repository is already connected to Cloudflare Pages, do not create a second project; open the existing Pages project and confirm its connected repository and production branch.
 
 ## PDF / question paper workflow
 
-Approved staff can upload a PDF or scan to the private question-pdfs bucket. The browser's PDF/OCR tools stage questions for manual review. The Approve All & Create Official Mock Test action saves reviewed questions, protected answer keys, test mappings, and import-job status to Supabase. A test should not be published until its answer keys, bilingual options, duration, and negative marking have been checked.
+Approved staff can upload PDFs/scans to the private `question-pdfs` storage bucket. The current website includes browser-side PDF text extraction/OCR and a manual review/publish workflow. Background model-based extraction is **not yet verified as deployed**; it needs a secured server endpoint and a successful Cloudflare deployment before being described as live.
 
-## Important content limitation
+## Database status and limitations
 
-The database currently has 27 bilingual starter questions, not hundreds of unique questions per exam. The 30 test records are a usable starting catalogue, not 30 fully populated official-length papers. Expand and review the question bank before selling or advertising the sets as complete exam-length mocks. PYQ status must only be assigned to verified previous-year questions.
+- RLS is enabled on the application tables.
+- Answer keys are separated from student-readable question rows.
+- Submission scoring is performed by a database RPC.
+- PDF storage is private and restricted to approved staff.
+- Current question-bank size is only 27 bilingual starter questions; the current tests are a catalogue/starter set, not 30 full-length unique papers.
+- The live URL, first administrator login, student approval and a complete test submission still need end-to-end verification.
 
-## Security notes
-
-- RLS is enabled on exposed application tables.
-- Student roles and approval status are set server-side at signup.
-- Answer keys are stored separately and are not selectable by students before submission.
-- Scores are calculated server-side; client-side score values are not authoritative.
-- The Storage bucket is private and restricted to approved staff.
-- Do not expose service_role or other secret keys in HTML, JavaScript, public issues, or chat.
+For a fresh project only, run `supabase_schema.sql` and then `supabase_seed.sql`. Do not rerun the full schema on the existing connected project; its migrations are already applied.

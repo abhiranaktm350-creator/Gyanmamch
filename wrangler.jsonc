@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "gyan-manch",
+  "pages_build_output_dir": "./",
+  "compatibility_date": "2026-10-26",
+  "ai": {
+    "binding": "AI"
+  },
+  "vars": {
+    "SUPABASE_URL": "https://zpjpoolfkjdlqxioabnf.supabase.co"
+  }
+}

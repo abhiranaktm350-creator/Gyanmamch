@@ -78,6 +78,7 @@
     .gm-announcement-bar { display:flex; align-items:center; gap:10px; width:100%; padding:7px 12px; border-radius:10px; border:1px solid #fbbf24; background:#fffbeb; color:#78350f; font-size:12px; line-height:1.4; }
     .gm-announcement-text { flex:1; min-width:0; overflow-wrap:anywhere; }
     .gm-announcement-close { flex:none; border:0; background:transparent; color:inherit; font-size:18px; line-height:1; cursor:pointer; padding:0 4px; }
+    body.gm-dark-theme .gm-announcement-bar { background:#422006; border-color:#92400e; color:#fef3c7; }
     .hindi-text {
       font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
       line-height: 1.75;
@@ -158,6 +159,59 @@
     #hdrBtnMenu { display:flex; align-items:center; justify-content:center; width:36px; height:30px; border:1px solid #475569; border-radius:7px; color:#e2e8f0; background:#1e293b; }
     #headerAuthArea { flex-wrap:wrap; justify-content:flex-end; }
     body.exam-active #mainHeader, body.exam-active #topSampleBanner, body.exam-active #libraryQuickSwitcher, body.exam-active #appMain, body.exam-active #mainFooter { display:none !important; }
+    /* Dark-mode contrast refinement: cards, controls, links, placeholders and status labels. */
+    body.gm-dark-theme #appMain .bg-indigo-50,
+    body.gm-dark-theme #appMain .bg-blue-50,
+    body.gm-dark-theme #appMain .bg-emerald-50,
+    body.gm-dark-theme #appMain .bg-green-50,
+    body.gm-dark-theme #appMain .bg-amber-50,
+    body.gm-dark-theme #appMain .bg-yellow-50,
+    body.gm-dark-theme #appMain .bg-red-50,
+    body.gm-dark-theme #appMain .bg-purple-50,
+    body.gm-dark-theme #appMain .bg-pink-50 { background-color:#1e293b !important; }
+    body.gm-dark-theme #appMain .text-indigo-900,
+    body.gm-dark-theme #appMain .text-indigo-800,
+    body.gm-dark-theme #appMain .text-indigo-700,
+    body.gm-dark-theme #appMain .text-blue-900,
+    body.gm-dark-theme #appMain .text-blue-800,
+    body.gm-dark-theme #appMain .text-blue-700,
+    body.gm-dark-theme #appMain .text-emerald-900,
+    body.gm-dark-theme #appMain .text-emerald-800,
+    body.gm-dark-theme #appMain .text-green-900,
+    body.gm-dark-theme #appMain .text-green-800,
+    body.gm-dark-theme #appMain .text-amber-900,
+    body.gm-dark-theme #appMain .text-amber-800,
+    body.gm-dark-theme #appMain .text-yellow-900,
+    body.gm-dark-theme #appMain .text-yellow-800,
+    body.gm-dark-theme #appMain .text-red-900,
+    body.gm-dark-theme #appMain .text-red-800,
+    body.gm-dark-theme #appMain .text-purple-900,
+    body.gm-dark-theme #appMain .text-purple-800,
+    body.gm-dark-theme #appMain .text-pink-900,
+    body.gm-dark-theme #appMain .text-pink-800 { color:#e2e8f0 !important; }
+    body.gm-dark-theme #appMain input::placeholder,
+    body.gm-dark-theme #appMain textarea::placeholder { color:#94a3b8 !important; opacity:1; }
+    body.gm-dark-theme #appMain input:disabled,
+    body.gm-dark-theme #appMain select:disabled,
+    body.gm-dark-theme #appMain textarea:disabled { color:#94a3b8 !important; background:#1e293b !important; }
+    body.gm-dark-theme #appMain table thead { background:#1e293b !important; color:#f1f5f9 !important; }
+    body.gm-dark-theme #appMain table tbody tr { border-color:#334155 !important; }
+    body.gm-dark-theme #appMain a:not([class*="bg-"]) { color:#a5b4fc; }
+    body.gm-dark-theme #appMain .bg-white button,
+    body.gm-dark-theme #appMain .bg-slate-50 button,
+    body.gm-dark-theme #appMain .bg-slate-100 button { color:inherit; }
+    body.gm-dark-theme #appMain button.bg-white,
+    body.gm-dark-theme #appMain button.bg-slate-50,
+    body.gm-dark-theme #appMain button.bg-slate-100,
+    body.gm-dark-theme #appMain a.bg-white,
+    body.gm-dark-theme #appMain a.bg-slate-50,
+    body.gm-dark-theme #appMain a.bg-slate-100 { background:#263449 !important; color:#f1f5f9 !important; border-color:#475569 !important; }
+    body.gm-dark-theme #appMain .shadow,
+    body.gm-dark-theme #appMain .shadow-sm,
+    body.gm-dark-theme #appMain .shadow-md,
+    body.gm-dark-theme #appMain .shadow-lg { --tw-shadow-color:rgba(0,0,0,.35); }
+    body.gm-dark-theme ::-webkit-scrollbar-track { background:#111827; }
+    body.gm-dark-theme ::-webkit-scrollbar-thumb { background:#475569; }
   </style>
 
   <style id="gm-fullscreen-enhancements">
@@ -178,6 +232,7 @@
 :root{color-scheme:light;--gm-blue:#1769d2;--gm-blue-dark:#0f4fa8;--gm-bg:#f5f8fc;--gm-text:#172b4d}
 html{scroll-behavior:smooth;background:#f5f8fc}
 body{background:#f5f8fc!important;color:#172b4d!important;font-family:Inter,"Noto Sans Devanagari",system-ui,sans-serif}
+body.gm-dark-theme,body.dark,html.dark{background:#f5f8fc!important;color:#172b4d!important;color-scheme:light}
 .gm-announcement-bar{display:none!important}
 #toastContainer,.toast-container,.toast,.gm-toast,[role="status"].toast{display:none!important}
 button,a,[role="button"],input,select,textarea{touch-action:manipulation}
@@ -1465,6 +1520,11 @@ table{max-width:100%;border-collapse:collapse}
       };
 
       // Homepage appearance and announcement helpers (local browser storage unless LAN DB sync is configured).
+      function applyGmTheme() {
+        document.body.classList.remove('gm-dark-theme');
+        try { localStorage.setItem('gm_theme', 'light'); } catch(e) {}
+      }
+      function toggleGmTheme() { applyGmTheme(); }
       function getActiveGmAnnouncement() {
         if (!Array.isArray(db.announcements)) db.announcements = [];
         return db.announcements.find(function(a){ return a && a.active && String(a.text || '').trim(); }) || null;
@@ -1846,8 +1906,8 @@ table{max-width:100%;border-collapse:collapse}
             </section>`;
           document.getElementById('frontStudentLoginBtn').addEventListener('click', () => navigateTo('student-login'));
           document.getElementById('frontAdminLoginBtn').addEventListener('click', () => navigateTo('admin-login'));
-
-wireGmAnnouncementClose(container); applyGmTheme();
+          document.querySelectorAll('[data-gm-theme-toggle]').forEach(function(btn){ btn.addEventListener('click', toggleGmTheme); });
+          wireGmAnnouncementClose(container); applyGmTheme();
           return;
         }
         let accountStatusBanner = '';
@@ -2065,7 +2125,8 @@ wireGmAnnouncementClose(container); applyGmTheme();
         const bannerBtn = document.getElementById('btnBannerGoStudentDash');
         if (bannerBtn) bannerBtn.addEventListener('click', function() { navigateTo('student-dashboard'); });
 
-wireGmAnnouncementClose(container); applyGmTheme();
+        document.querySelectorAll('[data-gm-theme-toggle]').forEach(function(btn){ btn.addEventListener('click', toggleGmTheme); });
+        wireGmAnnouncementClose(container); applyGmTheme();
         const searchInput = document.getElementById('catalogueSearchInput');
         if (searchInput) {
           searchInput.addEventListener('input', function(e) {
@@ -3639,7 +3700,7 @@ wireGmAnnouncementClose(container); applyGmTheme();
           navigateTo('home');
           return;
         }
-        if (window.gyanManchSupabase && state.currentUser && (!attempt.review || Object.keys(attempt.review).length === 0)) {
+        if (window.gyanManchSupabase && state.currentUser && !attempt.review || (window.gyanManchSupabase && state.currentUser && attempt.review && Object.keys(attempt.review).length === 0)) {
           if (['submitted','auto_submitted'].includes(attempt.status)) {
             container.innerHTML = '<div class="p-6 text-center text-sm text-slate-600">Loading your secure answer review…</div>';
             const reviewResult = await window.gyanManchSupabase.rpc('get_attempt_review', { p_attempt_id: attempt.id });
@@ -3655,8 +3716,7 @@ wireGmAnnouncementClose(container); applyGmTheme();
           }
         }
         const test = db.tests.find(t => t.id === attempt.testId) || db.tests[0];
-        if (!test) { container.innerHTML = '<div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">Test details are still syncing. Return to the catalogue and reopen this result in a moment.</div>'; return; }
-        const questions = Array.isArray(test.questionIds) ? test.questionIds.map(id => db.questions.find(q => q.id === id)).filter(Boolean) : [];
+        const questions = test && Array.isArray(test.questionIds) ? test.questionIds.map(id => db.questions.find(q => q.id === id)).filter(Boolean) : [];
         const letters = ['A', 'B', 'C', 'D'];
 
         container.innerHTML = `
@@ -3677,7 +3737,7 @@ wireGmAnnouncementClose(container); applyGmTheme();
               <div>
                 <div class="flex items-center gap-2 mb-1">
                   <span class="px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-xs font-bold uppercase">
-                    ${['auto_submitted_timeout','auto_submitted'].includes(attempt.status) ? 'Auto-Submitted (Timer Expired)' : 'Official Scorecard'}
+                    ${attempt.status === 'auto_submitted_timeout' ? 'Auto-Submitted (Timer Expired)' : 'Official Scorecard'}
                   </span>
                   <span class="text-xs text-slate-400 font-mono">Attempt ID: ${escapeHtml(attempt.id)} (Attempt #${attempt.attemptNumber})</span>
                 </div>
@@ -4434,6 +4494,7 @@ wireGmAnnouncementClose(container); applyGmTheme();
 
         document.getElementById('formStudentLogin').addEventListener('submit', function(e) {
           e.preventDefault();
+          if (window.gyanManchSupabase) return;
           const iden = document.getElementById('loginStuIdentifier').value.trim().toLowerCase();
           const pass = document.getElementById('loginStuPassword').value;
           const found = db.users.find(u =>
@@ -4474,6 +4535,7 @@ wireGmAnnouncementClose(container); applyGmTheme();
 
         document.getElementById('formStudentRegister').addEventListener('submit', function(e) {
           e.preventDefault();
+          if (window.gyanManchSupabase) return;
           const name = document.getElementById('regStuName').value.trim();
           const uname = document.getElementById('regStuUsername').value.trim().toLowerCase();
           const mob = document.getElementById('regStuMobile').value.trim();
@@ -4550,6 +4612,7 @@ wireGmAnnouncementClose(container); applyGmTheme();
 
         document.getElementById('formAdminLogin').addEventListener('submit', function(e) {
           e.preventDefault();
+          if (window.gyanManchSupabase) return;
           const u = document.getElementById('admLoginUser').value.trim().toLowerCase();
           const p = document.getElementById('admLoginPass').value;
 
@@ -4791,7 +4854,7 @@ wireGmAnnouncementClose(container); applyGmTheme();
             const sId = btn.getAttribute('data-stu-id');
             const newSt = btn.getAttribute('data-new-status');
             const target = db.users.find(u => u.id === sId);
-            if (!target || !window.gyanManchSupabase || !state.currentUser || !['admin','teacher'].includes(state.currentUser.role)) return;
+            if (!target || !window.gyanManchSupabase || !state.currentUser || state.currentUser.role !== 'admin') return;
             btn.disabled = true;
             const { error } = await window.gyanManchSupabase.from('profiles')
               .update({ approval_status: newSt })
@@ -6085,6 +6148,48 @@ wireGmAnnouncementClose(container); applyGmTheme();
           renderAdminDashboardView(document.getElementById('appMain'));
         });
 
+        // Load 5-Question Multi-Page Sample Paper with End-of-Paper Answer Key
+        document.getElementById('btnSimulateBilingualPdf').addEventListener('click', function() {
+          const multiQSample = `
+1. Where is the headquarters of the Forest Research Institute (FRI) located in Uttarakhand? / उत्तराखंड में वन अनुसंधान संस्थान (FRI) का मुख्यालय कहाँ स्थित है?
+(A) Dehradun / देहरादून
+(B) Nainital / नैनीताल
+(C) Almora / अल्मोड़ा
+(D) Roorkee / रुड़की
+
+2. If a train 150 m long passes a pole in 15 seconds, what is the speed of the train in km/hr? / यदि 150 मीटर लंबी एक रेलगाड़ी एक खंभे को 15 सेकंड में पार करती है, तो रेलगाड़ी की चाल किमी/घंटा में क्या है?
+(A) 30 km/hr
+(B) 36 km/hr
+(C) 45 km/hr
+(D) 54 km/hr
+
+3. Which Constitutional Amendment added Fundamental Duties to the Indian Constitution? / किस संविधान संशोधन द्वारा भारतीय संविधान में मौलिक कर्तव्यों को जोड़ा गया?
+(A) 44th Amendment / 44वाँ संशोधन
+(B) 42nd Amendment / 42वाँ संशोधन
+(C) 86th Amendment / 86वाँ संशोधन
+(D) 73rd Amendment / 73वाँ संशोधन
+
+4. Find the missing number in the series: 2, 6, 12, 20, 30, ? / श्रृंखला में लुप्त संख्या ज्ञात कीजिए: 2, 6, 12, 20, 30, ?
+(A) 40
+(B) 42
+(C) 38
+(D) 44
+
+5. Choose the correct antonym of "ABUNDANT": / "ABUNDANT" (प्रचुर) का सही विलोम शब्द चुनें:
+(A) Plentiful / प्रचुर
+(B) Scarce / दुर्लभ (कम)
+(C) Ample / पर्याप्त
+(D) Copious / विपुल
+
+Answer Key:
+1: A, 2: B, 3: B, 4: B, 5: B
+          `.trim();
+          const targetExId = document.getElementById('pdfTargetExamSelect').value;
+          const targetSubId = document.getElementById('pdfTargetSubjectSelect').value;
+          parseAllQuestionsFromText(multiQSample, 'Full_Bilingual_Paper_Set.pdf', targetExId, targetSubId);
+          renderAdminDashboardView(document.getElementById('appMain'));
+        });
+
         // Real Multi-Page PDF.js Extraction (Preserves line coordinates so ALL questions are extracted)
         document.getElementById('btnRunPdfExtraction').addEventListener('click', async function() {
           const fileInput = document.getElementById('inpPdfFile');
@@ -6130,7 +6235,7 @@ wireGmAnnouncementClose(container); applyGmTheme();
               await runVisualOcrOnFile(file, targetExId, targetSubId);
               return;
             }
-            parseAllQuestionsFromText(combinedText, file.name, targetExId, targetSubId);
+            const backgroundExtracted = await tryBackgroundExtractQuestions(combinedText, file.name, targetExId, targetSubId);\n            if (!backgroundExtracted) parseAllQuestionsFromText(combinedText, file.name, targetExId, targetSubId);
             renderAdminDashboardView(document.getElementById('appMain'));
           } catch (err) {
             showToast('PDF Extraction Error: ' + err.message, 'error');
@@ -6262,7 +6367,7 @@ wireGmAnnouncementClose(container); applyGmTheme();
               if (statusEl) statusEl.textContent = '✓ Scanned Paper OCR Complete! Extracted text copied to Box #2 & Review Queue.';
               const rawBox = document.getElementById('inpRawBlockExtract');
               if (rawBox) rawBox.value = fullOcrText.trim();
-              parseAllQuestionsFromText(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId);
+              const backgroundExtracted = await tryBackgroundExtractQuestions(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId);\n              if (!backgroundExtracted) parseAllQuestionsFromText(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId);
               setTimeout(function() {
                 renderAdminDashboardView(document.getElementById('appMain'));
               }, 900);
@@ -6281,7 +6386,7 @@ wireGmAnnouncementClose(container); applyGmTheme();
           btnOcrScan.addEventListener('click', async function() {
             const fileInput = document.getElementById('inpPdfFile');
             if (!fileInput.files || fileInput.files.length === 0) {
-              showToast('Please select a Scanned PDF or Question Paper Photo (.pdf, .jpg, .png) first, or select a scanned paper image.', 'warning');
+              showToast('Please select a Scanned PDF or Question Paper Photo (.pdf, .jpg, .png) first, or click "Demo: Scan Printed Exam Paper".', 'warning');
               return;
             }
             const targetExId = document.getElementById('pdfTargetExamSelect').value;
@@ -6584,6 +6689,70 @@ Answer Key:
       }
 
       // Multi-Question Parser: Extracts ALL questions, options (inline or multi-line), and End-of-PDF Answer Key tables!
+      async function tryBackgroundExtractQuestions(rawText, sourceFileName, targetExamId, targetSubjectId) {
+        const client = window.gyanManchSupabase;
+        if (!client || !state.currentUser || !['admin','teacher'].includes(state.currentUser.role)) return false;
+        try {
+          const sessionResult = await client.auth.getSession();
+          const accessToken = sessionResult && sessionResult.data && sessionResult.data.session && sessionResult.data.session.access_token;
+          if (!accessToken) return false;
+          const response = await fetch('/api/extract-questions', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', authorization: 'Bearer ' + accessToken },
+            body: JSON.stringify({ text: String(rawText || '').slice(0, 24000) })
+          });
+          if (!response.ok) return false;
+          const payload = await response.json();
+          if (!payload || !Array.isArray(payload.questions) || !payload.questions.length) return false;
+          const exam = db.exams.find(e => e.id === targetExamId) || db.exams[0];
+          const posInput = document.getElementById('admTestPos');
+          const negInput = document.getElementById('pdfTestNegativeOverride');
+          const marks = Number(posInput && posInput.value !== '' ? posInput.value : (exam.posMarks !== undefined ? exam.posMarks : 2));
+          const negative = Number(negInput && negInput.value !== '' ? negInput.value : (exam.negMarks !== undefined ? exam.negMarks : 0.5));
+          const mode = (document.getElementById('pdfTargetModeSelect') && document.getElementById('pdfTargetModeSelect').value) || 'full_mock';
+          let staged = 0;
+          payload.questions.forEach((item, idx) => {
+            const textEn = String(item.question_en || '').trim();
+            const textHi = String(item.question_hi || '').trim();
+            if (!textEn && !textHi) return;
+            const optionsEn = Array.isArray(item.options_en) ? item.options_en.slice(0,4) : [];
+            const optionsHi = Array.isArray(item.options_hi) ? item.options_hi.slice(0,4) : [];
+            while (optionsEn.length < 4) optionsEn.push('');
+            while (optionsHi.length < 4) optionsHi.push('');
+            const normalizedEn = normalizeImportedQuestion(textEn);
+            const normalizedHi = normalizeImportedQuestion(textHi);
+            const duplicate = db.questions.some(q => q.examId === exam.id && (
+              (normalizedEn && [normalizeImportedQuestion(q.text_en), normalizeImportedQuestion(q.text_hi)].includes(normalizedEn)) ||
+              (normalizedHi && [normalizeImportedQuestion(q.text_en), normalizeImportedQuestion(q.text_hi)].includes(normalizedHi))
+            )) || db.pdfImportQueue.some(q => {
+              const qEn = normalizeImportedQuestion(q.text_en), qHi = normalizeImportedQuestion(q.text_hi);
+              return (normalizedEn && (normalizedEn === qEn || normalizedEn === qHi)) || (normalizedHi && (normalizedHi === qEn || normalizedHi === qHi));
+            });
+            const suggested = suggestSubjectForQuestion(textEn + ' ' + textHi);
+            db.pdfImportQueue.unshift({
+              id: 'imp_bg_' + Date.now() + '_' + idx + '_' + Math.floor(Math.random() * 99999),
+              fileName: sourceFileName, createdAt: new Date().toISOString(), status: 'pending_review',
+              examId: exam.id,
+              subjectId: mode === 'full_mock' ? suggested.subjectId : (targetSubjectId || suggested.subjectId),
+              subjectSuggestion: suggested.subjectId, subjectConfidence: suggested.confidence, chapterId: 'ch_polity',
+              text_en: textEn, text_hi: textHi || textEn, options_en: optionsEn, options_hi: optionsHi.map((v,i) => v || optionsEn[i] || ''),
+              correctOption: Number.isInteger(item.correct_option) && item.correct_option >= 0 && item.correct_option <= 3 ? item.correct_option : -1,
+              marks, negativeMarks: negative,
+              explanation_en: String(item.explanation_en || ''), explanation_hi: String(item.explanation_hi || ''),
+              sourceType: 'admin_created', verificationStatus: 'needs_review', isDuplicate: duplicate,
+              extractionWarning: Number.isInteger(item.correct_option) && item.correct_option >= 0 && item.correct_option <= 3 ? null : 'Please verify/select the answer key before publishing.'
+            });
+            staged++;
+          });
+          if (!staged) return false;
+          saveDatabase(db);
+          showToast('Extracted ' + staged + ' question(s) into the review queue. Verify wording, options and every answer before publishing.', 'success');
+          return true;
+        } catch (error) {
+          return false;
+        }
+      }
+
       function parseAllQuestionsFromText(rawText, sourceFileName, targetExamId, targetSubjectId) {
         const exam = db.exams.find(e => e.id === targetExamId) || db.exams[0];
         const posInput = document.getElementById('admTestPos');
@@ -7291,8 +7460,8 @@ Answer Key:
 
       // Initialize App on Load
       window.addEventListener('DOMContentLoaded', function() {
-
-const termsModal = document.getElementById('examTermsModal');
+        applyGmTheme();
+        const termsModal = document.getElementById('examTermsModal');
         const termsAgree = document.getElementById('examTermsAgree');
         const termsAccept = document.getElementById('examTermsAccept');
         const termsCancel = document.getElementById('examTermsCancel');
@@ -7336,12 +7505,12 @@ const termsModal = document.getElementById('examTermsModal');
               const password = document.getElementById('regStuPassword').value;
               const confirm = document.getElementById('regStuPasswordConfirm').value;
               if (!name || !/^[a-z0-9_.-]{3,24}$/.test(username)) throw new Error('Username 3–24 characters ka ho; letters, numbers, dot, underscore ya hyphen use karein.');
-              if (!/^\\d{10}$/.test(phone)) throw new Error('Mobile number exactly 10 digits ka hona chahiye.');
+              if (!/^\d{10}$/.test(phone)) throw new Error('Mobile number exactly 10 digits ka hona chahiye.');
               if (password.length < 8) throw new Error('Password kam se kam 8 characters ka hona chahiye.');
               if (password !== confirm) throw new Error('Dono passwords match nahi karte.');
               const { data, error } = await client.auth.signUp({
                 email, password,
-                options: { emailRedirectTo: window.location.origin, data: { display_name: name, username, phone, preferred_language: 'both' } }
+                options: { data: { display_name: name, username, phone, preferred_language: 'both' } }
               });
               if (error) throw error;
               if (!data.user) throw new Error('Account create nahi hua. Email check karke dobara try karein.');
@@ -7359,7 +7528,7 @@ const termsModal = document.getElementById('examTermsModal');
               if (error) throw error;
               const { data: profileRow, error: profileError } = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,preferred_language').eq('id', data.user.id).single();
               if (profileError || !profileRow) { await client.auth.signOut(); throw new Error('Account profile missing. Please contact the administrator.'); }
-              if (form.id === 'formAdminLogin' && !(['admin','teacher'].includes(profileRow.role) && profileRow.approval_status === 'approved')) {
+              if (form.id === 'formAdminLogin' && !(profileRow.role === 'admin' && profileRow.approval_status === 'approved')) {
                 await client.auth.signOut(); throw new Error('Is account ko administrator access nahi mila hai.');
               }
               if (form.id === 'formStudentLogin' && profileRow.role !== 'student') {
@@ -7431,7 +7600,7 @@ const termsModal = document.getElementById('examTermsModal');
         async function hydrateAttemptsFromSupabase() {
           const client = window.gyanManchSupabase;
           if (!client || !state.currentUser) return;
-          const isAdmin = ['admin','teacher'].includes(state.currentUser.role);
+          const isAdmin = state.currentUser.role === 'admin';
           let attemptQuery = client.from('attempts').select('id,user_id,test_id,status,started_at,submitted_at,time_taken_seconds,total_questions,attempted_count,correct_count,incorrect_count,unattempted_count,score,max_score,accuracy').order('started_at',{ascending:false});
           if (!isAdmin) attemptQuery = attemptQuery.eq('user_id', state.currentUser.id);
           const attemptResult = await attemptQuery;
@@ -7522,8 +7691,8 @@ const termsModal = document.getElementById('examTermsModal');
             } else {
               state.currentUser = { id:p.id, username:p.username || session.user.email, mobile:p.phone || '', displayName:p.display_name || session.user.email, role:p.role, status:p.approval_status, showOnLeaderboard:true, email:session.user.email };
               savePersistentSession(state.currentUser);
-              await hydrateQuestionsFromSupabase(['admin','teacher'].includes(p.role));
-              if (['admin','teacher'].includes(p.role)) {
+              await hydrateQuestionsFromSupabase(p.role === 'admin');
+              if (p.role === 'admin') {
                 const usersResult = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,created_at');
                 if (!usersResult.error && Array.isArray(usersResult.data)) db.users = usersResult.data.map(u => ({id:u.id,username:u.username||'',mobile:u.phone||'',displayName:u.display_name||'',role:u.role,status:u.approval_status,createdAt:u.created_at,showOnLeaderboard:true,email:''}));
               }
@@ -7534,7 +7703,7 @@ const termsModal = document.getElementById('examTermsModal');
           }).catch(function(){});
         }
         document.addEventListener('click', function(event) {
-          const logout = event.target && event.target.closest && event.target.closest('#mobileMenuLogout, #hdrBtnLogout, #btnLockAdminSession');
+          const logout = event.target && event.target.closest && event.target.closest('#mobileMenuLogout, #btnLockAdminSession');
           if (logout && window.gyanManchSupabase) window.gyanManchSupabase.auth.signOut().catch(function(){});
         }, true);
 
