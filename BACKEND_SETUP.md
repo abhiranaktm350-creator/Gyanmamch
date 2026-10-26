@@ -11,26 +11,22 @@ The database has 9 categories, 62 exams, 27 bilingual starter questions, 30 test
 
 ## Authentication: make the first administrator
 
-Email/password authentication is configured in the website. There is not yet an owner/admin account in the database. Do this once:
+The owner-only function `public.claim_initial_admin(uuid)` is included in `supabase_schema.sql` and the standalone `supabase_admin_bootstrap.sql` recovery script. It has been applied to the currently connected Supabase project. It is revoked from browser/API roles; run it only from Supabase SQL Editor.
 
-1. Deploy the site on Cloudflare Pages and copy the final HTTPS URL.
-2. In Supabase Dashboard → Authentication → URL Configuration, set **Site URL** to that URL and add it under **Redirect URLs**.
-3. In Authentication → Sign In / Providers, ensure Email is enabled. If email confirmation is enabled, verify the registration email.
-4. Open the deployed website → Student Registration. Register with the owner's own email address and a strong password, then verify the email if requested.
-5. In Supabase → SQL Editor, run the query below after replacing `OWNER_EMAIL` with the exact registered email:
+1. Deploy the site and set its final HTTPS URL in Supabase Authentication → URL Configuration (Site URL and Redirect URLs).
+2. In Authentication → Sign In / Providers, ensure Email is enabled.
+3. Register using the owner's own email address and a strong password, then verify the email if confirmation is enabled.
+4. In Supabase → SQL Editor, replace `OWNER_EMAIL` and run:
 
 ```sql
-update public.profiles
-set role = 'admin', approval_status = 'approved'
-where id = (
-  select id from auth.users
-  where lower(email) = lower('OWNER_EMAIL')
-);
+select public.claim_initial_admin(id)
+from auth.users
+where lower(email) = lower('OWNER_EMAIL');
 ```
 
-Confirm exactly one profile row was updated. Then use **Administrator Login** with that same email/password. Do not share the password or any secret key.
+5. Confirm one row is returned. If no row is returned, register and verify that email first. Then sign in using **Administrator Login**.
 
-New public signups always receive the student role and pending approval. Never grant admin role from browser-side form data.
+New public signups receive the student role and pending approval. The browser cannot call the initial-admin bootstrap function or grant itself an administrator role.
 
 ## Cloudflare Pages deployment
 
