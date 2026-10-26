@@ -59,9 +59,6 @@ export default async function handler(request, response) {
   if (!supabaseUrl || !publishableKey) {
     return json(response, 503, { error: "Server authentication is not configured. Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY in Vercel." });
   }
-  if (!aiApiKey) {
-    return json(response, 503, { error: "Question extraction is not enabled. Configure AI_API_KEY in Vercel environment variables." });
-  }
 
   const authorization = request.headers.authorization || request.headers.Authorization || "";
   if (!authorization.startsWith("Bearer ")) {
@@ -87,6 +84,9 @@ export default async function handler(request, response) {
     const profile = Array.isArray(profiles) ? profiles[0] : null;
     if (!profile || !["admin", "teacher"].includes(profile.role) || profile.approval_status !== "approved") {
       return json(response, 403, { error: "Only approved teaching staff can extract questions." });
+    }
+    if (!aiApiKey) {
+      return json(response, 503, { error: "Question extraction is not enabled. Configure AI_API_KEY in Vercel environment variables." });
     }
 
     let body = request.body;
