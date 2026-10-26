@@ -4494,6 +4494,7 @@ table{max-width:100%;border-collapse:collapse}
 
         document.getElementById('formStudentLogin').addEventListener('submit', function(e) {
           e.preventDefault();
+          if (window.gyanManchSupabase) return;
           const iden = document.getElementById('loginStuIdentifier').value.trim().toLowerCase();
           const pass = document.getElementById('loginStuPassword').value;
           const found = db.users.find(u =>
@@ -4534,6 +4535,7 @@ table{max-width:100%;border-collapse:collapse}
 
         document.getElementById('formStudentRegister').addEventListener('submit', function(e) {
           e.preventDefault();
+          if (window.gyanManchSupabase) return;
           const name = document.getElementById('regStuName').value.trim();
           const uname = document.getElementById('regStuUsername').value.trim().toLowerCase();
           const mob = document.getElementById('regStuMobile').value.trim();
@@ -4610,6 +4612,7 @@ table{max-width:100%;border-collapse:collapse}
 
         document.getElementById('formAdminLogin').addEventListener('submit', function(e) {
           e.preventDefault();
+          if (window.gyanManchSupabase) return;
           const u = document.getElementById('admLoginUser').value.trim().toLowerCase();
           const p = document.getElementById('admLoginPass').value;
 
@@ -7438,7 +7441,7 @@ Answer Key:
               const password = document.getElementById('regStuPassword').value;
               const confirm = document.getElementById('regStuPasswordConfirm').value;
               if (!name || !/^[a-z0-9_.-]{3,24}$/.test(username)) throw new Error('Username 3–24 characters ka ho; letters, numbers, dot, underscore ya hyphen use karein.');
-              if (!/^\\d{10}$/.test(phone)) throw new Error('Mobile number exactly 10 digits ka hona chahiye.');
+              if (!/^\d{10}$/.test(phone)) throw new Error('Mobile number exactly 10 digits ka hona chahiye.');
               if (password.length < 8) throw new Error('Password kam se kam 8 characters ka hona chahiye.');
               if (password !== confirm) throw new Error('Dono passwords match nahi karte.');
               const { data, error } = await client.auth.signUp({
