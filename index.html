@@ -6542,8 +6542,8 @@ Answer Key:
               return;
             }
             setImportProgress(74, 'Identifying questions and answers…', 'AI is separating question text, options and answer labels.');
-            const backgroundExtracted = await tryBackgroundExtractQuestions(combinedText, file.name, targetExId, targetSubId, '');
             const queueBefore = db.pdfImportQueue.length;
+            const backgroundExtracted = await tryBackgroundExtractQuestions(combinedText, file.name, targetExId, targetSubId, '');
             if (!backgroundExtracted) {
               setImportProgress(82, 'Using built-in question parser…', 'Reading question numbers, options and inline answer labels from the same PDF.');
               parseAllQuestionsFromText(combinedText, file.name, targetExId, targetSubId);
