@@ -271,6 +271,30 @@
     body.gm-is-fullscreen #gmFullscreenButton { background:#334155; }
   </style>
 
+
+<!-- Gyan Manch responsive light-theme refinements -->
+<style id="gm-professional-layout-overrides">
+:root{color-scheme:light;--gm-blue:#1769d2;--gm-blue-dark:#0f4fa8;--gm-bg:#f5f8fc;--gm-text:#172b4d}
+html{scroll-behavior:smooth;background:#f5f8fc}
+body{background:#f5f8fc!important;color:#172b4d!important;font-family:Inter,"Noto Sans Devanagari",system-ui,sans-serif}
+body.gm-dark-theme,body.dark,html.dark{background:#f5f8fc!important;color:#172b4d!important;color-scheme:light}
+.gm-announcement-bar{display:none!important}
+#toastContainer,.toast-container,.toast,.gm-toast,[role="status"].toast{display:none!important}
+button,a,[role="button"],input,select,textarea{touch-action:manipulation}
+button{transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #93c5fd;outline-offset:2px}
+img,video,canvas,iframe{max-width:100%}
+table{max-width:100%;border-collapse:collapse}
+@media(max-width:768px){
+  body{font-size:15px}
+  main,.container,.gm-container{max-width:100%;width:100%}
+  input,select,textarea{font-size:16px!important}
+  button{min-height:40px}
+  .grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+
 </head>
 <body class="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
 
