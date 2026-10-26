@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  syntax-and-config:
+  build-and-validate:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -18,7 +18,7 @@ jobs:
           node-version: 22
       - name: Validate JSON configuration
         run: |
-          node -e "JSON.parse(require('fs').readFileSync('wrangler.jsonc','utf8')); console.log('wrangler.jsonc is valid JSON')"
+          node -e "JSON.parse(require('fs').readFileSync('vercel.json','utf8')); console.log('vercel.json is valid JSON')"
           node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8')); console.log('manifest.webmanifest is valid JSON')"
           node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('package.json is valid JSON')"
       - name: Check inline JavaScript in index.html
@@ -54,8 +54,8 @@ jobs:
           print(f'Extracted {len(parser.scripts)} inline scripts')
           PY
           for f in /tmp/gyan-inline-*.js; do node --check "$f"; done
-      - name: Check question extraction endpoint syntax
-        run: cp functions/api/extract-questions.js /tmp/extract-questions.mjs && node --check /tmp/extract-questions.mjs
+      - name: Check Vercel question extraction API syntax
+        run: node --check api/extract-questions.js
       - name: Build production assets
         run: |
           npm run build
@@ -64,4 +64,5 @@ jobs:
           test -s dist/manifest.webmanifest
           test ! -e dist/supabase_schema.sql
           test ! -e dist/supabase_seed.sql
-          echo "Production build output verified."
+          test ! -e dist/.env.example
+          echo "Vercel static output verified. Vercel Functions are deployed from the root api/ directory."
