@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#2563eb" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -46,6 +46,15 @@
   </script>
 
   <style>
+    /* Consistent Testbook-inspired light blue interface. */
+    body { background-color:#f5f9ff !important; color:#172b4d; }
+    #mainHeader { background:#ffffff !important; color:#172b4d !important; border-bottom:1px solid #dbeafe !important; }
+    #mainHeader .text-white { color:#1d4ed8 !important; }
+    #mainHeader .hover\\:text-white:hover { color:#1e40af !important; }
+    #libraryQuickSwitcher { background:#eff6ff !important; color:#1e3a8a !important; border-color:#dbeafe !important; }
+    #mainFooter { background:#ffffff !important; color:#64748b !important; border-color:#dbeafe !important; }
+    .bg-gradient-to-br.from-slate-900 { background-image:linear-gradient(120deg,#1d4ed8,#2563eb,#4338ca) !important; }
+
     /* Clean, distraction-free exam header: hide branding, mock title and attempt ID. */
     #cbtOverlay .cbtExamBrandMark, #cbtOverlay #cbtTestTitle, #cbtOverlay #cbtSampleTag, #cbtOverlay #cbtAttemptIdDisplay { display: none !important; }
     #cbtOverlay .cbtExamIdentity { display: none !important; }
@@ -56,61 +65,7 @@
       background-color: #f8fafc;
       color: #0f172a;
     }
-    /* Home-page theme switch: saved per browser. Keep exam question text readable in either theme. */
-    body.gm-dark-theme { background:#0b1220 !important; color:#e5e7eb !important; }
-    body.gm-dark-theme #appMain { color:#e5e7eb; }
-    body.gm-dark-theme #appMain .bg-white:not(.gm-keep-light),
-    body.gm-dark-theme #appMain .bg-slate-50:not(.gm-keep-light),
-    body.gm-dark-theme #appMain .bg-slate-100:not(.gm-keep-light) { background-color:#172033 !important; }
-    body.gm-dark-theme #appMain .text-slate-900,
-    body.gm-dark-theme #appMain .text-slate-800,
-    body.gm-dark-theme #appMain .text-slate-700,
-    body.gm-dark-theme #appMain .text-slate-600 { color:#e5e7eb !important; }
-    body.gm-dark-theme #appMain .border-slate-200,
-    body.gm-dark-theme #appMain .border-slate-300 { border-color:#334155 !important; }
-    body.gm-dark-theme #appMain input:not([type=checkbox]),
-    body.gm-dark-theme #appMain textarea,
-    body.gm-dark-theme #appMain select { background:#0f172a !important; color:#f8fafc !important; border-color:#475569 !important; }
-    /* Consistent dark theme for every non-exam page and interactive surface. The CBT exam overlay is intentionally excluded. */
-    body.gm-dark-theme #appMain { background-color:transparent !important; }
-    body.gm-dark-theme #appMain .bg-white,
-    body.gm-dark-theme #appMain .bg-slate-50,
-    body.gm-dark-theme #appMain .bg-slate-100,
-    body.gm-dark-theme #appMain .bg-gray-50,
-    body.gm-dark-theme #appMain .bg-gray-100 { background-color:#172033 !important; }
-    body.gm-dark-theme #appMain .bg-slate-200,
-    body.gm-dark-theme #appMain .bg-gray-200 { background-color:#263449 !important; }
-    body.gm-dark-theme #appMain .text-slate-500,
-    body.gm-dark-theme #appMain .text-gray-500,
-    body.gm-dark-theme #appMain .text-slate-400,
-    body.gm-dark-theme #appMain .text-gray-400 { color:#cbd5e1 !important; }
-    body.gm-dark-theme #appMain .text-black,
-    body.gm-dark-theme #appMain .text-gray-900,
-    body.gm-dark-theme #appMain .text-gray-800,
-    body.gm-dark-theme #appMain .text-gray-700,
-    body.gm-dark-theme #appMain .text-gray-600 { color:#e5e7eb !important; }
-    body.gm-dark-theme #appMain [class*="border-"] { border-color:#334155; }
-    body.gm-dark-theme #appMain button:focus-visible,
-    body.gm-dark-theme #appMain a:focus-visible,
-    body.gm-dark-theme #appMain input:focus-visible,
-    body.gm-dark-theme #appMain select:focus-visible,
-    body.gm-dark-theme #appMain textarea:focus-visible { outline:2px solid #a5b4fc !important; outline-offset:2px; }
-    /* Touch/hover states keep labels readable instead of letting dark text disappear on a darkened button. */
-    body.gm-dark-theme #appMain button:hover,
-    body.gm-dark-theme #appMain [role="button"]:hover,
-    body.gm-dark-theme #appMain button:active,
-    body.gm-dark-theme #appMain [role="button"]:active { text-shadow:none; }
-    body.gm-dark-theme #appMain .hover\:bg-white:hover,
-    body.gm-dark-theme #appMain .hover\:bg-slate-50:hover,
-    body.gm-dark-theme #appMain .hover\:bg-slate-100:hover { background-color:#334155 !important; color:#f8fafc !important; }
-    body.gm-dark-theme #appMain .hover\:text-slate-900:hover,
-    body.gm-dark-theme #appMain .hover\:text-slate-800:hover,
-    body.gm-dark-theme #appMain .hover\:text-gray-900:hover { color:#ffffff !important; }
-    body.gm-dark-theme #mainHeader { background-color:#020617 !important; }
-    body.gm-dark-theme #mainHeader .text-slate-400,
-    body.gm-dark-theme #mainHeader .text-slate-300 { color:#cbd5e1 !important; }
-    /* Keep all exam UI colors and layout isolated from the site theme. */
-    body.gm-dark-theme #cbtOverlay { color:inherit; }
+    /* Light-only site theme; keep the exam interface isolated. */
     #cbtOverlay { width:100vw; height:100vh; height:100dvh; max-height:100dvh; }
     #cbtQuestionStemContainer, #cbtQuestionStemContainer * { color:#0f172a !important; -webkit-text-fill-color:#0f172a !important; }
     #cbtQuestionStemContainer { background-color:#f8fafc !important; visibility:visible; opacity:1; }
@@ -298,26 +253,7 @@ table{max-width:100%;border-collapse:collapse}
 </head>
 <body class="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
 
-  <!-- OFFICIAL LIBRARY LOCALHOST & LAN NETWORK SYNC BAR -->
-  <div id="topSampleBanner" class="bg-emerald-950 border-b border-emerald-800 px-3 py-1.5 text-xs text-emerald-100 flex flex-wrap items-center justify-between gap-2">
-    <div class="flex items-center gap-2">
-      <span id="lanServerStatusPill" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded font-bold bg-emerald-600 text-white">
-        <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-        <span>OFFICIAL EDITION • LOCALHOST / LAN READY</span>
-      </span>
-      <span id="lanServerStatusText">Works 100% offline on this PC or across all Library Computers via <code>gyan_manch_lan_server.py</code> (Persistent Login & Real Exam Schemes).</span>
-    </div>
-    <div class="flex items-center gap-2">
-      <button id="btnExportFullDbBackup" type="button" class="px-2 py-0.5 rounded bg-emerald-800 hover:bg-emerald-700 text-white font-semibold transition">⬇ Backup Library DB (.json)</button>
-      <label class="px-2 py-0.5 rounded bg-indigo-800 hover:bg-indigo-700 text-white font-semibold cursor-pointer transition">
-        ⬆ Restore / Sync DB
-        <input id="inpImportFullDbBackup" type="file" accept=".json" class="hidden" />
-      </label>
-      <button id="btnQuickWalkthrough" type="button" class="underline font-semibold text-emerald-300 hover:text-white">Run End-to-End Flow Guide</button>
-      <span class="text-emerald-700">|</span>
-      <button id="btnResetDemoData" type="button" class="text-emerald-300 hover:text-rose-300 font-medium">Reset Demo DB</button>
-    </div>
-  </div>
+
 
   <!-- MAIN NAVIGATION HEADER (Hidden during active fullscreen CBT test) -->
   <header id="mainHeader" class="bg-slate-900 text-white shadow-md sticky top-0 z-30">
@@ -729,6 +665,17 @@ table{max-width:100%;border-collapse:collapse}
     </div>
   </footer>
 
+<!-- Public Supabase client configuration. Never put service-role secrets in the browser. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window.GYAN_MANCH_SUPABASE_URL = "https://zpjpoolfkjdlqxioabnf.supabase.co";
+  window.GYAN_MANCH_SUPABASE_KEY = "sb_publishable_KJ3nxQqRZmDORHpk35qpCQ_1rixBmi4";
+  window.gyanManchSupabase = window.supabase.createClient(
+    window.GYAN_MANCH_SUPABASE_URL,
+    window.GYAN_MANCH_SUPABASE_KEY,
+    { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
+  );
+</script>
   <!-- APPLICATION LOGIC -->
   <script>
     (function() {
@@ -1428,1095 +1375,19 @@ table{max-width:100%;border-collapse:collapse}
 
         // Authentic Bilingual Questions (English + Devanagari Unicode)
         // Strictly labeled as verified sample/admin-created/public-domain without claiming unverified official exam shifts
-        const questions = [
-          {
-            id: 'q_1',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_quant',
-            chapterId: 'ch_perc',
-            text_en: 'If the price of sugar increases by 25%, by what percentage must a family reduce its consumption so that total expenditure on sugar remains unchanged?',
-            text_hi: 'यदि चीनी के मूल्य में 25% की वृद्धि हो जाती है, तो एक परिवार को अपनी खपत में कितने प्रतिशत की कमी करनी चाहिए ताकि चीनी पर कुल खर्च अपरिवर्तित रहे?',
-            options_en: ['20%', '25%', '16.67%', '15%'],
-            options_hi: ['20%', '25%', '16.67%', '15%'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Required percentage reduction = [R / (100 + R)] × 100 = (25 / 125) × 100 = 20%.',
-            explanation_hi: 'अभीष्ट प्रतिशत कमी = [R / (100 + R)] × 100 = (25 / 125) × 100 = 20%।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL', 'SSC-CHSL', 'RRB-NTPC', 'IBPS-PO'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_2',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_quant',
-            chapterId: 'ch_pl',
-            text_en: 'A shopkeeper marks his goods 40% above the cost price and allows a discount of 15%. What is his net profit percentage?',
-            text_hi: 'एक दुकानदार अपनी वस्तुओं पर क्रय मूल्य से 40% अधिक मूल्य अंकित करता है और 15% की छूट देता है। उसका शुद्ध लाभ प्रतिशत क्या है?',
-            options_en: ['19%', '25%', '21%', '17.5%'],
-            options_hi: ['19%', '25%', '21%', '17.5%'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Let CP = 100. Marked Price (MP) = 140. Selling Price (SP) = 140 × (1 - 0.15) = 140 × 0.85 = 119. Net profit = 19%.',
-            explanation_hi: 'माना क्रय मूल्य (CP) = 100। अंकित मूल्य (MP) = 140। विक्रय मूल्य (SP) = 140 × 0.85 = 119। अतः शुद्ध लाभ = 19%।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL', 'SSC-MTS', 'IBPS-CLERK'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_3',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_quant',
-            chapterId: 'ch_ratio',
-            text_en: 'If A : B = 3 : 4 and B : C = 6 : 5, then what is the ratio of A : B : C?',
-            text_hi: 'यदि A : B = 3 : 4 तथा B : C = 6 : 5 है, तो A : B : C का अनुपात क्या होगा?',
-            options_en: ['9 : 12 : 10', '3 : 6 : 5', '9 : 10 : 12', '6 : 8 : 10'],
-            options_hi: ['9 : 12 : 10', '3 : 6 : 5', '9 : 10 : 12', '6 : 8 : 10'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Make B equal in both ratios (LCM of 4 and 6 is 12). A : B = 9 : 12 and B : C = 12 : 10. Thus A : B : C = 9 : 12 : 10.',
-            explanation_hi: 'दोनों अनुपातों में B को समान बनाएं (4 और 6 का ल.स.प. 12 है)। A : B = 9 : 12 और B : C = 12 : 10। अतः A : B : C = 9 : 12 : 10।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL', 'SSC-GD', 'RRB-GROUP-D'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_4',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_quant',
-            chapterId: 'ch_tw',
-            text_en: 'A can complete a piece of work in 12 days and B can complete the same work in 18 days. In how many days will they complete the work together?',
-            text_hi: 'A किसी कार्य को 12 दिनों में और B उसी कार्य को 18 दिनों में पूरा कर सकता है। वे दोनों मिलकर उस कार्य को कितने दिनों में पूरा करेंगे?',
-            options_en: ['7.2 days', '8 days', '6.5 days', '7.5 days'],
-            options_hi: ['7.2 दिन', '8 दिन', '6.5 दिन', '7.5 दिन'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Total work = LCM(12, 18) = 36 units. Efficiency of A = 3 units/day, B = 2 units/day. Together = 36 / (3 + 2) = 7.2 days.',
-            explanation_hi: 'कुल कार्य = LCM(12, 18) = 36 इकाई। A की क्षमता = 3 इकाई/दिन, B = 2 इकाई/दिन। दोनों द्वारा लगा समय = 36 / 5 = 7.2 दिन।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL', 'RRB-NTPC', 'IBPS-PO'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_5',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_reasoning',
-            chapterId: 'ch_coding',
-            text_en: 'In a certain code language, if "LIBRARY" is written as "MJCSBSZ", how will "STUDENT" be written in that code language?',
-            text_hi: 'एक निश्चित कूट भाषा में यदि "LIBRARY" को "MJCSBSZ" लिखा जाता है, तो उसी कूट भाषा में "STUDENT" को कैसे लिखा जाएगा?',
-            options_en: ['TUVEFOU', 'TUVEFNT', 'RTUCDMS', 'TUVFFOU'],
-            options_hi: ['TUVEFOU', 'TUVEFNT', 'RTUCDMS', 'TUVFFOU'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Each letter is shifted forward by +1 in the English alphabet: S→T, T→U, U→V, D→E, E→F, N→O, T→U => TUVEFOU.',
-            explanation_hi: 'प्रत्येक अक्षर को अंग्रेजी वर्णमाला में +1 स्थान आगे बढ़ाया गया है: S→T, T→U, U→V, D→E, E→F, N→O, T→U => TUVEFOU।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL', 'SSC-CHSL', 'RPF-SI-CONST'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_6',
-            examId: 'ex_ibps_po',
-            subjectId: 'sub_reasoning',
-            chapterId: 'ch_syllogism',
-            text_en: 'Statements: All mountains are rivers. Some rivers are forests.\nConclusion I: Some forests are rivers.\nConclusion II: All forests are mountains.',
-            text_hi: 'कथन: सभी पर्वत नदियाँ हैं। कुछ नदियाँ वन हैं।\nनिष्कर्ष I: कुछ वन नदियाँ हैं।\nनिष्कर्ष II: सभी वन पर्वत हैं।',
-            options_en: ['Only Conclusion I follows', 'Only Conclusion II follows', 'Both I and II follow', 'Neither I nor II follows'],
-            options_hi: ['केवल निष्कर्ष I अनुसरण करता है', 'केवल निष्कर्ष II अनुसरण करता है', 'I और II दोनों अनुसरण करते हैं', 'न तो I और न ही II अनुसरण करता है'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'From "Some rivers are forests", its converse "Some forests are rivers" (Conclusion I) definitely follows. Conclusion II is not definite.',
-            explanation_hi: '"कुछ नदियाँ वन हैं" से इसका व्युत्क्रम "कुछ वन नदियाँ हैं" (निष्कर्ष I) निश्चित रूप से सत्य है। निष्कर्ष II निश्चित नहीं है।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Banking & SSC Pattern',
-            tags: ['IBPS-PO', 'SBI-PO', 'SSC-CGL'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_7',
-            examId: 'ex_ibps_po',
-            subjectId: 'sub_reasoning',
-            chapterId: 'ch_seating',
-            text_en: 'Five friends P, Q, R, S and T are sitting in a row facing North. S is between T and Q. R is to the immediate left of Q, and T is at the extreme left end. Who is sitting in the middle of the row?',
-            text_hi: 'पाँच मित्र P, Q, R, S और T उत्तर की ओर मुख करके एक पंक्ति में बैठे हैं। S, T और Q के ठीक बीच में है, और T बाएँ छोर पर है। यदि P दाएँ छोर पर है, तो पंक्ति के ठीक मध्य में कौन बैठा है?',
-            options_en: ['Q', 'S', 'R', 'T'],
-            options_hi: ['Q', 'S', 'R', 'T'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Left to right arrangement: T - S - Q - R - P. The person sitting in the exact middle (3rd position) is Q.',
-            explanation_hi: 'बाएँ से दाएँ क्रम: T - S - Q - R - P। अतः पंक्ति के ठीक मध्य (तीसरे स्थान) में Q बैठा है।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['IBPS-PO', 'IBPS-CLERK', 'SSC-CGL'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_8',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_english',
-            chapterId: 'ch_grammar',
-            text_en: 'Identify the correct form of the verb to complete the sentence: "Neither the teacher nor the students ______ present in the seminar hall yesterday."',
-            text_hi: 'वाक्य को पूरा करने के लिए क्रिया का सही रूप चुनें: "Neither the teacher nor the students ______ present in the seminar hall yesterday." (न तो शिक्षक और न ही छात्र कल सेमिनार हॉल में उपस्थित थे।)',
-            options_en: ['were', 'was', 'are', 'have been'],
-            options_hi: ['were (बहुवचन भूतकाल)', 'was (एकवचन भूतकाल)', 'are (वर्तमान काल)', 'have been'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'With "Neither...nor", the verb agrees with the closer subject ("students", plural) and "yesterday" requires past tense ("were").',
-            explanation_hi: '"Neither...nor" के नियम के अनुसार क्रिया निकटतम कर्ता ("students" - बहुवचन) के अनुसार आती है तथा "yesterday" के कारण भूतकाल ("were") प्रयुक्त होगा।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL', 'SSC-CPO', 'UPSC-CDS'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_9',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_english',
-            chapterId: 'ch_vocab',
-            text_en: 'Select the most appropriate synonym of the word "EPHEMERAL".',
-            text_hi: 'अंग्रेजी शब्द "EPHEMERAL" (क्षणिक / अल्पकालिक) का सबसे उपयुक्त समानार्थी (Synonym) चुनें:',
-            options_en: ['Transient (Short-lived)', 'Permanent', 'Eternal', 'Rigid'],
-            options_hi: ['Transient (अल्पकालिक / क्षणभंगुर)', 'Permanent (स्थायी)', 'Eternal (शाश्वत)', 'Rigid (कठोर)'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: '"Ephemeral" means lasting for a very short time. "Transient" is its closest synonym.',
-            explanation_hi: '"Ephemeral" का अर्थ है बहुत कम समय तक रहने वाला (क्षणिक)। अतः "Transient" इसका सही पर्यायवाची है।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL', 'IAF-AFCAT', 'UPSC-NDA'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_10',
-            examId: 'ex_ukpsc_pcs',
-            subjectId: 'sub_ga',
-            chapterId: 'ch_geog',
-            text_en: 'At which holy confluence (Panch Prayag) in Uttarakhand do the Alaknanda and Bhagirathi rivers meet to form the main stream of the Ganga?',
-            text_hi: 'उत्तराखंड के किस पवित्र प्रयाग (पंच प्रयाग) में अलकनंदा और भागीरथी नदियाँ मिलकर गंगा की मुख्य धारा का निर्माण करती हैं?',
-            options_en: ['Devprayag', 'Rudraprayag', 'Karnaprayag', 'Vishnuprayag'],
-            options_hi: ['देवप्रयाग', 'रुद्रप्रयाग', 'कर्णप्रयाग', 'विष्णुप्रयाग'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'At Devprayag (Tehri Garhwal district, Uttarakhand), the Alaknanda and Bhagirathi rivers join to form the Ganga.',
-            explanation_hi: 'देवप्रयाग (टिहरी गढ़वाल, उत्तराखंड) में अलकनंदा और भागीरथी नदियों का संगम होता है, जहाँ से इसे गंगा नदी कहा जाता है।',
-            sourceType: 'public_domain',
-            verificationStatus: 'verified',
-            examYearShift: 'Official UKPSC / SSC Pattern',
-            tags: ['UKPSC-PCS', 'UKSSSC-GRPC', 'SSC-CGL'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_11',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_ga',
-            chapterId: 'ch_polity',
-            text_en: 'Which Article of the Constitution of India empowers the Supreme Court to issue writs for the enforcement of Fundamental Rights?',
-            text_hi: 'भारतीय संविधान का कौन सा अनुच्छेद सर्वोच्च न्यायालय को मौलिक अधिकारों के प्रवर्तन के लिए रिट (Writs) जारी करने की शक्ति प्रदान करता है?',
-            options_en: ['Article 32', 'Article 226', 'Article 14', 'Article 21'],
-            options_hi: ['अनुच्छेद 32', 'अनुच्छेद 226', 'अनुच्छेद 14', 'अनुच्छेद 21'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Article 32 (Right to Constitutional Remedies) empowers the Supreme Court to issue five types of writs, while Article 226 empowers High Courts.',
-            explanation_hi: 'अनुच्छेद 32 (संवैधानिक उपचारों का अधिकार) सर्वोच्च न्यायालय को रिट जारी करने की शक्ति देता है, जबकि अनुच्छेद 226 उच्च न्यायालयों से संबंधित है।',
-            sourceType: 'public_domain',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL', 'UPSC-CSE', 'UKPSC-PCS', 'RRB-NTPC'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_12',
-            examId: 'ex_rrb_ntpc',
-            subjectId: 'sub_ga',
-            chapterId: 'ch_sci_ca',
-            text_en: 'What is the SI unit of electric current?',
-            text_hi: 'विद्युत धारा (Electric Current) का एसआई (SI) मात्रक क्या है?',
-            options_en: ['Ampere', 'Volt', 'Ohm', 'Coulomb'],
-            options_hi: ['एम्पियर (Ampere)', 'वोल्ट (Volt)', 'ओम (Ohm)', 'कूलॉम (Coulomb)'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Ampere (A) is the SI base unit of electric current. Volt is for potential difference, Ohm for resistance, and Coulomb for electric charge.',
-            explanation_hi: 'विद्युत धारा का SI मात्रक एम्पियर (Ampere) है। विभवांतर का वोल्ट, प्रतिरोध का ओम और आवेश का मात्रक कूलॉम है।',
-            sourceType: 'public_domain',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Science Pattern',
-            tags: ['RRB-NTPC', 'RRB-GROUP-D', 'RRB-ALP', 'SSC-CGL'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_13',
-            examId: 'ex_ukpsc_pcs',
-            subjectId: 'sub_ga',
-            chapterId: 'ch_hist',
-            text_en: 'Jim Corbett National Park, the oldest national park in India established in 1936 as Hailey National Park, is located in which districts of Uttarakhand?',
-            text_hi: '1936 में हैली नेशनल पार्क के रूप में स्थापित भारत का सबसे पुराना राष्ट्रीय उद्यान "जिम कॉर्बेट राष्ट्रीय उद्यान" उत्तराखंड के किन जिलों में स्थित है?',
-            options_en: ['Nainital and Pauri Garhwal', 'Chamoli and Rudraprayag', 'Uttarkashi and Tehri', 'Haridwar and Dehradun'],
-            options_hi: ['नैनीताल और पौड़ी गढ़वाल', 'चमोली और रुद्रप्रयाग', 'उत्तरकाशी और टिहरी', 'हरिद्वार और देहरादून'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Jim Corbett National Park spans across Nainital and Pauri Garhwal districts of Uttarakhand (Ramnagar headquarters).',
-            explanation_hi: 'जिम कॉर्बेट राष्ट्रीय उद्यान उत्तराखंड के नैनीताल और पौड़ी गढ़वाल जिलों में फैला हुआ है (मुख्यालय: रामनगर)।',
-            sourceType: 'public_domain',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Uttarakhand GK',
-            tags: ['UKPSC-PCS', 'UKSSSC-GRPC', 'POLICE-SI'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_14',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_english',
-            chapterId: 'ch_rc',
-            text_en: 'Read the short passage: "Public libraries serve as equalizers in competitive exam preparation by providing disciplined study environments and digital mock testing to rural and urban aspirants alike." According to the passage, what is a key role of public libraries?',
-            text_hi: 'गद्यांश पढ़ें: "सार्वजनिक पुस्तकालय ग्रामीण और शहरी दोनों क्षेत्रों के अभ्यर्थियों को अनुशासित अध्ययन वातावरण और डिजिटल मॉक टेस्ट उपलब्ध कराकर प्रतियोगी परीक्षा की तैयारी में समानता लाते हैं।" गद्यांश के अनुसार सार्वजनिक पुस्तकालयों की मुख्य भूमिका क्या है?',
-            options_en: ['Providing equal access to disciplined study and digital mock tests', 'Charging high coaching fees from rural students', 'Replacing official examination boards', 'Limiting computer usage to urban students'],
-            options_hi: ['अनुशासित अध्ययन और डिजिटल मॉक टेस्ट तक समान पहुँच प्रदान करना', 'ग्रामीण छात्रों से उच्च कोचिंग शुल्क लेना', 'आधिकारिक परीक्षा बोर्डों का स्थान लेना', 'कंप्यूटर उपयोग को केवल शहरी छात्रों तक सीमित रखना'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'The passage directly states that public libraries act as equalizers by providing disciplined study spaces and digital mock testing to all aspirants.',
-            explanation_hi: 'गद्यांश में स्पष्ट रूप से कहा गया है कि सार्वजनिक पुस्तकालय सभी अभ्यर्थियों को अनुशासित अध्ययन और डिजिटल मॉक टेस्ट की समान सुविधा देते हैं।',
-            sourceType: 'original',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Reading Comprehension',
-            tags: ['SSC-CGL', 'IBPS-PO', 'CTET-UTET'],
-            isPublished: true,
-            isSample: false
-          },
-          // Additional Maths Topics (SI & CI, Time-Speed-Distance, Number System, Geometry/Mensuration)
-          {
-            id: 'q_15',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_quant',
-            chapterId: 'ch_si_ci',
-            text_en: 'Find the compound interest on ₹10,000 at 10% per annum for 2 years, compounded annually.',
-            text_hi: '₹10,000 की धनराशि पर 10% वार्षिक दर से 2 वर्ष का वार्षिक रूप से संयोजित चक्रवृद्धि ब्याज (Compound Interest) ज्ञात कीजिए।',
-            options_en: ['₹2,100', '₹2,000', '₹2,200', '₹1,900'],
-            options_hi: ['₹2,100', '₹2,000', '₹2,200', '₹1,900'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Effective CI rate for 2 years at 10% = 10 + 10 + (10×10)/100 = 21%. CI = 21% of 10,000 = ₹2,100.',
-            explanation_hi: '10% की दर से 2 वर्ष की प्रभावी चक्रवृद्धि ब्याज दर = 10 + 10 + 1 = 21%। अतः ब्याज = 10,000 का 21% = ₹2,100।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Exam Pattern',
-            tags: ['SSC-CGL-T1', 'IBPS-PO-PRE', 'RRB-NTPC-CBT1'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_16',
-            examId: 'ex_rrb_ntpc',
-            subjectId: 'sub_quant',
-            chapterId: 'ch_tsd',
-            text_en: 'A train 180 meters long is running at a speed of 54 km/hr. How much time will it take to cross a platform 120 meters long?',
-            text_hi: '180 मीटर लंबी एक रेलगाड़ी 54 किमी/घंटा की चाल से चल रही है। यह 120 मीटर लंबे प्लेटफॉर्म को पार करने में कितना समय लेगी?',
-            options_en: ['20 seconds', '18 seconds', '24 seconds', '15 seconds'],
-            options_hi: ['20 सेकंड', '18 सेकंड', '24 सेकंड', '15 सेकंड'],
-            correctOption: 0,
-            marks: 1.0,
-            negativeMarks: 0.33,
-            explanation_en: 'Speed = 54 × (5/18) = 15 m/s. Total distance = 180 + 120 = 300 m. Time = 300 / 15 = 20 seconds.',
-            explanation_hi: 'चाल = 54 × (5/18) = 15 मीटर/सेकंड। कुल दूरी = 180 + 120 = 300 मीटर। समय = 300 / 15 = 20 सेकंड।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Railway & SSC Pattern',
-            tags: ['RRB-NTPC-CBT1', 'RRB-ALP-CBT1', 'SSC-GD'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_17',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_quant',
-            chapterId: 'ch_geom_mens',
-            text_en: 'If the radius of a circle is increased by 10%, then by what percentage does its area increase?',
-            text_hi: 'यदि किसी वृत्त की त्रिज्या में 10% की वृद्धि कर दी जाए, तो उसके क्षेत्रफल में कितने प्रतिशत की वृद्धि होगी?',
-            options_en: ['21%', '20%', '19%', '25%'],
-            options_hi: ['21%', '20%', '19%', '25%'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Percentage increase in area = x + x + (x²/100) = 10 + 10 + 1 = 21%.',
-            explanation_hi: 'क्षेत्रफल में प्रतिशत वृद्धि = 10 + 10 + (10×10)/100 = 21%।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Mensuration Pattern',
-            tags: ['SSC-CGL-T1', 'UPSC-CDS', 'UPSC-NDA'],
-            isPublished: true,
-            isSample: false
-          },
-          // Additional Reasoning Topics (Blood Relations, Direction Sense, Number Series)
-          {
-            id: 'q_18',
-            examId: 'ex_ibps_po',
-            subjectId: 'sub_reasoning',
-            chapterId: 'ch_blood_rel',
-            text_en: 'Pointing to a photograph, Rohan said, "She is the daughter of the only son of my grandfather." How is the girl in the photograph related to Rohan?',
-            text_hi: 'एक तस्वीर की ओर इशारा करते हुए रोहन ने कहा, "वह मेरे दादाजी के इकलौते पुत्र की पुत्री है।" तस्वीर में दिख रही लड़की का रोहन से क्या संबंध है?',
-            options_en: ['Sister', 'Mother', 'Cousin', 'Aunt'],
-            options_hi: ['बहन (Sister)', 'माता', 'चचेरी बहन', 'बुआ'],
-            correctOption: 0,
-            marks: 1.0,
-            negativeMarks: 0.25,
-            explanation_en: 'The only son of Rohan’s grandfather is Rohan’s father. His daughter is Rohan’s sister.',
-            explanation_hi: 'रोहन के दादाजी का इकलौता पुत्र रोहन का पिता है, और उनकी पुत्री रोहन की बहन है।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Reasoning Pattern',
-            tags: ['IBPS-PO-PRE', 'SSC-CGL-T1', 'UKSSSC-VDO-PATWARI'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_19',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_reasoning',
-            chapterId: 'ch_dir_sense',
-            text_en: 'Karan walks 8 km North, then turns right and walks 6 km. What is the shortest straight-line distance from his starting point?',
-            text_hi: 'करण उत्तर दिशा में 8 किमी चलता है, फिर दाएँ मुड़कर 6 किमी चलता है। प्रारंभिक बिंदु से उसकी न्यूनतम सीधी दूरी कितनी है?',
-            options_en: ['10 km', '14 km', '12 km', '9 km'],
-            options_hi: ['10 किमी', '14 किमी', '12 किमी', '9 किमी'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'By Pythagoras theorem: √(8² + 6²) = √(64 + 36) = √100 = 10 km.',
-            explanation_hi: 'पाइथागोरस प्रमेय के अनुसार: √(8² + 6²) = √(64 + 36) = √100 = 10 किमी।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Reasoning Pattern',
-            tags: ['SSC-GD', 'RRB-GROUP-D', 'UK-POLICE-FOREST'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_20',
-            examId: 'ex_ssc_cgl',
-            subjectId: 'sub_reasoning',
-            chapterId: 'ch_num_series',
-            text_en: 'Find the next number in the series: 3, 7, 15, 31, 63, ?',
-            text_hi: 'दी गई संख्या श्रृंखला में अगली संख्या ज्ञात कीजिए: 3, 7, 15, 31, 63, ?',
-            options_en: ['127', '125', '126', '129'],
-            options_hi: ['127', '125', '126', '129'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Pattern is ×2 + 1: 3×2+1=7, 7×2+1=15, 15×2+1=31, 31×2+1=63, 63×2+1 = 127.',
-            explanation_hi: 'श्रृंखला का नियम (×2 + 1) है: 63 × 2 + 1 = 127।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Series Pattern',
-            tags: ['SSC-CGL-T1', 'IBPS-CLERK-PRE', 'RPF-SI-CONST'],
-            isPublished: true,
-            isSample: false
-          },
-          // General Hindi (सामान्य हिंदी — sub_hindi)
-          {
-            id: 'q_21',
-            examId: 'ex_uksssc_grp_c',
-            subjectId: 'sub_hindi',
-            chapterId: 'ch_hi_sandhi',
-            text_en: 'Select the correct Sandhi-Viched (संधि-विच्छेद) of the Hindi word "हिमालय" (Himalaya) and identify its Sandhi type:',
-            text_hi: '"हिमालय" शब्द का सही संधि-विच्छेद और संधि का नाम चुनिए:',
-            options_en: ['हिम + आलय (दीर्घ स्वर संधि)', 'हिमा + लय (गुण संधि)', 'हिम + अल्य (यण संधि)', 'हीम + आलय (वृद्धि संधि)'],
-            options_hi: ['हिम + आलय (दीर्घ स्वर संधि)', 'हिमा + लय (गुण संधि)', 'हिम + अल्य (यण संधि)', 'हीम + आलय (वृद्धि संधि)'],
-            correctOption: 0,
-            marks: 1.0,
-            negativeMarks: 0.25,
-            explanation_en: 'हिम + आलय = हिमालय (अ + आ = आ), जो दीर्घ स्वर संधि का उदाहरण है।',
-            explanation_hi: 'हिम + आलय = हिमालय (अ + आ = आ), यह दीर्घ स्वर संधि का उदाहरण है।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'UKSSSC / UPPSC General Hindi Pattern',
-            tags: ['UKSSSC-VDO-PATWARI', 'UK-POLICE-FOREST', 'UP-POLICE-SI', 'SSC-GD'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_22',
-            examId: 'ex_uksssc_grp_c',
-            subjectId: 'sub_hindi',
-            chapterId: 'ch_hi_vocab',
-            text_en: 'Which of the following is the correct Tatsam (तत्सम) form of the word "आग" (Fire)?',
-            text_hi: 'निम्नलिखित में से "आग" (तद्भव शब्द) का शुद्ध तत्सम रूप कौन सा है?',
-            options_en: ['अग्नि', 'अनिल', 'अनल', 'अंगार'],
-            options_hi: ['अग्नि', 'अनिल', 'अनल', 'अंगार'],
-            correctOption: 0,
-            marks: 1.0,
-            negativeMarks: 0.25,
-            explanation_en: '"अग्नि" संस्कृत का मूल तत्सम शब्द है जिसका तद्भव रूप "आग" है।',
-            explanation_hi: '"अग्नि" तत्सम शब्द है, जिससे हिंदी में तद्भव शब्द "आग" बना है।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official General Hindi Pattern',
-            tags: ['UKSSSC-VDO-PATWARI', 'UKPSC-RO-ARO', 'CTET-UTET'],
-            isPublished: true,
-            isSample: false
-          },
-          // Uttarakhand Special GK (sub_uk_gk)
-          {
-            id: 'q_23',
-            examId: 'ex_ukpsc_pcs',
-            subjectId: 'sub_uk_gk',
-            chapterId: 'ch_uk_hist',
-            text_en: 'On which date was the state of Uttarakhand (originally Uttaranchal) carved out as the 27th state of the Republic of India?',
-            text_hi: 'भारतीय गणराज्य के 27वें राज्य के रूप में उत्तराखंड (तत्कालीन उत्तरांचल) का गठन किस तिथि को हुआ था?',
-            options_en: ['9 November 2000', '1 November 2000', '15 November 2000', '26 January 2001'],
-            options_hi: ['9 नवंबर 2000', '1 नवंबर 2000', '15 नवंबर 2000', '26 जनवरी 2001'],
-            correctOption: 0,
-            marks: 1.0,
-            negativeMarks: 0.25,
-            explanation_en: 'Uttarakhand was formed on 9 November 2000 as the 27th state of India.',
-            explanation_hi: 'उत्तराखंड राज्य का गठन 9 नवंबर 2000 को भारत के 27वें राज्य के रूप में हुआ था।',
-            sourceType: 'public_domain',
-            verificationStatus: 'verified',
-            examYearShift: 'Official UKPSC / UKSSSC Pattern',
-            tags: ['UKPSC-PCS', 'UKSSSC-VDO-PATWARI', 'UK-POLICE-FOREST'],
-            isPublished: true,
-            isSample: false
-          },
-          {
-            id: 'q_24',
-            examId: 'ex_ukpsc_pcs',
-            subjectId: 'sub_uk_gk',
-            chapterId: 'ch_uk_geog',
-            text_en: 'Valley of Flowers National Park, a UNESCO World Heritage Site in Uttarakhand, is situated in which district?',
-            text_hi: 'उत्तराखंड में यूनेस्को (UNESCO) विश्व धरोहर स्थल "फूलों की घाटी राष्ट्रीय उद्यान" किस जिले में स्थित है?',
-            options_en: ['Chamoli', 'Uttarkashi', 'Pithoragarh', 'Rudraprayag'],
-            options_hi: ['चमोली', 'उत्तरकाशी', 'पिथौरागढ़', 'रुद्रप्रयाग'],
-            correctOption: 0,
-            marks: 1.0,
-            negativeMarks: 0.25,
-            explanation_en: 'Valley of Flowers National Park is located in Chamoli district of Uttarakhand.',
-            explanation_hi: 'फूलों की घाटी राष्ट्रीय उद्यान उत्तराखंड के चमोली जिले में स्थित है।',
-            sourceType: 'public_domain',
-            verificationStatus: 'verified',
-            examYearShift: 'Official Uttarakhand GK',
-            tags: ['UKPSC-PCS', 'UKSSSC-VDO-PATWARI'],
-            isPublished: true,
-            isSample: false
-          },
-          // Computer Knowledge (sub_computer)
-          {
-            id: 'q_25',
-            examId: 'ex_ssc_cgl_t2',
-            subjectId: 'sub_computer',
-            chapterId: 'ch_comp_fund',
-            text_en: 'Which of the following memory types is volatile (loses its stored data when power is turned off)?',
-            text_hi: 'निम्नलिखित में से कौन सी कंप्यूटर मेमोरी "वोलेटाइल" (अस्थायी) है, अर्थात बिजली बंद होने पर डेटा नष्ट हो जाता है?',
-            options_en: ['RAM (Random Access Memory)', 'ROM (Read Only Memory)', 'Hard Disk Drive (HDD)', 'Flash Memory / SSD'],
-            options_hi: ['रैम (RAM - Random Access Memory)', 'रोम (ROM)', 'हार्ड डिस्क ड्राइव (HDD)', 'फ्लैश मेमोरी / SSD'],
-            correctOption: 0,
-            marks: 3.0,
-            negativeMarks: 1.0,
-            explanation_en: 'RAM is primary volatile memory, whereas ROM, HDD, and SSD retain data without power.',
-            explanation_hi: 'RAM एक अस्थायी (Volatile) प्राथमिक मेमोरी है, जिसमें बिजली बंद होते ही डेटा मिट जाता है।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'SSC CGL Tier-II & Banking Mains Pattern',
-            tags: ['SSC-CGL-T2', 'DELHI-POLICE', 'IBPS-PO-MAINS', 'UKSSSC-VDO-PATWARI'],
-            isPublished: true,
-            isSample: false
-          },
-          // General Science (sub_science)
-          {
-            id: 'q_26',
-            examId: 'ex_rrb_group_d',
-            subjectId: 'sub_science',
-            chapterId: 'ch_sci_chem_bio',
-            text_en: 'Which vitamin is water-soluble and its deficiency causes Scurvy?',
-            text_hi: 'कौन सा विटामिन जल में घुलनशील है तथा इसकी कमी से "स्कर्वी" (Scurvy) रोग होता है?',
-            options_en: ['Vitamin C (Ascorbic Acid)', 'Vitamin A (Retinol)', 'Vitamin D (Calciferol)', 'Vitamin K'],
-            options_hi: ['विटामिन C (एस्कॉर्बिक अम्ल)', 'विटामिन A (रेटिनॉल)', 'विटामिन D (कैल्सीफेरॉल)', 'विटामिन K'],
-            correctOption: 0,
-            marks: 1.0,
-            negativeMarks: 0.33,
-            explanation_en: 'Vitamins B and C are water-soluble. Deficiency of Vitamin C (Ascorbic Acid) causes Scurvy.',
-            explanation_hi: 'विटामिन B और C जल में घुलनशील हैं। विटामिन C (एस्कॉर्बिक अम्ल) की कमी से मसूड़ों का रोग स्कर्वी होता है।',
-            sourceType: 'public_domain',
-            verificationStatus: 'verified',
-            examYearShift: 'Official General Science Pattern',
-            tags: ['RRB-GROUP-D', 'RRB-ALP-CBT1', 'UPSC-NDA', 'SSC-CGL-T1'],
-            isPublished: true,
-            isSample: false
-          },
-          // Child Development & Pedagogy (sub_cdp)
-          {
-            id: 'q_27',
-            examId: 'ex_ctet_utet',
-            subjectId: 'sub_cdp',
-            chapterId: 'ch_cdp_growth',
-            text_en: 'According to Lev Vygotsky’s sociocultural theory, the gap between what a learner can do independently and what they can achieve with guidance is called:',
-            text_hi: 'लेव वाइगोत्स्की के सामाजिक-सांस्कृतिक सिद्धांत के अनुसार, एक बच्चा स्वतंत्र रूप से जो कर सकता है और मार्गदर्शन की सहायता से जो प्राप्त कर सकता है, उसके बीच के अंतर को क्या कहते हैं?',
-            options_en: ['Zone of Proximal Development (ZPD)', 'Sensory-Motor Stage', 'Classical Conditioning', 'Rote Memorization'],
-            options_hi: ['समीपस्थ विकास का क्षेत्र (ZPD)', 'संवेदी-पेशीय अवस्था', 'शास्त्रीय अनुबंधन', 'रटंत स्मरण'],
-            correctOption: 0,
-            marks: 1.0,
-            negativeMarks: 0.0,
-            explanation_en: 'Lev Vygotsky introduced the concept of Zone of Proximal Development (ZPD) and Scaffolding.',
-            explanation_hi: 'लेव वाइगोत्स्की ने समीपस्थ विकास का क्षेत्र (Zone of Proximal Development - ZPD) की अवधारणा दी।',
-            sourceType: 'admin_created',
-            verificationStatus: 'verified',
-            examYearShift: 'Official CTET / UTET / LT Pattern',
-            tags: ['CTET-UTET', 'UKSSSC-LT-LECT', 'KVS-NVS-EMRS'],
-            isPublished: true,
-            isSample: false
-          }
-        ];
+        const questions = [];
 
         // Official Exam-Pattern Mock Tests & Chapter-Wise Practice Tests
-        const tests = [
-          {
-            id: 'test_ssc_cgl_mock_1',
-            examId: 'ex_ssc_cgl',
-            chapterId: null,
-            title: 'SSC CGL Tier-I Official Pattern Mock Test #1 (60 Mins • +2.0 / -0.50)',
-            title_hi: 'एसएससी सीजीएल (SSC CGL) टियर-I आधिकारिक पैटर्न मॉक टेस्ट #1 (60 मिनट • +2.0 / -0.50)',
-            testType: 'full_mock',
-            durationMinutes: 60,
-            defaultMarks: 2.0,
-            defaultNegative: 0.50,
-            maxAttempts: null,
-            isPracticeMode: false,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_quant', name: 'Quantitative Aptitude', name_hi: 'मात्रात्मक अभियोग्यता', subjectId: 'sub_quant' },
-              { id: 'sec_reas', name: 'General Intelligence & Reasoning', name_hi: 'तर्कशक्ति', subjectId: 'sub_reasoning' },
-              { id: 'sec_eng', name: 'English Comprehension', name_hi: 'अंग्रेजी बोधगम्यता', subjectId: 'sub_english' },
-              { id: 'sec_ga', name: 'General Awareness', name_hi: 'सामान्य जागरूकता', subjectId: 'sub_ga' }
-            ],
-            questionIds: ['q_1', 'q_2', 'q_3', 'q_4', 'q_5', 'q_6', 'q_7', 'q_8', 'q_9', 'q_10', 'q_11', 'q_12', 'q_13', 'q_14']
-          },
-          {
-            id: 'test_ukpsc_mock_1',
-            examId: 'ex_ukpsc_pcs',
-            chapterId: null,
-            title: 'UKPSC / UKSSSC Uttarakhand Official Pattern Mock Test #1 (120 Mins • +1.0 / -0.25)',
-            title_hi: 'उत्तराखंड UKPSC / UKSSSC आधिकारिक पैटर्न मॉक टेस्ट #1 (120 मिनट • +1.0 / -0.25)',
-            testType: 'full_mock',
-            durationMinutes: 120,
-            defaultMarks: 1.0,
-            defaultNegative: 0.25,
-            maxAttempts: null,
-            isPracticeMode: false,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_uk_ga', name: 'Uttarakhand GK & General Studies', name_hi: 'उत्तराखंड सामान्य ज्ञान एवं अध्ययन', subjectId: 'sub_ga' },
-              { id: 'sec_uk_apt', name: 'Aptitude & Reasoning', name_hi: 'अभियोग्यता एवं तर्कशक्ति', subjectId: 'sub_quant' }
-            ],
-            questionIds: ['q_10', 'q_13', 'q_11', 'q_12', 'q_1', 'q_5', 'q_3', 'q_4']
-          },
-          {
-            id: 'test_ibps_po_mock_1',
-            examId: 'ex_ibps_po',
-            chapterId: null,
-            title: 'IBPS PO / SBI PO Official Sectional-Timed Prelims Mock #1 (20m + 20m + 20m = 60 Mins • +1.0 / -0.25)',
-            title_hi: 'IBPS PO / SBI PO सेक्शनल टाइमिंग प्रारंभिक मॉक #1 (20+20+20 = 60 मिनट • +1.0 / -0.25)',
-            testType: 'full_mock',
-            hasSectionalTiming: true,
-            durationMinutes: 60,
-            defaultMarks: 1.0,
-            defaultNegative: 0.25,
-            maxAttempts: null,
-            isPracticeMode: false,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_b_eng', name: 'Section 1: English (20 Mins)', name_hi: 'अंग्रेजी भाषा (20 मिनट)', subjectId: 'sub_english', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_b_quant', name: 'Section 2: Quant (20 Mins)', name_hi: 'गणित (20 मिनट)', subjectId: 'sub_quant', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_b_reas', name: 'Section 3: Reasoning (20 Mins)', name_hi: 'तर्कशक्ति (20 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 }
-            ],
-            questionIds: ['q_8', 'q_9', 'q_14', 'q_1', 'q_2', 'q_3', 'q_4', 'q_5', 'q_6', 'q_7']
-          },
-          {
-            id: 'test_ssc_mts_sessions_mock_1',
-            examId: 'ex_ssc_mts',
-            chapterId: null,
-            title: 'SSC MTS & Havaldar Official 2-Session CBT Mock #1 (Session-I 45m No-Neg + Session-II 45m +3/-1)',
-            title_hi: 'एसएससी एमटीएस (SSC MTS) आधिकारिक 2-सत्र मॉक टेस्ट #1 (सत्र-I 45m + सत्र-II 45m)',
-            testType: 'full_mock',
-            hasSectionalTiming: true,
-            durationMinutes: 90,
-            defaultMarks: 3.0,
-            defaultNegative: 1.0,
-            maxAttempts: null,
-            isPracticeMode: false,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sess_mts_1', name: 'Session I: Math & Reasoning (45m • +3 / 0 Neg)', name_hi: 'सत्र I: गणित एवं तर्कशक्ति (45 मिनट • नेगेटिव नहीं)', subjectId: 'sub_quant', durationMinutes: 45, posMarks: 3.0, negMarks: 0.00 },
-              { id: 'sess_mts_2', name: 'Session II: GA & English (45m • +3 / -1 Neg)', name_hi: 'सत्र II: सामान्य जागरूकता एवं अंग्रेजी (45 मिनट • +3/-1)', subjectId: 'sub_ga', durationMinutes: 45, posMarks: 3.0, negMarks: 1.00 }
-            ],
-            questionIds: ['q_1', 'q_2', 'q_3', 'q_4', 'q_5', 'q_8', 'q_9', 'q_10', 'q_11', 'q_12']
-          },
-          // Official Sessional / Sectional Tests (Separate from Full Mock & Chapter Practice)
-          {
-            id: 'test_sessional_ssc_quant_1',
-            examId: 'ex_ssc_cgl',
-            chapterId: null,
-            title: 'Sessional / Sectional Test: SSC CGL Quantitative Aptitude (25 Qs Pattern • 15 Mins • +2.0 / -0.50)',
-            title_hi: 'सेशनल (अनुभागीय) टेस्ट: एसएससी सीजीएल गणित (15 मिनट • +2.0 / -0.50)',
-            testType: 'sessional_test',
-            durationMinutes: 15,
-            defaultMarks: 2.0,
-            defaultNegative: 0.50,
-            maxAttempts: null,
-            isPracticeMode: false,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_sess_q', name: 'Quantitative Aptitude Sessional', name_hi: 'गणित सेशनल', subjectId: 'sub_quant' }
-            ],
-            questionIds: ['q_1', 'q_2', 'q_3', 'q_4']
-          },
-          {
-            id: 'test_sessional_bank_reas_1',
-            examId: 'ex_ibps_po',
-            chapterId: null,
-            title: 'Sessional / Sectional Test: Banking Prelims Reasoning Ability (20 Mins Official Sectional Timer • +1.0 / -0.25)',
-            title_hi: 'सेशनल (अनुभागीय) टेस्ट: बैंकिंग तर्कशक्ति क्षमता (20 मिनट आधिकारिक समय • +1.0 / -0.25)',
-            testType: 'sessional_test',
-            durationMinutes: 20,
-            defaultMarks: 1.0,
-            defaultNegative: 0.25,
-            maxAttempts: null,
-            isPracticeMode: false,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_sess_r', name: 'Reasoning Ability (20m Section)', name_hi: 'तर्कशक्ति सेशनल', subjectId: 'sub_reasoning' }
-            ],
-            questionIds: ['q_5', 'q_6', 'q_7']
-          },
-          {
-            id: 'test_sessional_uk_ga_1',
-            examId: 'ex_ukpsc_pcs',
-            chapterId: null,
-            title: 'Sessional / Sectional Test: Uttarakhand GK & General Studies Section (30 Mins • +1.0 / -0.25)',
-            title_hi: 'सेशनल टेस्ट: उत्तराखंड सामान्य ज्ञान एवं सामान्य अध्ययन (30 मिनट • +1.0 / -0.25)',
-            testType: 'sessional_test',
-            durationMinutes: 30,
-            defaultMarks: 1.0,
-            defaultNegative: 0.25,
-            maxAttempts: null,
-            isPracticeMode: false,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_sess_uk', name: 'Uttarakhand GK Section', name_hi: 'उत्तराखंड सामान्य ज्ञान', subjectId: 'sub_ga' }
-            ],
-            questionIds: ['q_10', 'q_11', 'q_12', 'q_13']
-          },
-          {
-            id: 'test_rrb_ntpc_mock_1',
-            examId: 'ex_rrb_ntpc',
-            chapterId: null,
-            title: 'Railway RRB NTPC & Group D Official CBT Mock #1 (90 Mins • +1.0 / -0.33)',
-            title_hi: 'रेलवे RRB NTPC एवं ग्रुप-डी आधिकारिक CBT मॉक #1 (90 मिनट • +1.0 / -0.33)',
-            testType: 'full_mock',
-            durationMinutes: 90,
-            defaultMarks: 1.0,
-            defaultNegative: 0.33,
-            maxAttempts: null,
-            isPracticeMode: false,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_r_ga', name: 'General Science & Awareness', name_hi: 'सामान्य विज्ञान एवं जागरूकता', subjectId: 'sub_ga' },
-              { id: 'sec_r_math', name: 'Mathematics & Reasoning', name_hi: 'गणित एवं तर्कशक्ति', subjectId: 'sub_quant' }
-            ],
-            questionIds: ['q_12', 'q_11', 'q_3', 'q_4', 'q_5', 'q_1', 'q_2', 'q_10']
-          },
-          // Chapter-Wise Practice Tests
-          {
-            id: 'test_chap_quant_perc_pl',
-            examId: 'ex_ssc_cgl',
-            chapterId: 'ch_perc',
-            title: 'Chapter Practice: Percentage, Profit & Loss, Ratio & Time-Work',
-            title_hi: 'अध्याय अभ्यास: प्रतिशत, लाभ-हानि, अनुपात एवं समय-कार्य',
-            testType: 'chapter_practice',
-            durationMinutes: 10,
-            defaultMarks: 2.0,
-            defaultNegative: 0.5,
-            maxAttempts: null,
-            isPracticeMode: true,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_ch_q', name: 'Quantitative Chapters', name_hi: 'गणित अध्याय', subjectId: 'sub_quant' }
-            ],
-            questionIds: ['q_1', 'q_2', 'q_3', 'q_4']
-          },
-          {
-            id: 'test_chap_reas_all',
-            examId: 'ex_ibps_po',
-            chapterId: 'ch_syllogism',
-            title: 'Chapter Practice: Coding-Decoding, Syllogism & Seating Arrangement',
-            title_hi: 'अध्याय अभ्यास: कोडिंग-डिकोडिंग, न्याय निगमन एवं बैठक व्यवस्था',
-            testType: 'chapter_practice',
-            durationMinutes: 10,
-            defaultMarks: 2.0,
-            defaultNegative: 0.5,
-            maxAttempts: null,
-            isPracticeMode: true,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_ch_r', name: 'Reasoning Chapters', name_hi: 'तर्कशक्ति अध्याय', subjectId: 'sub_reasoning' }
-            ],
-            questionIds: ['q_5', 'q_6', 'q_7']
-          },
-          {
-            id: 'test_chap_eng_all',
-            examId: 'ex_ssc_cgl',
-            chapterId: 'ch_grammar',
-            title: 'Chapter Practice: Grammar, Vocabulary & Reading Comprehension',
-            title_hi: 'अध्याय अभ्यास: व्याकरण, शब्दावली एवं अपठित गद्यांश',
-            testType: 'chapter_practice',
-            durationMinutes: 10,
-            defaultMarks: 2.0,
-            defaultNegative: 0.5,
-            maxAttempts: null,
-            isPracticeMode: true,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_ch_e', name: 'English Chapters', name_hi: 'अंग्रेजी अध्याय', subjectId: 'sub_english' }
-            ],
-            questionIds: ['q_8', 'q_9', 'q_14']
-          },
-          {
-            id: 'test_chap_ga_uk',
-            examId: 'ex_ukpsc_pcs',
-            chapterId: 'ch_geog',
-            title: 'Chapter Practice: History, Geography, Polity, Science & Uttarakhand GK',
-            title_hi: 'अध्याय अभ्यास: इतिहास, भूगोल, राजव्यवस्था, विज्ञान एवं उत्तराखंड सामान्य ज्ञान',
-            testType: 'chapter_practice',
-            durationMinutes: 10,
-            defaultMarks: 2.0,
-            defaultNegative: 0.5,
-            maxAttempts: null,
-            isPracticeMode: true,
-            showResultsImmediately: true,
-            isPublished: true,
-            isSample: false,
-            version: 1,
-            sections: [
-              { id: 'sec_ch_g', name: 'General Awareness Chapters', name_hi: 'सामान्य जागरूकता अध्याय', subjectId: 'sub_ga' }
-            ],
-            questionIds: ['q_10', 'q_11', 'q_12', 'q_13']
-          }
-        ];
+        const tests = [];
 
         // Users: Approved Students, Pending Student, Rejected Student, and Library Administrator
-        const users = [
-          {
-            id: 'usr_admin_1',
-            username: 'Admin',
-            mobile: '9412000001',
-            displayName: 'Chief Librarian (Admin)',
-            role: 'admin',
-            status: 'approved',
-            showOnLeaderboard: false,
-            passwordHash: hashSecret('Admin@123', 'usr_admin_1'),
-            createdAt: '2026-10-01T09:00:00Z'
-          },
-          {
-            id: 'usr_stu_aarav',
-            username: 'aarav_uk',
-            mobile: '9897011223',
-            displayName: 'Aarav Rawat',
-            role: 'student',
-            status: 'approved',
-            showOnLeaderboard: true,
-            passwordHash: hashSecret('Student@123', 'usr_stu_aarav'),
-            createdAt: '2026-10-05T10:15:00Z'
-          },
-          {
-            id: 'usr_stu_priya',
-            username: 'priya_joshi',
-            mobile: '9897044556',
-            displayName: 'Priya Joshi',
-            role: 'student',
-            status: 'approved',
-            showOnLeaderboard: true,
-            passwordHash: hashSecret('Student@123', 'usr_stu_priya'),
-            createdAt: '2026-10-06T11:20:00Z'
-          },
-          {
-            id: 'usr_stu_rohit',
-            username: 'rohit_negi',
-            mobile: '9897077889',
-            displayName: 'Rohit Negi',
-            role: 'student',
-            status: 'approved',
-            showOnLeaderboard: true,
-            passwordHash: hashSecret('Student@123', 'usr_stu_rohit'),
-            createdAt: '2026-10-08T14:00:00Z'
-          },
-          {
-            id: 'usr_stu_kavita',
-            username: 'kavita_bisht',
-            mobile: '9897099001',
-            displayName: 'Kavita Bisht (Pending Student)',
-            role: 'student',
-            status: 'pending',
-            showOnLeaderboard: true,
-            passwordHash: hashSecret('Student@123', 'usr_stu_kavita'),
-            createdAt: '2026-10-24T08:30:00Z'
-          }
-        ];
+        const users = [];
 
         // Sample Completed Attempts for Leaderboard, Progress Over Time & Chapter Analytics
-        const attempts = [
-          {
-            id: 'ATT-20261018-101',
-            userId: 'usr_stu_aarav',
-            testId: 'test_ssc_cgl_mock_1',
-            testVersion: 1,
-            attemptNumber: 1,
-            status: 'submitted',
-            startedAt: '2026-10-18T10:00:00Z',
-            submittedAt: '2026-10-18T10:14:20Z',
-            timeTakenSeconds: 860,
-            score: 15.0,
-            maxMarks: 24.0,
-            correctCount: 8,
-            incorrectCount: 2,
-            unansweredCount: 2,
-            accuracy: 80.0,
-            isSample: false,
-            answers: {
-              q_1: { selectedOption: 0, markedForReview: false, timeSpent: 65 },
-              q_2: { selectedOption: 0, markedForReview: false, timeSpent: 75 },
-              q_3: { selectedOption: 1, markedForReview: true, timeSpent: 80 }, // wrong
-              q_4: { selectedOption: 0, markedForReview: false, timeSpent: 70 },
-              q_5: { selectedOption: 0, markedForReview: false, timeSpent: 55 },
-              q_6: { selectedOption: 0, markedForReview: false, timeSpent: 85 },
-              q_7: { selectedOption: null, markedForReview: true, timeSpent: 90 },
-              q_8: { selectedOption: 1, markedForReview: false, timeSpent: 60 }, // wrong
-              q_9: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_10: { selectedOption: 0, markedForReview: false, timeSpent: 45 },
-              q_11: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_12: { selectedOption: null, markedForReview: false, timeSpent: 40 }
-            }
-          },
-          {
-            id: 'ATT-20261022-102',
-            userId: 'usr_stu_aarav',
-            testId: 'test_ssc_cgl_mock_1',
-            testVersion: 1,
-            attemptNumber: 2,
-            status: 'submitted',
-            startedAt: '2026-10-22T11:00:00Z',
-            submittedAt: '2026-10-22T11:12:10Z',
-            timeTakenSeconds: 730,
-            score: 19.5,
-            maxMarks: 24.0,
-            correctCount: 10,
-            incorrectCount: 1,
-            unansweredCount: 1,
-            accuracy: 90.91,
-            isSample: false,
-            answers: {
-              q_1: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_2: { selectedOption: 0, markedForReview: false, timeSpent: 60 },
-              q_3: { selectedOption: 0, markedForReview: false, timeSpent: 65 },
-              q_4: { selectedOption: 0, markedForReview: false, timeSpent: 60 },
-              q_5: { selectedOption: 0, markedForReview: false, timeSpent: 45 },
-              q_6: { selectedOption: 0, markedForReview: false, timeSpent: 70 },
-              q_7: { selectedOption: 0, markedForReview: false, timeSpent: 80 },
-              q_8: { selectedOption: 1, markedForReview: true, timeSpent: 55 }, // wrong in grammar
-              q_9: { selectedOption: null, markedForReview: false, timeSpent: 40 },
-              q_10: { selectedOption: 0, markedForReview: false, timeSpent: 35 },
-              q_11: { selectedOption: 0, markedForReview: false, timeSpent: 40 },
-              q_12: { selectedOption: 0, markedForReview: false, timeSpent: 35 }
-            }
-          },
-          {
-            id: 'ATT-20261023-201',
-            userId: 'usr_stu_priya',
-            testId: 'test_ssc_cgl_mock_1',
-            testVersion: 1,
-            attemptNumber: 1,
-            status: 'submitted',
-            startedAt: '2026-10-23T09:00:00Z',
-            submittedAt: '2026-10-23T09:11:30Z',
-            timeTakenSeconds: 690,
-            score: 21.5,
-            maxMarks: 24.0,
-            correctCount: 11,
-            incorrectCount: 1,
-            unansweredCount: 0,
-            accuracy: 91.67,
-            isSample: false,
-            answers: {
-              q_1: { selectedOption: 0, markedForReview: false, timeSpent: 55 },
-              q_2: { selectedOption: 0, markedForReview: false, timeSpent: 55 },
-              q_3: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_4: { selectedOption: 0, markedForReview: false, timeSpent: 60 },
-              q_5: { selectedOption: 0, markedForReview: false, timeSpent: 45 },
-              q_6: { selectedOption: 0, markedForReview: false, timeSpent: 60 },
-              q_7: { selectedOption: 2, markedForReview: false, timeSpent: 70 }, // wrong
-              q_8: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_9: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_10: { selectedOption: 0, markedForReview: false, timeSpent: 45 },
-              q_11: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_12: { selectedOption: 0, markedForReview: false, timeSpent: 45 }
-            }
-          },
-          {
-            id: 'ATT-20261023-301',
-            userId: 'usr_stu_rohit',
-            testId: 'test_ssc_cgl_mock_1',
-            testVersion: 1,
-            attemptNumber: 1,
-            status: 'submitted',
-            startedAt: '2026-10-23T14:00:00Z',
-            submittedAt: '2026-10-23T14:15:00Z',
-            timeTakenSeconds: 900,
-            score: 19.5,
-            maxMarks: 24.0,
-            correctCount: 10,
-            incorrectCount: 1,
-            unansweredCount: 1,
-            accuracy: 90.91,
-            isSample: false,
-            answers: {
-              q_1: { selectedOption: 0, markedForReview: false, timeSpent: 70 },
-              q_2: { selectedOption: 0, markedForReview: false, timeSpent: 70 },
-              q_3: { selectedOption: 0, markedForReview: false, timeSpent: 70 },
-              q_4: { selectedOption: 1, markedForReview: false, timeSpent: 80 },
-              q_5: { selectedOption: 0, markedForReview: false, timeSpent: 60 },
-              q_6: { selectedOption: 0, markedForReview: false, timeSpent: 75 },
-              q_7: { selectedOption: 0, markedForReview: false, timeSpent: 85 },
-              q_8: { selectedOption: 0, markedForReview: false, timeSpent: 65 },
-              q_9: { selectedOption: 0, markedForReview: false, timeSpent: 60 },
-              q_10: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_11: { selectedOption: 0, markedForReview: false, timeSpent: 55 },
-              q_12: { selectedOption: null, markedForReview: false, timeSpent: 50 }
-            }
-          },
-          {
-            id: 'ATT-20261024-103',
-            userId: 'usr_stu_aarav',
-            testId: 'test_ukpsc_mock_1',
-            testVersion: 1,
-            attemptNumber: 1,
-            status: 'submitted',
-            startedAt: '2026-10-24T07:00:00Z',
-            submittedAt: '2026-10-24T07:06:30Z',
-            timeTakenSeconds: 390,
-            score: 12.0,
-            maxMarks: 12.0,
-            correctCount: 6,
-            incorrectCount: 0,
-            unansweredCount: 0,
-            accuracy: 100.0,
-            isSample: false,
-            answers: {
-              q_10: { selectedOption: 0, markedForReview: false, timeSpent: 50 },
-              q_13: { selectedOption: 0, markedForReview: false, timeSpent: 60 },
-              q_11: { selectedOption: 0, markedForReview: false, timeSpent: 65 },
-              q_12: { selectedOption: 0, markedForReview: false, timeSpent: 60 },
-              q_1: { selectedOption: 0, markedForReview: false, timeSpent: 80 },
-              q_5: { selectedOption: 0, markedForReview: false, timeSpent: 75 }
-            }
-          }
-        ];
+        const attempts = [];
 
         // Pre-staged PDF Import Review Queue item so Admin can immediately inspect or approve
-        const pdfImportQueue = [
-          {
-            id: 'imp_sample_1',
-            fileName: 'Uttarakhand_SSC_Bilingual_Sample_Set.pdf',
-            createdAt: '2026-10-24T08:00:00Z',
-            status: 'pending_review',
-            examId: 'ex_ukpsc_pcs',
-            subjectId: 'sub_ga',
-            chapterId: 'ch_geog',
-            text_en: 'Which is the highest mountain peak located entirely within Uttarakhand?',
-            text_hi: 'उत्तराखंड में स्थित सबसे ऊँची पर्वत चोटी कौन सी है?',
-            options_en: ['Nanda Devi', 'Kamet', 'Trishul', 'Panchachuli'],
-            options_hi: ['नंदा देवी', 'कामेट', 'त्रिशूल', 'पंचाचूली'],
-            correctOption: 0,
-            marks: 2.0,
-            negativeMarks: 0.5,
-            explanation_en: 'Nanda Devi (7,816 m) in Chamoli district is the highest peak in Uttarakhand.',
-            explanation_hi: 'चमोली जिले में स्थित नंदा देवी (7,816 मीटर) उत्तराखंड की सर्वोच्च पर्वत चोटी है।',
-            sourceType: 'public_domain',
-            verificationStatus: 'unverified',
-            examYearShift: '',
-            tags: ['UKPSC-PCS', 'UKSSSC-GRPC'],
-            isDuplicate: false,
-            extractionWarning: null
-          }
-        ];
+        const pdfImportQueue = [];
 
         return {
           categories: categories,
@@ -2543,12 +1414,19 @@ table{max-width:100%;border-collapse:collapse}
           if (raw) {
             const parsed = JSON.parse(raw);
             if (parsed && Array.isArray(parsed.exams) && Array.isArray(parsed.questions)) {
-              // Keep the requested administrator login consistent in existing browser data.
-              const admin = Array.isArray(parsed.users) ? parsed.users.find(u => u.id === 'usr_admin_1' && u.role === 'admin') : null;
-              if (admin) {
-                admin.username = 'Admin';
-                admin.passwordHash = hashSecret('Admin@123', admin.id);
+              // Remove hard-coded sample identities/results from old local demo data.
+              const sampleIds = new Set(['usr_admin_1','usr_stu_aarav','usr_stu_priya','usr_stu_rohit','usr_stu_kavita']);
+              if (Array.isArray(parsed.users)) parsed.users = parsed.users.filter(u => !sampleIds.has(u.id));
+              if (Array.isArray(parsed.attempts)) parsed.attempts = parsed.attempts.filter(a => !sampleIds.has(a.userId));
+              if (Array.isArray(parsed.pdfImportQueue)) parsed.pdfImportQueue = parsed.pdfImportQueue.filter(j => j.id !== 'imp_sample_1');
+              const builtInTestIds = new Set(['test_ssc_cgl_mock_1','test_ukpsc_mock_1','test_ibps_po_mock_1','test_ssc_mts_sessions_mock_1','test_sessional_ssc_quant_1','test_sessional_bank_reas_1','test_sessional_uk_ga_1','test_rrb_ntpc_mock_1','test_chap_quant_perc_pl','test_chap_reas_all','test_chap_eng_all','test_chap_ga_uk']);
+              if (Array.isArray(parsed.tests)) parsed.tests = parsed.tests.filter(t => !builtInTestIds.has(t.id));
+              if (Array.isArray(parsed.questions)) {
+                parsed.questions = parsed.questions.filter(q => !/^q_\d+$/.test(String(q.id || '')));
+                parsed.questions.forEach(q => { delete q.correctOption; delete q.explanation_en; delete q.explanation_hi; });
               }
+              if (!Array.isArray(parsed.users)) parsed.users = [];
+              if (!Array.isArray(parsed.attempts)) parsed.attempts = [];
               if (!Array.isArray(parsed.announcements)) parsed.announcements = [];
               try { localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed)); } catch (e) {}
               return parsed;
@@ -2628,7 +1506,7 @@ table{max-width:100%;border-collapse:collapse}
         selectedResultAttemptId: null,
         searchQuery: '',
         defaultLang: 'en', // 'en' or 'hi'
-        currentUser: (function(){ const saved = loadPersistentSession(db); if (saved && saved.role === 'admin') { savePersistentSession(null); return null; } return saved; })(), // Admin must authenticate again after every page reload; student session may persist
+        currentUser: null, // Identity comes only from the verified Supabase Auth session
         adminActiveTab: 'students', // 'students', 'catalogue', 'questions', 'pdf-import', 'analytics', 'cloud-setup'
         leaderboardFilters: {
           examId: 'ALL',
@@ -2643,19 +1521,10 @@ table{max-width:100%;border-collapse:collapse}
 
       // Homepage appearance and announcement helpers (local browser storage unless LAN DB sync is configured).
       function applyGmTheme() {
-        let theme = 'light';
-        try { theme = localStorage.getItem('gm_theme') || 'light'; } catch(e) {}
-        document.body.classList.toggle('gm-dark-theme', theme === 'dark');
-        document.querySelectorAll('[data-gm-theme-toggle]').forEach(function(btn){
-          btn.textContent = theme === 'dark' ? '☀ Light mode' : '☾ Dark mode';
-          btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
-        });
+        document.body.classList.remove('gm-dark-theme');
+        try { localStorage.setItem('gm_theme', 'light'); } catch(e) {}
       }
-      function toggleGmTheme() {
-        const dark = !document.body.classList.contains('gm-dark-theme');
-        try { localStorage.setItem('gm_theme', dark ? 'dark' : 'light'); } catch(e) {}
-        applyGmTheme();
-      }
+      function toggleGmTheme() { applyGmTheme(); }
       function getActiveGmAnnouncement() {
         if (!Array.isArray(db.announcements)) db.announcements = [];
         return db.announcements.find(function(a){ return a && a.active && String(a.text || '').trim(); }) || null;
@@ -2678,26 +1547,26 @@ table{max-width:100%;border-collapse:collapse}
         });
       }
 
-      // Toast helper (replaces native alert)
+      // Quiet inline status feedback (no floating pop-ups or blocking alerts).
       function showToast(message, type) {
-        const container = document.getElementById('toastContainer');
-        if (!container) return;
-        const colors = {
-          success: 'bg-emerald-800 text-white border-emerald-600',
-          warning: 'bg-amber-700 text-white border-amber-500',
-          error: 'bg-rose-800 text-white border-rose-600',
-          info: 'bg-slate-900 text-white border-slate-700'
+        const main = document.getElementById('appMain');
+        if (!main) return;
+        let notice = document.getElementById('gmInlineNotice');
+        if (!notice) {
+          notice = document.createElement('div');
+          notice.id = 'gmInlineNotice';
+          notice.setAttribute('role', 'status');
+          notice.setAttribute('aria-live', 'polite');
+          main.prepend(notice);
+        }
+        const styles = {
+          success: 'bg-blue-50 border-blue-200 text-blue-900',
+          warning: 'bg-amber-50 border-amber-200 text-amber-900',
+          error: 'bg-rose-50 border-rose-200 text-rose-900',
+          info: 'bg-slate-50 border-slate-200 text-slate-700'
         };
-        const el = document.createElement('div');
-        el.className = 'pointer-events-auto px-4 py-3 rounded-xl shadow-lg border text-xs sm:text-sm font-medium flex items-center justify-between gap-3 transition-all ' + (colors[type] || colors.info);
-        el.innerHTML = '<span>' + escapeHtml(message) + '</span><button type="button" class="opacity-75 hover:opacity-100 font-bold">✕</button>';
-        el.querySelector('button').addEventListener('click', function() {
-          el.remove();
-        });
-        container.appendChild(el);
-        setTimeout(function() {
-          if (el.parentNode) el.remove();
-        }, 4500);
+        notice.className = 'mx-auto mb-4 max-w-7xl rounded-xl border px-4 py-3 text-sm font-medium ' + (styles[type] || styles.info);
+        notice.textContent = String(message || '');
       }
 
       function escapeHtml(str) {
@@ -3019,7 +1888,7 @@ table{max-width:100%;border-collapse:collapse}
         if (!user) {
           container.innerHTML = `
             <section class="max-w-5xl mx-auto my-6 sm:my-10 px-1">
-              <div class="flex items-center justify-between gap-3 mb-3"><div class="text-xs text-slate-500">Welcome to Gyan Manch</div><button type="button" data-gm-theme-toggle class="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700">☾ Dark mode</button></div>
+              <div class="flex items-center justify-between gap-3 mb-3"><div class="text-xs text-slate-500">Welcome to Gyan Manch</div></div>
               ${renderGmAnnouncementBar()}
               <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-7 sm:p-12 text-white shadow-xl border border-indigo-800/40">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 text-xs font-semibold mb-4">Competitive Exam Practice • English / हिंदी</div>
@@ -3102,7 +1971,7 @@ table{max-width:100%;border-collapse:collapse}
         `;
 
         container.innerHTML = `
-          <div class="flex items-center justify-between gap-3 mb-3"><div class="text-xs text-slate-500">Gyan Manch Home</div><button type="button" data-gm-theme-toggle class="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700">☾ Dark mode</button></div>
+          <div class="flex items-center justify-between gap-3 mb-3"><div class="text-xs text-slate-500">Gyan Manch Home</div></div>
           ${renderGmAnnouncementBar()}
           ${studentStepBar}
           ${accountStatusBanner}
@@ -4061,7 +2930,8 @@ table{max-width:100%;border-collapse:collapse}
 
         const questionsList = test.questionIds
           .map(qId => db.questions.find(q => q.id === qId))
-          .filter(Boolean);
+          .filter(Boolean)
+          .map(q => Object.assign({}, q));
 
         if (questionsList.length === 0) {
           showToast('This test has no published questions yet.', 'warning');
@@ -4673,7 +3543,7 @@ table{max-width:100%;border-collapse:collapse}
         document.getElementById('modalConfirmSubmit').classList.remove('hidden');
       }
 
-      function finalizeAndScoreAttempt(isAutoTimeout) {
+      async function finalizeAndScoreAttempt(isAutoTimeout) {
         const cbt = state.activeCbt;
         if (!cbt) return;
 
@@ -4721,16 +3591,78 @@ table{max-width:100%;border-collapse:collapse}
         });
 
         const attempted = correctCount + incorrectCount;
-        const accuracy = attempted > 0 ? Number(((correctCount / attempted) * 100).toFixed(2)) : 0;
+        let accuracy = attempted > 0 ? Number(((correctCount / attempted) * 100).toFixed(2)) : 0;
         const timeTakenSeconds = Math.max(1, cbt.totalDurationSeconds - Math.max(0, cbt.remainingSeconds));
+        let backendAttemptId = null;
+        let backendStatus = null;
+        if (window.gyanManchSupabase && state.currentUser && state.currentUser.role === 'student') {
+          try {
+            const client = window.gyanManchSupabase;
+            const testLookup = await client.from('tests').select('id').eq('legacy_id', cbt.test.id).eq('status', 'published').single();
+            if (testLookup.error) throw testLookup.error;
+            const legacyQuestionIds = cbt.questions.map(q => q.id);
+            const questionLookup = await client.from('questions').select('id,legacy_id').in('legacy_id', legacyQuestionIds);
+            if (questionLookup.error) throw questionLookup.error;
+            const questionUuidByLegacy = {};
+            (questionLookup.data || []).forEach(q => { questionUuidByLegacy[q.legacy_id] = q.id; });
+            const attemptInsert = await client.from('attempts').insert({
+              user_id: state.currentUser.id,
+              test_id: testLookup.data.id,
+              status: 'in_progress',
+              total_questions: cbt.questions.length
+            }).select('id').single();
+            if (attemptInsert.error) throw attemptInsert.error;
+            const serverAnswers = [];
+            cbt.questions.forEach(q => {
+              const answer = cbt.answers[q.id];
+              if (answer && answer.selectedOption !== null && answer.selectedOption !== undefined && questionUuidByLegacy[q.id]) {
+                serverAnswers.push({
+                  question_id: questionUuidByLegacy[q.id],
+                  selected_option: Number(answer.selectedOption),
+                  marked_for_review: !!answer.markedForReview
+                });
+              }
+            });
+            const scored = await client.rpc('submit_and_score_attempt', {
+              p_attempt_id: attemptInsert.data.id,
+              p_answers: serverAnswers,
+              p_time_taken_seconds: timeTakenSeconds,
+              p_auto_submit: !!isAutoTimeout
+            });
+            if (scored.error) throw scored.error;
+            const serverRow = Array.isArray(scored.data) ? scored.data[0] : scored.data;
+            if (!serverRow) throw new Error('Server did not return a scored attempt.');
+            backendAttemptId = serverRow.id;
+            backendStatus = serverRow.status;
+            totalScore = Number(serverRow.score || 0);
+            maxMarks = Number(serverRow.max_score || 0);
+            correctCount = Number(serverRow.correct_count || 0);
+            incorrectCount = Number(serverRow.incorrect_count || 0);
+            unansweredCount = Number(serverRow.unattempted_count || 0);
+            accuracy = Number(serverRow.accuracy || 0);
+            const reviewResult = await client.rpc('get_attempt_review', { p_attempt_id: backendAttemptId });
+            if (!reviewResult.error && Array.isArray(reviewResult.data)) {
+              const reviewMap = {};
+              reviewResult.data.forEach(row => {
+                if (!row.legacy_id) return;
+                reviewMap[row.legacy_id] = { correctOption:Number(row.correct_option), explanation_en:row.explanation_en || '', explanation_hi:row.explanation_hi || '', selectedOption:row.selected_option, isCorrect:row.is_correct, marksAwarded:row.marks_awarded };
+              });
+              cbt.questions.forEach(q => { if (reviewMap[q.id]) { q.correctOption=reviewMap[q.id].correctOption; q.explanation_en=reviewMap[q.id].explanation_en; q.explanation_hi=reviewMap[q.id].explanation_hi; } });
+              cbt.backendReview = reviewMap;
+            }
+          } catch (backendError) {
+            showToast('Server result save failed; showing local result only. ' + (backendError.message || ''), 'warning');
+          }
+        }
+        const finalAttemptId = backendAttemptId || cbt.attemptId;
 
         const completedAttempt = {
-          id: cbt.attemptId,
-          userId: state.currentUser ? state.currentUser.id : 'usr_stu_aarav',
+          id: finalAttemptId,
+          userId: state.currentUser ? state.currentUser.id : null,
           testId: cbt.test.id,
           testVersion: cbt.test.version || 1,
           attemptNumber: cbt.attemptNumber,
-          status: isAutoTimeout ? 'auto_submitted_timeout' : 'submitted',
+          status: backendStatus || (isAutoTimeout ? 'auto_submitted_timeout' : 'submitted'),
           startedAt: cbt.startedAtIso,
           submittedAt: new Date().toISOString(),
           timeTakenSeconds: timeTakenSeconds,
@@ -4741,7 +3673,8 @@ table{max-width:100%;border-collapse:collapse}
           unansweredCount: unansweredCount,
           accuracy: accuracy,
           isSample: false,
-          answers: JSON.parse(JSON.stringify(cbt.answers))
+          answers: JSON.parse(JSON.stringify(cbt.answers)),
+          review: cbt.backendReview || {}
         };
 
         db.attempts.push(completedAttempt);
@@ -4761,14 +3694,29 @@ table{max-width:100%;border-collapse:collapse}
       // =========================================================================
       // 5. IMMEDIATE RESULT & BILINGUAL ANSWER KEY REVIEW VIEW
       // =========================================================================
-      function renderAttemptResultView(container) {
+      async function renderAttemptResultView(container) {
         const attempt = db.attempts.find(a => a.id === state.selectedResultAttemptId) || db.attempts[db.attempts.length - 1];
         if (!attempt) {
           navigateTo('home');
           return;
         }
+        if (window.gyanManchSupabase && state.currentUser && !attempt.review || (window.gyanManchSupabase && state.currentUser && attempt.review && Object.keys(attempt.review).length === 0)) {
+          if (['submitted','auto_submitted'].includes(attempt.status)) {
+            container.innerHTML = '<div class="p-6 text-center text-sm text-slate-600">Loading your secure answer review…</div>';
+            const reviewResult = await window.gyanManchSupabase.rpc('get_attempt_review', { p_attempt_id: attempt.id });
+            if (!reviewResult.error && Array.isArray(reviewResult.data)) {
+              attempt.review = {};
+              reviewResult.data.forEach(row => { if (row.legacy_id) attempt.review[row.legacy_id] = { correctOption:Number(row.correct_option), explanation_en:row.explanation_en||'', explanation_hi:row.explanation_hi||'', selectedOption:row.selected_option, isCorrect:row.is_correct, marksAwarded:row.marks_awarded }; });
+              reviewResult.data.forEach(row => {
+                if (!row.legacy_id) return;
+                if (!attempt.answers[row.legacy_id]) attempt.answers[row.legacy_id] = { selectedOption:row.selected_option, markedForReview:false, timeSpent:0 };
+              });
+              saveDatabase(db);
+            }
+          }
+        }
         const test = db.tests.find(t => t.id === attempt.testId) || db.tests[0];
-        const questions = test.questionIds.map(id => db.questions.find(q => q.id === id)).filter(Boolean);
+        const questions = test && Array.isArray(test.questionIds) ? test.questionIds.map(id => db.questions.find(q => q.id === id)).filter(Boolean) : [];
         const letters = ['A', 'B', 'C', 'D'];
 
         container.innerHTML = `
@@ -4833,8 +3781,12 @@ table{max-width:100%;border-collapse:collapse}
               ${questions.map(function(q, idx) {
                 const ans = attempt.answers && attempt.answers[q.id];
                 const sel = ans ? ans.selectedOption : null;
+                const review = attempt.review && attempt.review[q.id] ? attempt.review[q.id] : {};
+                const correctOption = review.correctOption !== undefined ? review.correctOption : q.correctOption;
+                const explanationEn = review.explanation_en || q.explanation_en || '';
+                const explanationHi = review.explanation_hi || q.explanation_hi || '';
                 const isUnans = sel === null || sel === undefined;
-                const isRight = !isUnans && Number(sel) === Number(q.correctOption);
+                const isRight = review.isCorrect !== undefined && review.isCorrect !== null ? !!review.isCorrect : (!isUnans && Number(sel) === Number(correctOption));
                 const statusBadge = isUnans
                   ? '<span class="px-2.5 py-0.5 rounded bg-slate-200 text-slate-700 text-xs font-bold">Unanswered (0 Marks)</span>'
                   : isRight
@@ -4856,7 +3808,7 @@ table{max-width:100%;border-collapse:collapse}
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-4">
                       ${[0, 1, 2, 3].map(function(optIdx) {
-                        const isCorrectOpt = optIdx === Number(q.correctOption);
+                        const isCorrectOpt = optIdx === Number(correctOption);
                         const isChosenOpt = !isUnans && optIdx === Number(sel);
                         let boxClass = 'border-slate-200 bg-slate-50 text-slate-700';
                         let tag = '';
@@ -4882,8 +3834,8 @@ table{max-width:100%;border-collapse:collapse}
 
                     <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-100 text-xs space-y-1">
                       <div class="font-bold text-indigo-950">Explanation / व्याख्या:</div>
-                      <p class="text-slate-700">${escapeHtml(q.explanation_en || 'Verified answer key explanation.')}</p>
-                      <p class="text-slate-700 hindi-text">${escapeHtml(q.explanation_hi || '')}</p>
+                      <p class="text-slate-700">${escapeHtml(explanationEn || 'Verified answer key explanation pending.')}</p>
+                      <p class="text-slate-700 hindi-text">${escapeHtml(explanationHi || '')}</p>
                     </div>
                   </div>
                 `;
@@ -5464,13 +4416,13 @@ table{max-width:100%;border-collapse:collapse}
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
               <div class="inline-flex items-center px-2.5 py-0.5 rounded bg-indigo-50 text-indigo-700 text-xs font-bold mb-2">STUDENT PORTAL</div>
               <h1 class="text-xl font-extrabold text-slate-900 mb-1">Student Login</h1>
-              <p class="text-xs text-slate-500 mb-5">Log in with your registered <strong>Username</strong> or <strong>10-digit Mobile Number</strong> (no email address required).</p>
+              <p class="text-xs text-slate-500 mb-5">Log in with the email address you registered with and your password.</p>
 
               <div id="studentAccountStatusNotice" class="hidden mb-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm font-semibold text-amber-900" role="status"></div>
               <form id="formStudentLogin" class="space-y-4 text-xs sm:text-sm">
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Username or Mobile Number</label>
-                  <input id="loginStuIdentifier" type="text" required placeholder="Enter username or mobile number" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
+                  <label class="block font-semibold text-slate-700 mb-1">Email Address</label>
+                  <input id="loginStuIdentifier" type="email" autocomplete="email" required placeholder="Enter registered email address" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
                 </div>
                 <div>
                   <label class="block font-semibold text-slate-700 mb-1">Password</label>
@@ -5487,7 +4439,7 @@ table{max-width:100%;border-collapse:collapse}
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
               <div class="inline-flex items-center px-2.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-xs font-bold mb-2">NEW LIBRARY STUDENT</div>
               <h2 class="text-xl font-extrabold text-slate-900 mb-1">Register New Student Account</h2>
-              <p class="text-xs text-slate-500 mb-5">Create your library student ID using your username and 10-digit mobile number to start practicing mock tests.</p>
+              <p class="text-xs text-slate-500 mb-5">Create your student account with email, username and mobile number. Mock tests unlock after administrator approval.</p>
 
               <form id="formStudentRegister" class="space-y-3.5 text-xs sm:text-sm">
                 <div>
@@ -5495,11 +4447,15 @@ table{max-width:100%;border-collapse:collapse}
                   <input id="regStuName" type="text" required placeholder="e.g., Deepak Pant" class="w-full rounded-xl border border-slate-300 px-3.5 py-2" />
                 </div>
                 <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Email Address</label>
+                  <input id="regStuEmail" type="email" autocomplete="email" required placeholder="you@example.com" class="w-full rounded-xl border border-slate-300 px-3.5 py-2" />
+                </div>
+                <div>
                   <label class="block font-semibold text-slate-700 mb-1">Unique Username</label>
                   <input id="regStuUsername" type="text" required placeholder="e.g., deepak_uk01" class="w-full rounded-xl border border-slate-300 px-3.5 py-2" />
                 </div>
                 <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Mobile Number (10 digits, No Email Needed)</label>
+                  <label class="block font-semibold text-slate-700 mb-1">Mobile Number (10 digits)</label>
                   <input id="regStuMobile" type="tel" inputmode="numeric" autocomplete="tel" required minlength="10" maxlength="10" pattern="[0-9]{10}" title="Enter exactly 10 digits" placeholder="e.g., 9412098765" class="w-full rounded-xl border border-slate-300 px-3.5 py-2" />
                 </div>
                 <div>
@@ -5511,7 +4467,7 @@ table{max-width:100%;border-collapse:collapse}
                   <div class="flex gap-2"><input id="regStuPasswordConfirm" type="password" required minlength="6" autocomplete="new-password" placeholder="Enter password again" class="flex-1 min-w-0 rounded-xl border border-slate-300 px-3.5 py-2" /><button type="button" data-toggle-password="regStuPasswordConfirm" aria-label="Show password" title="Show password" class="password-toggle inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" style="min-width:42px" data-state="hidden"><svg class="password-eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
                 </div>
                 <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-emerald-600 text-white font-bold shadow transition">
-                  Register & Start Practicing →
+                  Create Account (Approval Required) →
                 </button>
               </form>
             </div>
@@ -5637,8 +4593,8 @@ table{max-width:100%;border-collapse:collapse}
             <p class="text-xs text-slate-500 mb-4">Only authorized administrators may approve students, manage question banks, or publish PDF imports.</p>
             <form id="formAdminLogin" class="space-y-4 text-xs sm:text-sm">
               <div>
-                <label class="block font-semibold text-slate-700 mb-1">Admin Username</label>
-                <input id="admLoginUser" type="text" required placeholder="Enter admin username" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
+                <label class="block font-semibold text-slate-700 mb-1">Administrator Email</label>
+                <input id="admLoginUser" type="email" autocomplete="username" required placeholder="Enter administrator email" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
               </div>
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Admin Password</label>
@@ -5891,16 +4847,24 @@ table{max-width:100%;border-collapse:collapse}
         }
 
         pane.querySelectorAll('.btn-adm-status').forEach(function(btn) {
-          btn.addEventListener('click', function() {
+          btn.addEventListener('click', async function() {
             const sId = btn.getAttribute('data-stu-id');
             const newSt = btn.getAttribute('data-new-status');
             const target = db.users.find(u => u.id === sId);
-            if (target) {
-              target.status = newSt;
-              saveDatabase(db);
-              showToast('Updated ' + target.displayName + ' status to ' + newSt.toUpperCase() + '!', 'success');
-              renderAdminDashboardView(document.getElementById('appMain'));
+            if (!target || !window.gyanManchSupabase || !state.currentUser || state.currentUser.role !== 'admin') return;
+            btn.disabled = true;
+            const { error } = await window.gyanManchSupabase.from('profiles')
+              .update({ approval_status: newSt })
+              .eq('id', sId).eq('role', 'student');
+            if (error) {
+              btn.disabled = false;
+              showToast('Student status update failed: ' + error.message, 'error');
+              return;
             }
+            target.status = newSt;
+            saveDatabase(db);
+            showToast('Updated ' + target.displayName + ' status to ' + newSt.toUpperCase() + '!', 'success');
+            renderAdminDashboardView(document.getElementById('appMain'));
           });
         });
 
@@ -6549,7 +5513,7 @@ table{max-width:100%;border-collapse:collapse}
           renderAdminQuestionsTab(pane);
         });
 
-        document.getElementById('formAdminAddQuestion').addEventListener('submit', function(e) {
+        document.getElementById('formAdminAddQuestion').addEventListener('submit', async function(e) {
           e.preventDefault();
           const newQId = 'q_custom_' + Date.now();
           const qScope = document.getElementById('admQScope').value; // 'full_mock', 'sessional_test', 'chapter_only'
@@ -6693,6 +5657,13 @@ table{max-width:100%;border-collapse:collapse}
             saveDatabase(db);
             showToast('Question added to Full-Length Mock Test for ' + exObj.name + '!', 'success');
           }
+          try {
+            await persistAdminQuestionToSupabase(newQ, targetExId);
+            saveDatabase(db);
+            showToast('Question saved to the shared question bank.', 'success');
+          } catch (backendError) {
+            showToast('Question remains local only because the shared save failed: ' + (backendError.message || 'Please retry.'), 'error');
+          }
           renderAdminDashboardView(document.getElementById('appMain'));
         });
 
@@ -6721,6 +5692,112 @@ table{max-width:100%;border-collapse:collapse}
       }
 
       // --- ADMIN TAB 4: FULL MULTI-QUESTION PDF-TO-QUESTIONS EXTRACTOR, BULK APPROVAL & MOCK TEST GENERATOR ---
+      async function persistAdminQuestionToSupabase(question, examLegacyId) {
+        const client = window.gyanManchSupabase;
+        if (!client || !state.currentUser || !['admin','teacher'].includes(state.currentUser.role)) throw new Error('Approved administrator session required.');
+        const auth = await client.auth.getUser();
+        if (auth.error || !auth.data.user) throw new Error('Supabase session expired. Please sign in again.');
+        const userId = auth.data.user.id;
+        const examResult = await client.from('exams').select('id').eq('legacy_id',examLegacyId).single();
+        if (examResult.error) throw examResult.error;
+        const savedQuestion = await client.from('questions').upsert({
+          legacy_id:question.id, exam_id:examResult.data.id, question_en:question.text_en || '', question_hi:question.text_hi || '',
+          options:{en:question.options_en || [], hi:question.options_hi || question.options_en || []},
+          subject:question.subjectId || '', topic:question.chapterId || '', difficulty:question.difficulty || 'medium',
+          source_type:question.sourceType === 'pyq' ? 'pyq' : (question.sourceType === 'practice' ? 'practice' : 'mock'),
+          status:question.isPublished === false ? 'draft' : 'published', created_by:userId
+        }, {onConflict:'legacy_id'}).select('id').single();
+        if (savedQuestion.error) throw savedQuestion.error;
+        const keySave = await client.from('question_answer_keys').upsert({
+          question_id:savedQuestion.data.id, correct_option:Number(question.correctOption),
+          explanation_en:question.explanation_en || '', explanation_hi:question.explanation_hi || ''
+        }, {onConflict:'question_id'});
+        if (keySave.error) throw keySave.error;
+        const testObj = db.tests.find(t => Array.isArray(t.questionIds) && t.questionIds.includes(question.id));
+        if (!testObj) return;
+        const type = testObj.testType === 'chapter_practice' ? 'practice' : (testObj.testType === 'sessional_test' || testObj.testType === 'sectional' ? 'sectional' : 'mock');
+        const testSave = await client.from('tests').upsert({
+          legacy_id:testObj.id, exam_id:examResult.data.id, title_en:testObj.title, title_hi:testObj.title_hi || testObj.title,
+          description:'Teacher-managed question set', test_type:type, duration_minutes:Number(testObj.durationMinutes || 60),
+          positive_marks:Number(testObj.defaultMarks || question.marks || 1), negative_marks:Number(testObj.defaultNegative || question.negativeMarks || 0),
+          status:testObj.isPublished === false ? 'draft' : 'published',
+          instructions:{sections:testObj.sections || [], questionIds:testObj.questionIds, maxAttempts:testObj.maxAttempts ?? null, showResultsImmediately:testObj.showResultsImmediately !== false},
+          published_at:testObj.isPublished === false ? null : new Date().toISOString(), created_by:userId
+        }, {onConflict:'legacy_id'}).select('id').single();
+        if (testSave.error) throw testSave.error;
+        const questionLookup = await client.from('questions').select('id,legacy_id').in('legacy_id',testObj.questionIds);
+        if (questionLookup.error) throw questionLookup.error;
+        const idByLegacy = {}; (questionLookup.data || []).forEach(q => { idByLegacy[q.legacy_id] = q.id; });
+        const links = testObj.questionIds.filter(id => idByLegacy[id]).map((id,index)=>({
+          test_id:testSave.data.id, question_id:idByLegacy[id], section_name:'', question_order:index+1,
+          positive_marks:Number(testObj.defaultMarks || question.marks || 1), negative_marks:Number(testObj.defaultNegative || question.negativeMarks || 0)
+        }));
+        if (links.length) {
+          const linkSave = await client.from('test_questions').upsert(links,{onConflict:'test_id,question_id'});
+          if (linkSave.error) throw linkSave.error;
+        }
+      }
+
+      async function persistApprovedPdfBatchToSupabase(exam, newTest, createdQIds, batchFileName, currentPaperItems) {
+        const client = window.gyanManchSupabase;
+        if (!client || !state.currentUser || !['admin','teacher'].includes(state.currentUser.role)) throw new Error('Approved administrator session required.');
+        const auth = await client.auth.getUser();
+        if (auth.error || !auth.data.user) throw new Error('Supabase session expired. Please sign in again.');
+        const userId = auth.data.user.id;
+        const examResult = await client.from('exams').select('id').eq('legacy_id', exam.id).single();
+        if (examResult.error) throw examResult.error;
+        const questionRows = [];
+        for (const legacyId of createdQIds) {
+          const q = db.questions.find(item => item.id === legacyId);
+          if (!q) continue;
+          const saved = await client.from('questions').upsert({
+            legacy_id:q.id, exam_id:examResult.data.id, question_en:q.text_en || '', question_hi:q.text_hi || '',
+            options:{en:q.options_en || [], hi:q.options_hi || q.options_en || []}, subject:q.subjectId || '', topic:q.chapterId || '',
+            difficulty:'medium', source_type:'mock', status:'published', created_by:userId
+          }, { onConflict:'legacy_id' }).select('id').single();
+          if (saved.error) throw saved.error;
+          const keySave = await client.from('question_answer_keys').upsert({
+            question_id:saved.data.id, correct_option:Number(q.correctOption), explanation_en:q.explanation_en || '', explanation_hi:q.explanation_hi || ''
+          }, { onConflict:'question_id' });
+          if (keySave.error) throw keySave.error;
+          questionRows.push({ legacy_id:q.id, id:saved.data.id, positive:Number(q.marks || newTest.defaultMarks || 1), negative:Number(q.negativeMarks || newTest.defaultNegative || 0) });
+        }
+        if (!questionRows.length) throw new Error('No questions were ready to publish.');
+        const type = newTest.testType === 'chapter_practice' ? 'practice' : (newTest.testType === 'sessional_test' ? 'sectional' : 'mock');
+        const testSave = await client.from('tests').upsert({
+          legacy_id:newTest.id, exam_id:examResult.data.id, title_en:newTest.title, title_hi:newTest.title_hi || newTest.title,
+          description:'Teacher-reviewed paper: ' + batchFileName, test_type:type, duration_minutes:Number(newTest.durationMinutes || 60),
+          positive_marks:Number(newTest.defaultMarks || 1), negative_marks:Number(newTest.defaultNegative || 0),
+          status:'published', instructions:{sections:newTest.sections || [], questionIds:questionRows.map(q => q.legacy_id), maxAttempts:newTest.maxAttempts ?? null, showResultsImmediately:true},
+          published_at:new Date().toISOString(), created_by:userId
+        }, { onConflict:'legacy_id' }).select('id').single();
+        if (testSave.error) throw testSave.error;
+        const mappingSave = await client.from('test_questions').upsert(questionRows.map((q,index)=>({
+          test_id:testSave.data.id, question_id:q.id, section_name:'', question_order:index+1,
+          positive_marks:q.positive, negative_marks:q.negative
+        })), { onConflict:'test_id,question_id' });
+        if (mappingSave.error) throw mappingSave.error;
+        const payload = (currentPaperItems || []).map(item => ({
+          question_en:item.text_en || '', question_hi:item.text_hi || '', options_en:item.options_en || [], options_hi:item.options_hi || [],
+          correct_option:item.correctOption, explanation_en:item.explanation_en || '', explanation_hi:item.explanation_hi || ''
+        }));
+        if (window.gyanManchPdfJobId) {
+          const jobUpdate = await client.from('pdf_import_jobs').update({
+            status:'published', extracted_payload:payload, target_exam_id:examResult.data.id, target_test_id:testSave.data.id, reviewed_by:userId
+          }).eq('id',window.gyanManchPdfJobId);
+          if (jobUpdate.error) throw jobUpdate.error;
+        } else {
+          const jobInsert = await client.from('pdf_import_jobs').insert({
+            uploaded_by:userId, file_path:'manual-import/' + newTest.id, original_filename:batchFileName || 'Manual question import',
+            status:'published', extracted_payload:payload, target_exam_id:examResult.data.id, target_test_id:testSave.data.id, reviewed_by:userId
+          });
+          if (jobInsert.error) throw jobInsert.error;
+        }
+        window.gyanManchPdfJobId = null;
+        window.gyanManchPdfFilePath = null;
+        return { testId:testSave.data.id, questionCount:questionRows.length };
+      }
+
       function renderAdminPdfImportTab(pane) {
         pane.innerHTML = `
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -6789,12 +5866,8 @@ table{max-width:100%;border-collapse:collapse}
                   <button id="btnRunOcrPaperScan" type="button" class="px-3.5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold shadow transition">
                     🔍 Scan Printed / Scanned Paper (OCR Scanner)
                   </button>
-                  <button id="btnDemoScannedPaperOcr" type="button" class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow transition">
-                    📷 Demo: Scan Printed Exam Paper (Live Visual Scan)
-                  </button>
-                  <button id="btnSimulateBilingualPdf" type="button" class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition">
-                    ⚡ Load 5-Q Sample Paper
-                  </button>
+                  
+                  
                 </div>
 
                 <!-- Live Visual Scanned Paper Preview & OCR Progress Box -->
@@ -6823,28 +5896,7 @@ table{max-width:100%;border-collapse:collapse}
               <p class="text-xs text-slate-500 mb-2">
                 Paste an entire question paper (any number of questions, with inline <code>Ans:</code> or an <code>Answer Key: 1-A, 2-C, 3-B...</code> block at the bottom):
               </p>
-              <textarea id="inpRawBlockExtract" rows="6" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono mb-2" placeholder="Paste 1 to 200+ questions here...">1. Which pass in Pithoragarh district connects Uttarakhand with Tibet? / पिथौरागढ़ जिले का कौन सा दर्रा उत्तराखंड को तिब्बत से जोड़ता है?
-(A) Lipulekh Pass / लिपुलेख दर्रा
-(B) Nathu La / नाथू ला
-(C) Rohtang Pass / रोहतांग दर्रा
-(D) Banihal Pass / बनिहाल दर्रा
-
-2. What is the minimum age required to become a member of the Lok Sabha in India? / भारत में लोकसभा का सदस्य बनने के लिए न्यूनतम आयु क्या है?
-(A) 30 Years / 30 वर्ष
-(B) 25 Years / 25 वर्ष
-(C) 21 Years / 21 वर्ष
-(D) 35 Years / 35 वर्ष
-
-3. If the cost price of 15 articles is equal to the selling price of 12 articles, find the profit percentage. / यदि 15 वस्तुओं का क्रय मूल्य 12 वस्तुओं के विक्रय मूल्य के बराबर है, तो लाभ प्रतिशत ज्ञात कीजिए।
-(A) 20%
-(B) 15%
-(C) 25%
-(D) 30%
-
-Answer Key:
-1 - A
-2 - B
-3 - C</textarea>
+              <textarea id="inpRawBlockExtract" rows="6" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono mb-2" placeholder="Paste 1 to 200+ questions here..." placeholder="Paste bilingual questions, options and the answer key here..."></textarea>
               <button id="btnParseRawBlock" type="button" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow transition">
                 Parse All Questions into Review Queue
               </button>
@@ -6999,6 +6051,40 @@ Answer Key:
         const pdfExSel = document.getElementById('pdfTargetExamSelect');
         const pdfSubSel = document.getElementById('pdfTargetSubjectSelect');
         const pdfChapSel = document.getElementById('pdfTargetChapterSelect');
+        const pdfFileInput = document.getElementById('inpPdfFile');
+        if (pdfFileInput) {
+          pdfFileInput.addEventListener('change', async function() {
+            const file = pdfFileInput.files && pdfFileInput.files[0];
+            if (!file) return;
+            if (!window.gyanManchSupabase || !state.currentUser || !['admin','teacher'].includes(state.currentUser.role)) {
+              showToast('Sign in as an approved administrator before uploading question papers.', 'error');
+              pdfFileInput.value = '';
+              return;
+            }
+            const buttons = ['btnRunPdfExtraction','btnRunOcrPaperScan'].map(id => document.getElementById(id)).filter(Boolean);
+            buttons.forEach(b => { b.disabled = true; });
+            try {
+              const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g,'_').slice(-120);
+              const path = state.currentUser.id + '/' + Date.now() + '_' + safeName;
+              const upload = await window.gyanManchSupabase.storage.from('question-pdfs').upload(path,file,{upsert:false,contentType:file.type || 'application/pdf'});
+              if (upload.error) throw upload.error;
+              const examLookup = await window.gyanManchSupabase.from('exams').select('id').eq('legacy_id',pdfExSel ? pdfExSel.value : '').maybeSingle();
+              if (examLookup.error) throw examLookup.error;
+              const job = await window.gyanManchSupabase.from('pdf_import_jobs').insert({
+                uploaded_by:state.currentUser.id, file_path:path, original_filename:file.name, status:'uploaded', target_exam_id:examLookup.data ? examLookup.data.id : null
+              }).select('id').single();
+              if (job.error) throw job.error;
+              window.gyanManchPdfJobId = job.data.id;
+              window.gyanManchPdfFilePath = path;
+              window.gyanManchPdfFileName = file.name;
+              showToast('Question paper stored privately. Run extraction, review answers, then publish.', 'success');
+            } catch (error) {
+              showToast('Private upload failed: ' + (error.message || 'Please retry.'), 'error');
+            } finally {
+              buttons.forEach(b => { b.disabled = false; });
+            }
+          });
+        }
 
         function syncPdfChapDropdown() {
           if (!pdfSubSel || !pdfChapSel) return;
@@ -7403,7 +6489,7 @@ Answer Key:
         // Approve ALL Staged Questions & Create Official Mock Test automatically
         const btnApproveAll = document.getElementById('btnApproveAllStaged');
         if (btnApproveAll) {
-          btnApproveAll.addEventListener('click', function() {
+          btnApproveAll.addEventListener('click', async function() {
             const missingKey = db.pdfImportQueue.find(it => it.correctOption === null || it.correctOption < 0 || it.correctOption > 3);
             if (missingKey) {
               showToast('Some staged questions are missing an Answer Key. Please select Option A/B/C/D for highlighted items first.', 'error');
@@ -7494,6 +6580,13 @@ Answer Key:
             };
             if (!createdQIds.length) {
               showToast('No new questions were published. All questions in this PDF were duplicates or already in the database.', 'warning');
+              return;
+            }
+            try {
+              const result = await persistApprovedPdfBatchToSupabase(exam, newTest, createdQIds, batchFileName, currentPaperItems);
+              showToast('Saved ' + result.questionCount + ' reviewed questions and the test to the shared database.', 'success');
+            } catch (backendError) {
+              showToast('Could not publish to the shared database: ' + (backendError.message || 'Please retry.'), 'error');
               return;
             }
             db.tests.unshift(newTest);
@@ -8043,23 +7136,21 @@ Answer Key:
           navigateTo('student-login');
         });
 
-        // Top Bar Walkthrough & Reset Demo DB
-        document.getElementById('btnQuickWalkthrough').addEventListener('click', function() {
-          document.getElementById('modalWalkthrough').classList.remove('hidden');
+        // Optional walkthrough modal controls; the demo reset control has been removed.
+        const btnQuickWalkthrough = document.getElementById('btnQuickWalkthrough');
+        if (btnQuickWalkthrough) btnQuickWalkthrough.addEventListener('click', function() {
+          const modal = document.getElementById('modalWalkthrough');
+          if (modal) modal.classList.remove('hidden');
         });
-        document.getElementById('btnCloseWalkthrough').addEventListener('click', function() {
-          document.getElementById('modalWalkthrough').classList.add('hidden');
+        const btnCloseWalkthrough = document.getElementById('btnCloseWalkthrough');
+        if (btnCloseWalkthrough) btnCloseWalkthrough.addEventListener('click', function() {
+          const modal = document.getElementById('modalWalkthrough');
+          if (modal) modal.classList.add('hidden');
         });
-        document.getElementById('btnDismissWalkthrough').addEventListener('click', function() {
-          document.getElementById('modalWalkthrough').classList.add('hidden');
-        });
-
-        document.getElementById('btnResetDemoData').addEventListener('click', function() {
-          db = createDefaultDatabase();
-          saveDatabase(db);
-          state.currentUser = db.users.find(u => u.id === 'usr_stu_aarav');
-          showToast('Sample database reset to initial state!', 'info');
-          navigateTo('home');
+        const btnDismissWalkthrough = document.getElementById('btnDismissWalkthrough');
+        if (btnDismissWalkthrough) btnDismissWalkthrough.addEventListener('click', function() {
+          const modal = document.getElementById('modalWalkthrough');
+          if (modal) modal.classList.add('hidden');
         });
 
         // CBT Side Panel Collapse / Expand & Font Size Zoom Controls
@@ -8327,6 +7418,228 @@ Answer Key:
           try { localStorage.setItem('gyanManchQuestionReports', JSON.stringify(reports)); } catch(e) {}
           showToast('Question report note ho gayi. Shukriya!', 'success');
         });
+
+        // Official Supabase authentication bridge: local/demo credentials are not accepted.
+        document.addEventListener('submit', async function(event) {
+          const form = event.target;
+          if (!form || !['formStudentLogin','formStudentRegister','formAdminLogin'].includes(form.id)) return;
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          const client = window.gyanManchSupabase;
+          if (!client) { showToast('Backend connection is unavailable. Please refresh and try again.', 'error'); return; }
+          const submit = form.querySelector('button[type="submit"]');
+          if (submit) { submit.disabled = true; submit.dataset.originalText = submit.textContent; submit.textContent = 'Please wait…'; }
+          try {
+            if (form.id === 'formStudentRegister') {
+              const name = document.getElementById('regStuName').value.trim();
+              const username = document.getElementById('regStuUsername').value.trim().toLowerCase();
+              const phone = document.getElementById('regStuMobile').value.trim();
+              const email = document.getElementById('regStuEmail').value.trim().toLowerCase();
+              const password = document.getElementById('regStuPassword').value;
+              const confirm = document.getElementById('regStuPasswordConfirm').value;
+              if (!name || !/^[a-z0-9_.-]{3,24}$/.test(username)) throw new Error('Username 3–24 characters ka ho; letters, numbers, dot, underscore ya hyphen use karein.');
+              if (!/^\\d{10}$/.test(phone)) throw new Error('Mobile number exactly 10 digits ka hona chahiye.');
+              if (password.length < 8) throw new Error('Password kam se kam 8 characters ka hona chahiye.');
+              if (password !== confirm) throw new Error('Dono passwords match nahi karte.');
+              const { data, error } = await client.auth.signUp({
+                email, password,
+                options: { data: { display_name: name, username, phone, preferred_language: 'both' } }
+              });
+              if (error) throw error;
+              if (!data.user) throw new Error('Account create nahi hua. Email check karke dobara try karein.');
+              if (data.session) await client.auth.signOut();
+              state.currentUser = null; savePersistentSession(null);
+              showToast('Registration request submitted. Email verify karein if requested; admin approval ke baad hi tests unlock honge.', 'success');
+              navigateTo('student-login');
+              const notice = document.getElementById('studentAccountStatusNotice');
+              if (notice) { notice.textContent = 'Registration received. Email verification (if enabled) complete karein; administrator approval ke baad access milega.'; notice.classList.remove('hidden'); }
+            } else {
+              const emailInput = form.id === 'formStudentLogin' ? document.getElementById('loginStuIdentifier') : document.getElementById('admLoginUser');
+              const passwordInput = form.id === 'formStudentLogin' ? document.getElementById('loginStuPassword') : document.getElementById('admLoginPass');
+              const email = emailInput.value.trim().toLowerCase();
+              const { data, error } = await client.auth.signInWithPassword({ email, password: passwordInput.value });
+              if (error) throw error;
+              const { data: profileRow, error: profileError } = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,preferred_language').eq('id', data.user.id).single();
+              if (profileError || !profileRow) { await client.auth.signOut(); throw new Error('Account profile missing. Please contact the administrator.'); }
+              if (form.id === 'formAdminLogin' && !(profileRow.role === 'admin' && profileRow.approval_status === 'approved')) {
+                await client.auth.signOut(); throw new Error('Is account ko administrator access nahi mila hai.');
+              }
+              if (form.id === 'formStudentLogin' && profileRow.role !== 'student') {
+                await client.auth.signOut(); throw new Error('Yeh student account nahi hai. Administrator portal use karein.');
+              }
+              if (profileRow.approval_status !== 'approved') {
+                await client.auth.signOut();
+                const notice = document.getElementById('studentAccountStatusNotice');
+                if (notice) { notice.textContent = 'Account status: ' + String(profileRow.approval_status || 'pending').toUpperCase() + '. Administrator approval ke baad hi mock tests access honge.'; notice.classList.remove('hidden'); }
+                throw new Error('Account abhi ' + String(profileRow.approval_status || 'pending') + ' hai. Approval ke baad login karein.');
+              }
+              const user = { id: profileRow.id, username: profileRow.username || email, mobile: profileRow.phone || '', displayName: profileRow.display_name || email, role: profileRow.role, status: profileRow.approval_status, showOnLeaderboard: true, email };
+              state.currentUser = user; savePersistentSession(user);
+              if (form.id === 'formAdminLogin') {
+                await hydrateQuestionsFromSupabase(true);
+                const { data: profiles, error: listError } = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,created_at');
+                if (!listError && Array.isArray(profiles)) {
+                  db.users = profiles.map(p => ({ id:p.id, username:p.username || '', mobile:p.phone || '', displayName:p.display_name || '', role:p.role, status:p.approval_status, createdAt:p.created_at, showOnLeaderboard:true, email:'' }));
+                }
+                await hydrateAttemptsFromSupabase();
+                navigateTo('admin-dashboard');
+                showToast('Administrator login successful.', 'success');
+              } else {
+                await hydrateQuestionsFromSupabase(false);
+                await hydrateAttemptsFromSupabase();
+                db.users = db.users.filter(u => u.id !== user.id).concat(user);
+                navigateTo('home');
+                showToast('Welcome back, ' + user.displayName + '.', 'success');
+              }
+            }
+          } catch (error) {
+            showToast(error && error.message ? error.message : 'Authentication failed. Please try again.', 'error');
+          } finally {
+            if (submit) { submit.disabled = false; submit.textContent = submit.dataset.originalText || 'Submit'; }
+          }
+        }, true);
+
+
+        async function hydrateQuestionsFromSupabase(isStaff) {
+          const client = window.gyanManchSupabase;
+          if (!client) return;
+          const [examResult, questionResult] = await Promise.all([
+            client.from('exams').select('id,legacy_id'),
+            client.from('questions').select('id,legacy_id,exam_id,question_en,question_hi,options,subject,topic,difficulty,source_type,source_year,status')
+          ]);
+          if (examResult.error) throw examResult.error;
+          if (questionResult.error) throw questionResult.error;
+          const examIds = {};
+          (examResult.data || []).forEach(e => { examIds[e.id] = e.legacy_id; });
+          let answerKeys = {};
+          if (isStaff) {
+            const keyResult = await client.from('question_answer_keys').select('question_id,correct_option,explanation_en,explanation_hi');
+            if (keyResult.error) throw keyResult.error;
+            (keyResult.data || []).forEach(k => { answerKeys[k.question_id] = k; });
+          }
+          db.questions = (questionResult.data || []).filter(q => q.legacy_id).map(q => {
+            const row = { id:q.legacy_id, examId:examIds[q.exam_id] || '', subjectId:q.subject || '', chapterId:q.topic || '',
+              text_en:q.question_en || '', text_hi:q.question_hi || '', options_en:(q.options && Array.isArray(q.options.en)) ? q.options.en : [],
+              options_hi:(q.options && Array.isArray(q.options.hi)) ? q.options.hi : [], marks:1, negativeMarks:0.25,
+              sourceType:q.source_type || 'mock', verificationStatus:q.status === 'published' ? 'verified' : 'draft',
+              isPublished:q.status === 'published', isSample:false, tags:[] };
+            const key = answerKeys[q.id];
+            if (key) { row.correctOption = Number(key.correct_option); row.explanation_en = key.explanation_en || ''; row.explanation_hi = key.explanation_hi || ''; }
+            return row;
+          });
+          saveDatabase(db);
+        }
+
+        async function hydrateAttemptsFromSupabase() {
+          const client = window.gyanManchSupabase;
+          if (!client || !state.currentUser) return;
+          const isAdmin = state.currentUser.role === 'admin';
+          let attemptQuery = client.from('attempts').select('id,user_id,test_id,status,started_at,submitted_at,time_taken_seconds,total_questions,attempted_count,correct_count,incorrect_count,unattempted_count,score,max_score,accuracy').order('started_at',{ascending:false});
+          if (!isAdmin) attemptQuery = attemptQuery.eq('user_id', state.currentUser.id);
+          const attemptResult = await attemptQuery;
+          if (attemptResult.error) throw attemptResult.error;
+          const rows = attemptResult.data || [];
+          if (!rows.length) { db.attempts = []; saveDatabase(db); return; }
+          const ids = rows.map(a => a.id);
+          const [testsResult, questionsResult, answersResult] = await Promise.all([
+            client.from('tests').select('id,legacy_id'),
+            client.from('questions').select('id,legacy_id'),
+            client.from('attempt_answers').select('attempt_id,question_id,selected_option,marked_for_review,is_correct,marks_awarded').in('attempt_id', ids)
+          ]);
+          if (testsResult.error) throw testsResult.error;
+          if (questionsResult.error) throw questionsResult.error;
+          if (answersResult.error) throw answersResult.error;
+          const testLegacy = {}; (testsResult.data || []).forEach(t => { testLegacy[t.id] = t.legacy_id; });
+          const questionLegacy = {}; (questionsResult.data || []).forEach(q => { questionLegacy[q.id] = q.legacy_id; });
+          const answerMap = {};
+          (answersResult.data || []).forEach(a => {
+            const qid = questionLegacy[a.question_id];
+            if (!qid) return;
+            if (!answerMap[a.attempt_id]) answerMap[a.attempt_id] = {};
+            answerMap[a.attempt_id][qid] = { selectedOption:a.selected_option, markedForReview:!!a.marked_for_review, timeSpent:0 };
+          });
+          const numberByUserTest = {};
+          db.attempts = rows.map(a => {
+            const testId = testLegacy[a.test_id] || '';
+            const key = a.user_id + ':' + testId;
+            numberByUserTest[key] = (numberByUserTest[key] || 0) + 1;
+            return { id:a.id, userId:a.user_id, testId, testVersion:1, attemptNumber:numberByUserTest[key],
+              status:a.status, startedAt:a.started_at, submittedAt:a.submitted_at, timeTakenSeconds:a.time_taken_seconds,
+              score:Number(a.score), maxMarks:Number(a.max_score), correctCount:a.correct_count, incorrectCount:a.incorrect_count,
+              unansweredCount:a.unattempted_count, accuracy:Number(a.accuracy), isSample:false, answers:answerMap[a.id] || {}, review:{} };
+          });
+          saveDatabase(db);
+        }
+
+        // Pull the shared published test catalogue from Supabase, keeping stable legacy IDs for the existing test runner.
+        async function hydratePublishedTestsFromSupabase() {
+          const client = window.gyanManchSupabase;
+          if (!client) return;
+          try {
+            const [examResult, testResult] = await Promise.all([
+              client.from('exams').select('id,legacy_id'),
+              client.from('tests').select('legacy_id,exam_id,title_en,title_hi,description,test_type,duration_minutes,positive_marks,negative_marks,status,instructions').eq('status','published')
+            ]);
+            if (examResult.error || testResult.error) throw examResult.error || testResult.error;
+            const examIds = {};
+            (examResult.data || []).forEach(e => { examIds[e.id] = e.legacy_id; });
+            const remoteTests = (testResult.data || []).filter(t => t.legacy_id && t.instructions && Array.isArray(t.instructions.questionIds) && t.instructions.questionIds.length).map(t => ({
+              id:t.legacy_id, examId:examIds[t.exam_id] || '', chapterId:null, title:t.title_en, title_hi:t.title_hi || t.title_en,
+              testType:t.test_type === 'practice' ? 'chapter_practice' : (t.test_type === 'sectional' ? 'sectional' : 'full_mock'),
+              durationMinutes:t.duration_minutes, defaultMarks:Number(t.positive_marks), defaultNegative:Number(t.negative_marks),
+              maxAttempts:t.instructions.maxAttempts ?? null, isPracticeMode:t.test_type === 'practice',
+              showResultsImmediately:t.instructions.showResultsImmediately !== false, isPublished:true, isSample:false, version:1,
+              sections:Array.isArray(t.instructions.sections) ? t.instructions.sections : [], questionIds:t.instructions.questionIds,
+              description:t.description || ''
+            }));
+            if (!remoteTests.length) return;
+            const remoteById = {};
+            remoteTests.forEach(t => { remoteById[t.id] = t; });
+            const merged = db.tests.map(t => remoteById[t.id] || t);
+            const existingIds = new Set(merged.map(t => t.id));
+            remoteTests.forEach(t => { if (!existingIds.has(t.id)) merged.push(t); });
+            db.tests = merged;
+            saveDatabase(db);
+            renderCurrentView();
+          } catch (error) {
+            console.warn('Supabase catalogue sync:', error && error.message ? error.message : error);
+          }
+        }
+        hydratePublishedTestsFromSupabase();
+
+        // Restore only a real Supabase session; never trust browser-local demo users.
+        if (window.gyanManchSupabase) {
+          window.gyanManchSupabase.auth.getSession().then(async function(result) {
+            const session = result && result.data && result.data.session;
+            if (!session || !session.user) return;
+            const client = window.gyanManchSupabase;
+            const profileResult = await client.from('profiles')
+              .select('id,display_name,username,phone,role,approval_status,preferred_language')
+              .eq('id', session.user.id).maybeSingle();
+            const p = profileResult.data;
+            if (profileResult.error || !p || p.approval_status !== 'approved') {
+              await client.auth.signOut();
+              state.currentUser = null;
+              savePersistentSession(null);
+            } else {
+              state.currentUser = { id:p.id, username:p.username || session.user.email, mobile:p.phone || '', displayName:p.display_name || session.user.email, role:p.role, status:p.approval_status, showOnLeaderboard:true, email:session.user.email };
+              savePersistentSession(state.currentUser);
+              await hydrateQuestionsFromSupabase(p.role === 'admin');
+              if (p.role === 'admin') {
+                const usersResult = await client.from('profiles').select('id,display_name,username,phone,role,approval_status,created_at');
+                if (!usersResult.error && Array.isArray(usersResult.data)) db.users = usersResult.data.map(u => ({id:u.id,username:u.username||'',mobile:u.phone||'',displayName:u.display_name||'',role:u.role,status:u.approval_status,createdAt:u.created_at,showOnLeaderboard:true,email:''}));
+              }
+              await hydrateAttemptsFromSupabase();
+            }
+            syncHeaderUI();
+            renderCurrentView();
+          }).catch(function(){});
+        }
+        document.addEventListener('click', function(event) {
+          const logout = event.target && event.target.closest && event.target.closest('#mobileMenuLogout, #btnLockAdminSession');
+          if (logout && window.gyanManchSupabase) window.gyanManchSupabase.auth.signOut().catch(function(){});
+        }, true);
+
         // Bind timer controls first, independently of the larger global event binder.
         document.addEventListener('click', function(event) {
           const startBtn = event.target && event.target.closest ? event.target.closest('#btnCbtStartExamNow') : null;
@@ -8342,21 +7655,7 @@ Answer Key:
     })();
   </script>
   
-<!-- Gyan Manch: Supabase connection -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  window.GYAN_MANCH_SUPABASE_URL =
-    "https://yqdgkhlnwhojvuydjtgb.supabase.co";
 
-  // Yahan Supabase ki Publishable key paste karna.
-  // Secret ya service_role key bilkul mat daalna.
-  window.GYAN_MANCH_SUPABASE_KEY = "sb_publishable_sRf0zkDPeJ9VnirxPk8AkA_wMh-wi-M";
-
-  window.gyanManchSupabase = window.supabase.createClient(
-    window.GYAN_MANCH_SUPABASE_URL,
-    window.GYAN_MANCH_SUPABASE_KEY
-  );
-</script>
 
 </body>
 </html>

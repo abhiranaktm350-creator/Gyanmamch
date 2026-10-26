@@ -1,40 +1,53 @@
-# Gyan Manch backend setup (Supabase)
+# Gyan Manch — Supabase backend
 
-This repository's current front end is a large single-page HTML application. It contains localStorage-based demo/persistence paths. Adding this SQL file **does not automatically connect every screen to the backend**; frontend integration and live testing are still required.
+The live Supabase project provisioned for this repository is **gyan-manch** (project reference: zpjpoolfkjdlqxioabnf) in ap-south-1, India. The website's public client configuration points to this project. The publishable key is intentionally public; never add a service-role/secret key to browser code or GitHub.
 
-## 1. Create / open Supabase project
-1. Open https://supabase.com/dashboard and select the project intended for Gyan Manch.
-2. Open **SQL Editor → New query**.
-3. Paste all of `supabase_schema.sql`, run it, and check for errors.
-4. In **Authentication → URL Configuration**, set the production site URL and allowed redirect URLs for your actual deployed domain.
-5. Enable only the sign-in methods you intend to support (email/password and/or Google OAuth). Google OAuth also requires credentials configured in Google Cloud.
+## Current backend contents
 
-## 2. Promote the first teacher/admin securely
-New signups are always created with role `student` and approval `pending`. This is intentional: public users must not be able to grant themselves staff privileges.
-After you have registered your own account and confirmed its UUID in **Authentication → Users**, run this query in the SQL Editor, replacing the UUID with your own verified auth user ID:
-```sql
-update public.profiles
-set role = 'admin', approval_status = 'approved'
-where id = 'REPLACE_WITH_YOUR_AUTH_USER_UUID';
-```
-Do not expose the Supabase service-role key in the browser or commit it to GitHub.
+- 9 exam categories and 62 exam definitions.
+- 27 bilingual starter questions, with answer keys and explanations kept in a separate staff-only table.
+- 30 published test records and 255 question-to-test links. Eighteen are explicitly labelled starter mock sets; they reuse the current starter bank and must be expanded/reviewed before being presented as full-length official-pattern papers.
+- Auth-created profiles default to role student and status pending.
+- RLS policies protect profiles, question bank, answer keys, attempts, PDF job metadata, and private Storage.
+- Attempts are graded by submit_and_score_attempt; the answer review RPC releases answer keys only after the attempt is submitted and authorized.
+- The frontend now uses Supabase email/password authentication, approval checks, shared test catalogue hydration, attempt saving/history, and private PDF upload plus reviewed-batch publishing.
 
-## 3. Core tables
-- `profiles`: student/staff role and approval status
-- `exam_categories`, `exams`: exam catalog and exam-specific timing/marking defaults
-- `tests`, `questions`, `test_questions`: mock tests, PYQs, question bank and ordering
-- `attempts`, `attempt_answers`: attempt history, server-graded score, accuracy and timing
-- `pdf_import_jobs`: teacher PDF import/review workflow metadata
-- `announcements`: teacher-managed notices
+## Fresh-project setup
 
-## 4. Server-side scoring
-The `submit_and_score_attempt` RPC checks that an attempt belongs to the logged-in student, accepts only questions assigned to that test, and calculates marks server-side. Do not trust client-calculated scores.
+For a new empty Supabase project only:
 
-## 5. PDF/OCR workflow
-The schema stores import-job metadata only. A production PDF flow still needs a private Storage bucket named `question-pdfs`, upload policies, extraction/OCR, a teacher review UI, and a publish action. OCR results must remain drafts until a teacher approves them.
+1. Run supabase_schema.sql in Supabase SQL Editor.
+2. Run supabase_seed.sql to add the catalogue and starter tests.
+3. In Authentication → URL Configuration, set the real website URL and allowed redirects.
+4. Keep email/password enabled. New registrations may need email confirmation depending on Auth settings.
 
-## 6. Before production
-- Connect frontend auth, exam/test/question queries, attempt saving and results to Supabase; remove localStorage as the source of truth for shared accounts.
-- Add and test private Storage policies and any Edge Functions needed for trusted operations.
-- Test student approval, role boundaries, RLS, scoring, timeout/autosubmit, mobile layouts, and deployment.
-- Set production URL/redirects and never commit service-role secrets.
+Do not rerun the full schema file against the already-provisioned gyan-manch project; its migrations are already applied. The repository schema file is a reproducible reference for fresh installations.
+
+## Create the first administrator
+
+No public signup is allowed to grant itself administrator privileges. First, register your owner account from the website using your own email address and verify it if email confirmation is enabled. Then run this one-time SQL in the project's SQL Editor, replacing OWNER_EMAIL with that same email:
+
+    update public.profiles
+    set role = 'admin', approval_status = 'approved'
+    where id = (
+      select id from auth.users where lower(email) = lower('OWNER_EMAIL')
+    );
+
+Confirm exactly one row was updated. Then sign in through Administrator Email using the same email and password. Never share your password or any secret key in chat.
+
+## PDF / question paper workflow
+
+Approved staff can upload a PDF or scan to the private question-pdfs bucket. The browser's PDF/OCR tools stage questions for manual review. The Approve All & Create Official Mock Test action saves reviewed questions, protected answer keys, test mappings, and import-job status to Supabase. A test should not be published until its answer keys, bilingual options, duration, and negative marking have been checked.
+
+## Important content limitation
+
+The database currently has 27 bilingual starter questions, not hundreds of unique questions per exam. The 30 test records are a usable starting catalogue, not 30 fully populated official-length papers. Expand and review the question bank before selling or advertising the sets as complete exam-length mocks. PYQ status must only be assigned to verified previous-year questions.
+
+## Security notes
+
+- RLS is enabled on exposed application tables.
+- Student roles and approval status are set server-side at signup.
+- Answer keys are stored separately and are not selectable by students before submission.
+- Scores are calculated server-side; client-side score values are not authoritative.
+- The Storage bucket is private and restricted to approved staff.
+- Do not expose service_role or other secret keys in HTML, JavaScript, public issues, or chat.
