@@ -6367,7 +6367,7 @@ Answer Key:
               if (statusEl) statusEl.textContent = '✓ Scanned Paper OCR Complete! Extracted text copied to Box #2 & Review Queue.';
               const rawBox = document.getElementById('inpRawBlockExtract');
               if (rawBox) rawBox.value = fullOcrText.trim();
-              parseAllQuestionsFromText(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId);
+              const backgroundExtracted = await tryBackgroundExtractQuestions(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId);\n              if (!backgroundExtracted) parseAllQuestionsFromText(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId);
               setTimeout(function() {
                 renderAdminDashboardView(document.getElementById('appMain'));
               }, 900);
