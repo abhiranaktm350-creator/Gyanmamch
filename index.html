@@ -1441,7 +1441,7 @@ table{max-width:100%;border-collapse:collapse}
               const builtInTestIds = new Set(['test_ssc_cgl_mock_1','test_ukpsc_mock_1','test_ibps_po_mock_1','test_ssc_mts_sessions_mock_1','test_sessional_ssc_quant_1','test_sessional_bank_reas_1','test_sessional_uk_ga_1','test_rrb_ntpc_mock_1','test_chap_quant_perc_pl','test_chap_reas_all','test_chap_eng_all','test_chap_ga_uk']);
               if (Array.isArray(parsed.tests)) parsed.tests = parsed.tests.filter(t => !builtInTestIds.has(t.id));
               if (Array.isArray(parsed.questions)) {
-                parsed.questions = parsed.questions.filter(q => !/^q_\\d+$/.test(String(q.id || '')));
+                parsed.questions = parsed.questions.filter(q => !/^q_\d+$/.test(String(q.id || '')));
                 parsed.questions.forEach(q => { delete q.correctOption; delete q.explanation_en; delete q.explanation_hi; });
               }
               if (!Array.isArray(parsed.users)) parsed.users = [];
@@ -3790,7 +3790,7 @@ table{max-width:100%;border-collapse:collapse}
                 const explanationEn = review.explanation_en || q.explanation_en || '';
                 const explanationHi = review.explanation_hi || q.explanation_hi || '';
                 const isUnans = sel === null || sel === undefined;
-                const isRight = !isUnans && Number(sel) === Number(q.correctOption);
+                const isRight = review.isCorrect !== undefined && review.isCorrect !== null ? !!review.isCorrect : (!isUnans && Number(sel) === Number(correctOption));
                 const statusBadge = isUnans
                   ? '<span class="px-2.5 py-0.5 rounded bg-slate-200 text-slate-700 text-xs font-bold">Unanswered (0 Marks)</span>'
                   : isRight
@@ -3812,7 +3812,7 @@ table{max-width:100%;border-collapse:collapse}
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-4">
                       ${[0, 1, 2, 3].map(function(optIdx) {
-                        const isCorrectOpt = optIdx === Number(q.correctOption);
+                        const isCorrectOpt = optIdx === Number(correctOption);
                         const isChosenOpt = !isUnans && optIdx === Number(sel);
                         let boxClass = 'border-slate-200 bg-slate-50 text-slate-700';
                         let tag = '';
@@ -3838,8 +3838,8 @@ table{max-width:100%;border-collapse:collapse}
 
                     <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-100 text-xs space-y-1">
                       <div class="font-bold text-indigo-950">Explanation / व्याख्या:</div>
-                      <p class="text-slate-700">${escapeHtml(q.explanation_en || 'Verified answer key explanation.')}</p>
-                      <p class="text-slate-700 hindi-text">${escapeHtml(q.explanation_hi || '')}</p>
+                      <p class="text-slate-700">${escapeHtml(explanationEn || 'Verified answer key explanation pending.')}</p>
+                      <p class="text-slate-700 hindi-text">${escapeHtml(explanationHi || '')}</p>
                     </div>
                   </div>
                 `;
