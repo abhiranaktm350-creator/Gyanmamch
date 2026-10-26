@@ -80,7 +80,7 @@ export default async function handler(request, response) {
 
     const profileResponse = await fetch(
       supabaseUrl + "/rest/v1/profiles?id=eq." + encodeURIComponent(authUser.id) + "&select=role,approval_status",
-      { headers: { apikey: publishableKey, authorization: "Bearer " + token }
+      { headers: { apikey: publishableKey, authorization: "Bearer " + token } }
     });
     if (!profileResponse.ok) return json(response, 403, { error: "Could not verify your staff access." });
     const profiles = await profileResponse.json();
