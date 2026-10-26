@@ -352,13 +352,13 @@ grant execute on function public.submit_and_score_attempt(uuid,jsonb,integer,boo
 alter table public.profiles add column if not exists username text;
 create unique index if not exists profiles_username_unique_idx on public.profiles(lower(username)) where username is not null;
 alter table public.exam_categories add column if not exists legacy_id text;
-create unique index if not exists exam_categories_legacy_id_unique on public.exam_categories(legacy_id) where legacy_id is not null;
+create unique index if not exists exam_categories_legacy_id_unique on public.exam_categories(legacy_id);
 alter table public.exams add column if not exists legacy_id text;
-create unique index if not exists exams_legacy_id_unique on public.exams(legacy_id) where legacy_id is not null;
+create unique index if not exists exams_legacy_id_unique on public.exams(legacy_id);
 alter table public.questions add column if not exists legacy_id text;
-create unique index if not exists questions_legacy_id_unique on public.questions(legacy_id) where legacy_id is not null;
+create unique index if not exists questions_legacy_id_unique on public.questions(legacy_id);
 alter table public.tests add column if not exists legacy_id text;
-create unique index if not exists tests_legacy_id_unique on public.tests(legacy_id) where legacy_id is not null;
+create unique index if not exists tests_legacy_id_unique on public.tests(legacy_id);
 
 create table if not exists public.question_answer_keys (
   question_id uuid primary key references public.questions(id) on delete cascade,
@@ -498,3 +498,84 @@ drop policy if exists "approved staff update question PDFs" on storage.objects;
 create policy "approved staff update question PDFs" on storage.objects for update to authenticated using (bucket_id='question-pdfs' and public.is_staff()) with check (bucket_id='question-pdfs' and public.is_staff());
 drop policy if exists "approved staff delete question PDFs" on storage.objects;
 create policy "approved staff delete question PDFs" on storage.objects for delete to authenticated using (bucket_id='question-pdfs' and public.is_staff());
+
+
+-- Keep authorization helpers out of the exposed API as SECURITY DEFINER functions.
+create schema if not exists private;
+grant usage on schema private to anon, authenticated;
+create or replace function private.is_staff()
+returns boolean language sql stable security definer set search_path = public, private
+as $$ select exists (select 1 from public.profiles p where p.id=auth.uid() and p.role in ('teacher','admin') and p.approval_status='approved'); $$;
+create or replace function private.is_admin()
+returns boolean language sql stable security definer set search_path = public, private
+as $$ select exists (select 1 from public.profiles p where p.id=auth.uid() and p.role='admin' and p.approval_status='approved'); $$;
+create or replace function private.is_approved_student()
+returns boolean language sql stable security definer set search_path = public, private
+as $$ select exists (select 1 from public.profiles p where p.id=auth.uid() and p.role='student' and p.approval_status='approved'); $$;
+grant execute on function private.is_staff() to anon, authenticated;
+grant execute on function private.is_admin() to anon, authenticated;
+grant execute on function private.is_approved_student() to authenticated;
+create or replace function public.is_staff()
+returns boolean language sql stable security invoker set search_path = public, private as $$ select private.is_staff(); $$;
+create or replace function public.is_admin()
+returns boolean language sql stable security invoker set search_path = public, private as $$ select private.is_admin(); $$;
+create or replace function public.is_approved_student()
+returns boolean language sql stable security invoker set search_path = public, private as $$ select private.is_approved_student(); $$;
+grant execute on function public.is_staff() to anon, authenticated;
+grant execute on function public.is_admin() to authenticated;
+grant execute on function public.is_approved_student() to authenticated;
+
+create or replace function public.submit_and_score_attempt(
+  p_attempt_id uuid, p_answers jsonb, p_time_taken_seconds integer default 0, p_auto_submit boolean default false
+)
+returns public.attempts language plpgsql security definer set search_path = public, private
+as $$
+declare v_attempt public.attempts; v_total integer; v_attempted integer; v_correct integer; v_incorrect integer; v_unattempted integer; v_score numeric(10,2); v_max numeric(10,2);
+begin
+  if not private.is_approved_student() then raise exception 'Approved student account required'; end if;
+  select * into v_attempt from public.attempts where id=p_attempt_id and user_id=auth.uid() for update;
+  if not found then raise exception 'Attempt not found or access denied'; end if;
+  if v_attempt.status <> 'in_progress' then raise exception 'Attempt already submitted'; end if;
+  if not exists (select 1 from public.tests where id=v_attempt.test_id and status='published') then raise exception 'Test is not published'; end if;
+  if jsonb_typeof(coalesce(p_answers,'[]'::jsonb)) <> 'array' then raise exception 'Answers must be a JSON array'; end if;
+  delete from public.attempt_answers where attempt_id=p_attempt_id;
+  insert into public.attempt_answers(attempt_id,question_id,selected_option,marked_for_review)
+  select p_attempt_id,x.question_id,x.selected_option,coalesce(x.marked_for_review,false)
+  from jsonb_to_recordset(coalesce(p_answers,'[]'::jsonb)) as x(question_id uuid,selected_option integer,marked_for_review boolean)
+  join public.test_questions tq on tq.test_id=v_attempt.test_id and tq.question_id=x.question_id where x.selected_option between 0 and 5;
+  update public.attempt_answers aa set is_correct=(aa.selected_option=ak.correct_option),
+    marks_awarded=case when aa.selected_option=ak.correct_option then coalesce(tq.positive_marks,t.positive_marks) else -coalesce(tq.negative_marks,t.negative_marks) end
+  from public.question_answer_keys ak,public.test_questions tq,public.tests t
+  where aa.attempt_id=p_attempt_id and aa.question_id=ak.question_id and tq.test_id=v_attempt.test_id and tq.question_id=aa.question_id and t.id=v_attempt.test_id;
+  select count(*) into v_total from public.test_questions where test_id=v_attempt.test_id;
+  select count(*) into v_attempted from public.attempt_answers where attempt_id=p_attempt_id and selected_option is not null;
+  select count(*) into v_correct from public.attempt_answers where attempt_id=p_attempt_id and selected_option is not null and is_correct;
+  v_incorrect:=greatest(v_attempted-v_correct,0); v_unattempted:=greatest(v_total-v_attempted,0);
+  select coalesce(sum(marks_awarded),0) into v_score from public.attempt_answers where attempt_id=p_attempt_id;
+  select coalesce(sum(coalesce(tq.positive_marks,t.positive_marks)),0) into v_max from public.test_questions tq join public.tests t on t.id=tq.test_id where tq.test_id=v_attempt.test_id;
+  update public.attempts set status=case when p_auto_submit then 'auto_submitted' else 'submitted' end, submitted_at=now(),
+    time_taken_seconds=greatest(0,least(coalesce(p_time_taken_seconds,0),(select duration_minutes*60 from public.tests where id=v_attempt.test_id))),
+    total_questions=v_total,attempted_count=v_attempted,correct_count=v_correct,incorrect_count=v_incorrect,unattempted_count=v_unattempted,
+    score=v_score,max_score=v_max,accuracy=case when v_attempted=0 then 0 else round((v_correct::numeric/v_attempted)*100,2) end
+  where id=p_attempt_id returning * into v_attempt;
+  return v_attempt;
+end; $$;
+revoke execute on function public.submit_and_score_attempt(uuid,jsonb,integer,boolean) from public, anon;
+grant execute on function public.submit_and_score_attempt(uuid,jsonb,integer,boolean) to authenticated;
+
+create or replace function public.get_attempt_review(p_attempt_id uuid)
+returns table (legacy_id text, correct_option integer, explanation_en text, explanation_hi text, selected_option integer, is_correct boolean, marks_awarded numeric)
+language plpgsql security definer set search_path = public, private
+as $$
+begin
+  if not exists (select 1 from public.attempts a where a.id=p_attempt_id and (a.user_id=auth.uid() or private.is_staff()) and a.status in ('submitted','auto_submitted')) then
+    raise exception 'Submitted attempt not found or access denied';
+  end if;
+  return query select q.legacy_id,ak.correct_option,ak.explanation_en,ak.explanation_hi,aa.selected_option,aa.is_correct,aa.marks_awarded
+  from public.attempts a join public.test_questions tq on tq.test_id=a.test_id
+  join public.questions q on q.id=tq.question_id join public.question_answer_keys ak on ak.question_id=q.id
+  left join public.attempt_answers aa on aa.attempt_id=a.id and aa.question_id=q.id
+  where a.id=p_attempt_id order by tq.question_order;
+end; $$;
+revoke execute on function public.get_attempt_review(uuid) from public, anon;
+grant execute on function public.get_attempt_review(uuid) to authenticated;
