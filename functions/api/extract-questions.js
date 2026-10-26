@@ -5,6 +5,12 @@ function json(body, status = 200) {
   });
 }
 
+function normalizeOptions(value) {
+  const list = Array.isArray(value) ? value.slice(0, 4).map(v => String(v || "").slice(0, 800)) : [];
+  while (list.length < 4) list.push("");
+  return list;
+}
+
 export async function onRequestPost({ request, env }) {
   try {
     if (!env.AI) return json({ error: "Question extraction service is not enabled for this deployment." }, 503);
@@ -69,8 +75,8 @@ export async function onRequestPost({ request, env }) {
     const questions = Array.isArray(parsed.questions) ? parsed.questions.slice(0, 35).map((q) => ({
       question_en: String(q.question_en || "").slice(0, 3000),
       question_hi: String(q.question_hi || "").slice(0, 3000),
-      options_en: Array.isArray(q.options_en) ? q.options_en.slice(0, 4).map(v => String(v || "").slice(0, 800)) : ["", "", "", ""],
-      options_hi: Array.isArray(q.options_hi) ? q.options_hi.slice(0, 4).map(v => String(v || "").slice(0, 800)) : ["", "", "", ""],
+      options_en: normalizeOptions(q.options_en),
+      options_hi: normalizeOptions(q.options_hi),
       correct_option: Number.isInteger(q.correct_option) && q.correct_option >= 0 && q.correct_option <= 3 ? q.correct_option : -1,
       explanation_en: String(q.explanation_en || "").slice(0, 2000),
       explanation_hi: String(q.explanation_hi || "").slice(0, 2000)
