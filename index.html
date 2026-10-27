@@ -6461,6 +6461,81 @@ Answer Key:
           if (runButton) { runButton.disabled = true; runButton.classList.add('opacity-60'); }
           setImportProgress(2, 'Reading selected file…', file.name + ' • ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB');
           try {
+            // Persist the selected PDF to private Supabase Storage and create an import job.
+            // Extraction still uses the same local file, so upload and question review remain one workflow.
+            const client = window.gyanManchSupabase;
+            if (!client || !state.currentUser || !state.currentUser.id) {
+              throw new Error('Admin session missing. Sign in again, then choose the PDF.');
+            }
+            const sessionResult = await client.auth.getSession();
+            const accessToken = sessionResult && sessionResult.data && sessionResult.data.session && sessionResult.data.session.access_token;
+            if (!accessToken) throw new Error('Your admin session expired. Sign in again and retry.');
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '_').slice(-100) || 'question-paper.pdf';
+            const filePath = state.currentUser.id + '/' + Date.now() + '_' + safeName;
+            const supabaseUrl = window.GYAN_MANCH_SUPABASE_URL;
+            const publishableKey = window.GYAN_MANCH_SUPABASE_KEY;
+            if (!supabaseUrl || !publishableKey) throw new Error('Supabase client configuration is missing. Reload the website.');
+
+            setImportProgress(1, 'Uploading PDF to secure storage…', file.name + ' • ' + (file.size / 1048576).toFixed(2) + ' MB');
+            await new Promise(function(resolve, reject) {
+              const xhr = new XMLHttpRequest();
+              xhr.open('POST', supabaseUrl.replace(/\/$/, '') + '/storage/v1/object/question-pdfs/' + filePath.split('/').map(encodeURIComponent).join('/'));
+              xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+              xhr.setRequestHeader('apikey', publishableKey);
+              xhr.setRequestHeader('Content-Type', file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream'));
+              xhr.setRequestHeader('x-upsert', 'false');
+              xhr.upload.onprogress = function(event) {
+                if (!event.lengthComputable) return;
+                const pct = Math.max(1, Math.min(25, Math.round((event.loaded / event.total) * 25)));
+                setImportProgress(pct, 'Uploading PDF… ' + Math.round((event.loaded / event.total) * 100) + '%', (event.loaded / 1048576).toFixed(2) + ' MB of ' + (event.total / 1048576).toFixed(2) + ' MB uploaded');
+              };
+              xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) { setImportProgress(25, 'PDF uploaded successfully', 'Creating the extraction/review record…'); resolve(); return; }
+                let message = 'Storage upload failed (' + xhr.status + ').';
+                try { const body = JSON.parse(xhr.responseText); message = body.message || body.error || message; } catch (_) {}
+                reject(new Error(message));
+              };
+              xhr.onerror = function() { reject(new Error('Network error while uploading the PDF. Check connection and retry.')); };
+              xhr.onabort = function() { reject(new Error('PDF upload was cancelled.')); };
+              xhr.send(file);
+            });
+
+            let importJobId = null;
+            try {
+              const examLookup = await client.from('exams').select('id').eq('legacy_id', targetExId).maybeSingle();
+              const jobInsert = await client.from('pdf_import_jobs').insert({
+                uploaded_by: state.currentUser.id,
+                file_path: filePath,
+                original_filename: file.name,
+                status: 'extracting',
+                target_exam_id: examLookup && examLookup.data ? examLookup.data.id : null
+              }).select('id').single();
+              if (jobInsert.error) throw jobInsert.error;
+              importJobId = jobInsert.data.id;
+              window.gyanManchPdfJobId = importJobId;
+              window.gyanManchPdfFilePath = filePath;
+              window.gyanManchPdfFileName = file.name;
+            } catch (jobError) {
+              setImportProgress(27, 'PDF uploaded; preparing questions…', 'The file is saved, but the review record could not be created: ' + (jobError.message || 'database error') + '. Questions will still be extracted for review.');
+            }
+
+            async function finalizeImportJob() {
+              const paperItems = db.pdfImportQueue.filter(function(item) { return item.fileName === file.name; });
+              if (importJobId) {
+                const payload = paperItems.map(function(item) {
+                  return { question_en:item.text_en || '', question_hi:item.text_hi || '', options_en:item.options_en || [], options_hi:item.options_hi || [], correct_option:item.correctOption, explanation_en:item.explanation_en || '', explanation_hi:item.explanation_hi || '' };
+                });
+                const jobStatus = paperItems.length ? 'needs_review' : 'failed';
+                const update = await client.from('pdf_import_jobs').update({
+                  status: jobStatus,
+                  extracted_payload: payload,
+                  error_message: paperItems.length ? null : 'No questions were recognized from the uploaded PDF.'
+                }).eq('id', importJobId);
+                if (update.error) setImportProgress(99, 'Questions processed; review record sync failed', update.error.message);
+              }
+              return paperItems.length;
+            }
+
             if (!window.pdfjsLib && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
               throw new Error('PDF reader is unavailable. Connect to the internet and reload the page.');
             }
