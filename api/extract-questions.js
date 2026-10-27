@@ -86,7 +86,7 @@ export default async function handler(request, response) {
       return json(response, 403, { error: "Only approved teaching staff can extract questions." });
     }
     if (!aiApiKey) {
-      return json(response, 503, { error: "AI is not connected yet. Add AI_API_KEY or AI_GATEWAY_API_KEY to Vercel Production environment variables, then redeploy." });
+      return json(response, 503, { error: "Automatic question translation is not configured yet. Add the private provider key in Vercel environment variables, then redeploy." });
     }
 
     let body = request.body;
