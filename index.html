@@ -6456,6 +6456,7 @@ Answer Key:
             return;
           }
           const file = fileInput.files[0];
+          const queueIdsBeforeUpload = new Set(db.pdfImportQueue.map(function(item) { return item.id; }));
           const targetExId = document.getElementById('pdfTargetExamSelect').value;
           const targetSubId = document.getElementById('pdfTargetSubjectSelect').value;
           if (runButton) { runButton.disabled = true; runButton.classList.add('opacity-60'); }
@@ -6520,7 +6521,7 @@ Answer Key:
             }
 
             async function finalizeImportJob() {
-              const paperItems = db.pdfImportQueue.filter(function(item) { return item.fileName === file.name; });
+              const paperItems = db.pdfImportQueue.filter(function(item) { return !queueIdsBeforeUpload.has(item.id) && item.fileName === file.name; });
               if (importJobId) {
                 const payload = paperItems.map(function(item) {
                   return { question_en:item.text_en || '', question_hi:item.text_hi || '', options_en:item.options_en || [], options_hi:item.options_hi || [], correct_option:item.correctOption, explanation_en:item.explanation_en || '', explanation_hi:item.explanation_hi || '' };
@@ -6542,7 +6543,15 @@ Answer Key:
             if (file.type.startsWith('image/')) {
               setImportProgress(8, 'Preparing scanned paper…', 'Image selected; starting automatic text recognition.');
               await runVisualOcrOnFile(file, targetExId, targetSubId);
-              setImportProgress(100, 'Finished processing image', 'Check the question review queue before publishing.');
+              const imageAddedCount = await finalizeImportJob();
+              if (imageAddedCount > 0) {
+                state.adminActiveTab = 'pdf-import';
+                saveDatabase(db);
+                renderAdminDashboardView(document.getElementById('appMain'));
+                setImportProgress(100, 'Processing complete — ' + imageAddedCount + ' questions added', 'Open the PDF review queue and check answers before approving.');
+              } else {
+                setImportProgress(0, 'No questions were extracted from this image', 'The image was uploaded, but OCR found no usable question text. Use a clearer scan or PDF with selectable text.');
+              }
               return;
             }
             const arrayBuf = await file.arrayBuffer();
@@ -6573,7 +6582,15 @@ Answer Key:
             if (!combinedText.trim() || combinedText.trim().length < 25 || pageWithText === 0) {
               setImportProgress(72, 'Scanned PDF detected…', 'Starting automatic recognition for the scanned pages.');
               await runVisualOcrOnFile(file, targetExId, targetSubId);
-              setImportProgress(100, 'Finished processing scanned PDF', 'Check the question review queue before publishing.');
+              const scannedAddedCount = await finalizeImportJob();
+              if (scannedAddedCount > 0) {
+                state.adminActiveTab = 'pdf-import';
+                saveDatabase(db);
+                renderAdminDashboardView(document.getElementById('appMain'));
+                setImportProgress(100, 'Processing complete — ' + scannedAddedCount + ' questions added', 'Open the PDF review queue and check answers before approving.');
+              } else {
+                setImportProgress(0, 'No questions were extracted from this scanned PDF', 'The PDF was uploaded, but OCR found no usable text. Try a clearer scan or text-based PDF.');
+              }
               return;
             }
             setImportProgress(74, 'Identifying questions and answers…', 'AI is separating question text, options and answer labels.');
@@ -6584,6 +6601,7 @@ Answer Key:
               parseAllQuestionsFromText(combinedText, file.name, targetExId, targetSubId);
             }
             const addedCount = Math.max(0, db.pdfImportQueue.length - queueBefore);
+            await finalizeImportJob();
             if (addedCount === 0) {
               setImportProgress(0, 'No questions were added', 'PDF text was read, but no question blocks were recognized. Try a text-based PDF or paste its extracted text into the manual parser.');
               showToast('No questions were added. The PDF text format did not match the question parser. Try the manual text parser or share the PDF so its layout can be handled.', 'error');
