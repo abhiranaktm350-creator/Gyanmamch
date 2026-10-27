@@ -6087,6 +6087,10 @@ table{max-width:100%;border-collapse:collapse}
 
                 <!-- Single upload: questions, options and answers are read from this same paper -->
                 <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                  <div class="rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs text-blue-950">
+                    <div class="font-bold">Automatic Hindi Translation</div>
+                    <p class="mt-1">English-only question papers are supported. Questions, options and explanations will be prepared in Hindi while the original English is preserved. Review both languages and the answer key before publishing.</p>
+                  </div>
                   <label class="block font-bold text-slate-800">Upload Question Paper (PDF or image)</label>
                   <input id="inpPdfFile" type="file" accept=".pdf,image/png,image/jpeg,image/webp" class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500" />
                   <p class="text-[11px] text-slate-600">One upload only. Questions, options and answers written below each question (A/B/C/D) will be read from the same file. Review answers before publishing.</p>
@@ -7136,14 +7140,28 @@ Answer Key:
 
           const extractedItems = [];
           for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
-            const extractionResult = await client.functions.invoke('extract-questions', {
-              body: {
-                text: chunks[chunkIndex].slice(0, 18000),
-                answer_key: String(answerKeyText || '').slice(0, 12000),
-                chunk_number: chunkIndex + 1,
-                total_chunks: chunks.length
-              }
-            });
+            let extractionResult;
+            try {
+              const apiResponse = await fetch('/api/extract-questions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + accessToken
+                },
+                body: JSON.stringify({
+                  text: chunks[chunkIndex].slice(0, 18000),
+                  answer_key: String(answerKeyText || '').slice(0, 12000),
+                  chunk_number: chunkIndex + 1,
+                  total_chunks: chunks.length
+                })
+              });
+              const apiPayload = await apiResponse.json().catch(() => ({}));
+              extractionResult = apiResponse.ok
+                ? { data: apiPayload, error: null }
+                : { data: null, error: { message: apiPayload.error || 'Question extraction request failed (' + apiResponse.status + ').' } };
+            } catch (requestError) {
+              extractionResult = { data: null, error: requestError };
+            }
             if (extractionResult.error) {
               let failureMessage = extractionResult.error.message || 'Request failed';
               try {
