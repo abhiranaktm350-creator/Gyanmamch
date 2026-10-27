@@ -6233,14 +6233,16 @@ table{max-width:100%;border-collapse:collapse}
                         </div>
                       </div>
 
-                      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-3 text-xs">
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3 text-xs">
                         ${[0, 1, 2, 3, 4].map(idx => `
-                          <div>
-                            <label class="block text-[11px] font-semibold text-slate-500">Option ${['A','B','C','D','E'][idx]}</label>
-                            <input type="text" data-stg-opt="${idx}" data-stg-id="${item.id}" value="${escapeHtml(item.options_en[idx] || '')}" class="stg-opt-inp w-full rounded border border-slate-300 px-2 py-1 bg-white" />
+                          <div class="rounded-lg border border-slate-200 bg-white p-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Option ${['A','B','C','D','E'][idx]} — English</label>
+                            <input type="text" data-stg-opt-en="${idx}" data-stg-id="${item.id}" value="${escapeHtml(item.options_en[idx] || '')}" class="stg-opt-en-inp w-full rounded border border-slate-300 px-2 py-1.5 bg-white mb-2" placeholder="English option ${['A','B','C','D','E'][idx]}" />
+                            <label class="block text-xs font-bold text-indigo-700 mb-1 hindi-text">विकल्प ${['A','B','C','D','E'][idx]} — हिंदी</label>
+                            <input type="text" data-stg-opt-hi="${idx}" data-stg-id="${item.id}" value="${escapeHtml((item.options_hi && item.options_hi[idx]) || '')}" class="stg-opt-hi-inp w-full rounded border border-indigo-300 px-2 py-1.5 bg-white hindi-text" placeholder="हिंदी विकल्प ${['A','B','C','D','E'][idx]}" />
                           </div>
                         `).join('')}
-                        <div>
+                        <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-2">
                           <label class="block text-[11px] font-bold text-indigo-700">Answer Key</label>
                           <select data-stg-ans="${item.id}" class="stg-ans-sel w-full rounded border border-indigo-300 px-2 py-1 bg-white font-bold">
                             <option value="-1" ${item.correctOption === null || item.correctOption === -1 ? 'selected' : ''}>Select Answer Key</option>
@@ -6282,14 +6284,17 @@ table{max-width:100%;border-collapse:collapse}
           });
         });
 
-        pane.querySelectorAll('.stg-opt-inp').forEach(function(inp) {
+        pane.querySelectorAll('.stg-opt-en-inp, .stg-opt-hi-inp').forEach(function(inp) {
           inp.addEventListener('input', function() {
             const id = inp.getAttribute('data-stg-id');
-            const idx = Number(inp.getAttribute('data-stg-opt'));
+            const isHindi = inp.classList.contains('stg-opt-hi-inp');
+            const idx = Number(inp.getAttribute(isHindi ? 'data-stg-opt-hi' : 'data-stg-opt-en'));
             const it = db.pdfImportQueue.find(x => x.id === id);
-            if (it) {
-              it.options_en[idx] = inp.value;
-              it.options_hi[idx] = inp.value;
+            if (it && Number.isInteger(idx) && idx >= 0 && idx <= 4) {
+              if (!Array.isArray(it.options_en)) it.options_en = ['', '', '', '', ''];
+              if (!Array.isArray(it.options_hi)) it.options_hi = ['', '', '', '', ''];
+              it.options_en[idx] = isHindi ? (it.options_en[idx] || '') : inp.value;
+              it.options_hi[idx] = isHindi ? inp.value : (it.options_hi[idx] || '');
               saveDatabase(db);
             }
           });
@@ -6948,6 +6953,15 @@ Answer Key:
             const batchFileName = db.pdfImportQueue[0] ? db.pdfImportQueue[0].fileName : 'Imported PDF Paper';
             // Keep one uploaded paper as one test. Do not accidentally merge staged questions from other PDFs.
             const currentPaperItems = db.pdfImportQueue.filter(item => item.fileName === batchFileName && item.examId === exam.id);
+            const missingHindiOptionItem = currentPaperItems.find(item => {
+              const en = Array.isArray(item.options_en) ? item.options_en : [];
+              const hi = Array.isArray(item.options_hi) ? item.options_hi : [];
+              return en.slice(0, 5).some((value, idx) => String(value || '').trim() && !String(hi[idx] || '').trim());
+            });
+            if (missingHindiOptionItem) {
+              showToast('Hindi options are missing in one or more questions. Fill every Hindi option in the review queue before publishing this PDF.', 'error');
+              return;
+            }
             const normalizeApprovedQuestion = (value) => String(value || '').toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
             let skippedDuplicates = 0;
 
@@ -6971,7 +6985,7 @@ Answer Key:
                 text_en: item.text_en,
                 text_hi: item.text_hi || item.text_en,
                 options_en: item.options_en,
-                options_hi: item.options_hi || item.options_en,
+                options_hi: Array.isArray(item.options_hi) ? item.options_hi : [],
                 correctOption: Number(item.correctOption),
                 marks: Number(item.marks !== undefined ? item.marks : (exam.posMarks !== undefined ? exam.posMarks : 2.0)),
                 negativeMarks: Number(item.negativeMarks !== undefined ? item.negativeMarks : (exam.negMarks !== undefined ? exam.negMarks : 0.50)),
@@ -7066,6 +7080,13 @@ Answer Key:
               showToast('Please select the Answer Key (Option A/B/C/D) before approving.', 'error');
               return;
             }
+            const optionEn = Array.isArray(item.options_en) ? item.options_en : [];
+            const optionHi = Array.isArray(item.options_hi) ? item.options_hi : [];
+            const missingHindiOptions = optionEn.slice(0, 5).some((value, idx) => String(value || '').trim() && !String(optionHi[idx] || '').trim());
+            if (missingHindiOptions) {
+              showToast('Hindi option translation missing. Fill the Hindi field for every English option before approving.', 'error');
+              return;
+            }
 
             const newQId = 'q_imp_' + Date.now();
             db.questions.unshift({
@@ -7076,7 +7097,7 @@ Answer Key:
               text_en: item.text_en,
               text_hi: item.text_hi || item.text_en,
               options_en: item.options_en,
-              options_hi: item.options_hi || item.options_en,
+              options_hi: Array.isArray(item.options_hi) ? item.options_hi : [],
               correctOption: Number(item.correctOption),
               marks: Number(item.marks || 2.0),
               negativeMarks: Number(item.negativeMarks || 0.5),
@@ -7227,7 +7248,7 @@ Answer Key:
               examId: exam.id,
               subjectId: mode === 'full_mock' ? suggested.subjectId : (targetSubjectId || suggested.subjectId),
               subjectSuggestion: suggested.subjectId, subjectConfidence: suggested.confidence, chapterId: 'ch_polity',
-              text_en: textEn, text_hi: textHi || textEn, options_en: optionsEn, options_hi: optionsHi.map((v,i) => v || optionsEn[i] || ''),
+              text_en: textEn, text_hi: textHi || textEn, options_en: optionsEn, options_hi: optionsHi,
               correctOption,
               marks, negativeMarks: negative,
               explanation_en: String(item.explanation_en || ''), explanation_hi: String(item.explanation_hi || ''),
