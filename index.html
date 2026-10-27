@@ -7248,7 +7248,7 @@ Answer Key:
               examId: exam.id,
               subjectId: mode === 'full_mock' ? suggested.subjectId : (targetSubjectId || suggested.subjectId),
               subjectSuggestion: suggested.subjectId, subjectConfidence: suggested.confidence, chapterId: 'ch_polity',
-              text_en: textEn, text_hi: textHi || textEn, options_en: optionsEn, options_hi: optionsHi.map((v,i) => v || optionsEn[i] || ''),
+              text_en: textEn, text_hi: textHi || textEn, options_en: optionsEn, options_hi: optionsHi,
               correctOption,
               marks, negativeMarks: negative,
               explanation_en: String(item.explanation_en || ''), explanation_hi: String(item.explanation_hi || ''),
