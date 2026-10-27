@@ -6461,7 +6461,7 @@ Answer Key:
           const targetExId = document.getElementById('pdfTargetExamSelect').value;
           const targetSubId = document.getElementById('pdfTargetSubjectSelect').value;
           if (runButton) { runButton.disabled = true; runButton.classList.add('opacity-60'); }
-          setImportProgress(2, 'Reading selected file…', file.name + ' • ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB');
+          setImportProgress(0, 'Preparing secure upload…', file.name + ' • ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB');
           try {
             // Persist the selected PDF to private Supabase Storage and create an import job.
             // Extraction still uses the same local file, so upload and question review remain one workflow.
@@ -6556,12 +6556,12 @@ Answer Key:
               return;
             }
             const arrayBuf = await file.arrayBuffer();
-            setImportProgress(5, 'Opening PDF…', 'Reading PDF page count.');
+            setImportProgress(29, 'Opening PDF…', 'Reading PDF page count.');
             const pdf = await window.pdfjsLib.getDocument({ data: arrayBuf }).promise;
             let fullLines = [];
             let pageWithText = 0;
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-              setImportProgress(8 + (pageNum - 1) / pdf.numPages * 62, 'Reading PDF page ' + pageNum + ' of ' + pdf.numPages + '…', 'Extracting text, options and any answer labels from the same PDF.');
+              setImportProgress(30 + (pageNum - 1) / Math.max(1, pdf.numPages) * 40, 'Reading PDF page ' + pageNum + ' of ' + pdf.numPages + '…', 'Extracting text, options and any answer labels from the same PDF.');
               const page = await pdf.getPage(pageNum);
               const content = await page.getTextContent();
               const rowMap = {};
@@ -6622,7 +6622,7 @@ Answer Key:
             setImportProgress(0, 'Upload / extraction failed', errorMessage + ' If the PDF was uploaded, select it again after fixing the issue.');
             showToast('PDF Extraction Error: ' + errorMessage, 'error');
           } finally {
-            if (runButton) { runButton.disabled = false; runButton.classList.remove('opacity-60'); }
+            if (runButton) { runButton.disabled = false; runButton.classList.remove('opacity-60'); runButton.textContent = '📄 Upload & Create Questions'; }
           }
         };
         document.getElementById('btnRunPdfExtraction').addEventListener('click', window.gyanManchRunPdfExtraction);
