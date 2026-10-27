@@ -7201,12 +7201,16 @@ Answer Key:
               examId: exam.id,
               subjectId: mode === 'full_mock' ? suggested.subjectId : (targetSubjectId || suggested.subjectId),
               subjectSuggestion: suggested.subjectId, subjectConfidence: suggested.confidence, chapterId: 'ch_polity',
-              text_en: textEn, text_hi: textHi || textEn, options_en: optionsEn, options_hi: optionsHi.map((v,i) => v || optionsEn[i] || ''),
+              text_en: textEn, text_hi: textHi, options_en: optionsEn, options_hi: optionsHi,
               correctOption,
               marks, negativeMarks: negative,
               explanation_en: String(item.explanation_en || ''), explanation_hi: String(item.explanation_hi || ''),
               sourceType: 'admin_created', verificationStatus: 'needs_review', isDuplicate: duplicate,
-              extractionWarning: correctOption >= 0 ? null : 'Answer not confidently identified. Please select the correct option before publishing.'
+              extractionWarning: [
+                (!textHi.trim() ? 'Hindi question translation is missing. Add/review the Hindi translation before publishing.' : ''),
+                optionsEn.some((v, i) => String(v || '').trim() && !String(optionsHi[i] || '').trim()) ? 'One or more Hindi options are missing. Complete the translation before publishing.' : '',
+                correctOption < 0 ? 'Answer not confidently identified. Please select the correct option before publishing.' : ''
+              ].filter(Boolean).join(' ') || null
             });
             staged++;
           });
