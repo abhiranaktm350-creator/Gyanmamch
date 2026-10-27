@@ -6368,11 +6368,16 @@ table{max-width:100%;border-collapse:collapse}
               // One upload action should continue directly into extraction; no second button tap needed.
               if (progressPanel) showUploadProgress(100, 'PDF uploaded — starting extraction…', 'The same file is now being read for questions, options and inline answers.');
               setTimeout(function() {
+                const extractionButton = document.getElementById('btnRunPdfExtraction');
                 if (typeof window.gyanManchRunPdfExtraction === 'function') {
                   window.gyanManchRunPdfExtraction();
+                } else if (extractionButton) {
+                  // Fallback to the visible extraction control if the named handler has not been exposed yet.
+                  extractionButton.click();
+                  showUploadProgress(100, 'PDF uploaded — extraction requested', 'If questions do not appear, use the button below to retry.');
                 } else {
-                  showUploadProgress(0, 'Extraction did not start', 'Reload the page and try again.');
-                  showToast('Question extraction handler is not ready. Reload the page and retry.', 'error');
+                  showUploadProgress(0, 'Extraction could not start', 'The extraction control is missing from this view. Reopen the PDF Import tab.');
+                  showToast('PDF uploaded, but the extraction control is not available. Reopen PDF Import and retry.', 'error');
                 }
               }, 150);
             } catch (error) {
