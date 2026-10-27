@@ -6320,15 +6320,46 @@ table{max-width:100%;border-collapse:collapse}
             if (status) status.textContent = 'File selected — starting extraction automatically…';
             if (detail) detail.textContent = file.name + ' • ' + (file.size / 1048576).toFixed(2) + ' MB. Keep this page open while questions are created.';
             if (percent) percent.textContent = 'Starting';
-            // Auto-run once after the whole page has initialized. No second upload or extra click is required.
+            // Auto-start robustly: some mobile browsers return a different File wrapper
+            // on a later FileList read, so do not compare File objects by identity.
+            // Also allow the app's extraction handler a short time to finish initializing.
             if (window.gyanManchPdfAutoRunTimer) clearTimeout(window.gyanManchPdfAutoRunTimer);
-            window.gyanManchPdfAutoRunTimer = setTimeout(function() {
-              if (pdfFileInput.files && pdfFileInput.files[0] === file && typeof window.gyanManchRunPdfExtraction === 'function') {
-                window.gyanManchRunPdfExtraction();
-              } else {
-                if (status) status.textContent = 'Could not start extraction — reload the page and select the PDF again.';
+            const startSelectedPdf = function(attempt) {
+              const currentInput = document.getElementById('inpPdfFile');
+              const currentFile = currentInput && currentInput.files && currentInput.files[0];
+              if (!currentFile) {
+                if (status) status.textContent = 'The selected file is no longer available. Please select the PDF again.';
                 if (runButton) runButton.textContent = '📄 Retry PDF Extraction';
+                return;
               }
+              if (typeof window.gyanManchRunPdfExtraction === 'function') {
+                try {
+                  const result = window.gyanManchRunPdfExtraction();
+                  if (result && typeof result.catch === 'function') {
+                    result.catch(function(error) {
+                      console.error('Automatic PDF extraction failed:', error);
+                      if (status) status.textContent = 'Extraction could not start. Tap Retry PDF Extraction.';
+                      if (runButton) runButton.textContent = '📄 Retry PDF Extraction';
+                    });
+                  }
+                } catch (error) {
+                  console.error('Automatic PDF extraction failed:', error);
+                  if (status) status.textContent = 'Extraction could not start. Tap Retry PDF Extraction.';
+                  if (runButton) runButton.textContent = '📄 Retry PDF Extraction';
+                }
+                return;
+              }
+              if (attempt < 20) {
+                window.gyanManchPdfAutoRunTimer = setTimeout(function() {
+                  startSelectedPdf(attempt + 1);
+                }, 250);
+                return;
+              }
+              if (status) status.textContent = 'PDF extraction engine did not initialize. Reload the page, then retry.';
+              if (runButton) runButton.textContent = '📄 Retry PDF Extraction';
+            };
+            window.gyanManchPdfAutoRunTimer = setTimeout(function() {
+              startSelectedPdf(0);
             }, 150);
           });
         }
