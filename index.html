@@ -6310,7 +6310,26 @@ table{max-width:100%;border-collapse:collapse}
             if (status) status.textContent = 'File selected — ready to extract';
             if (percent) percent.textContent = '0%';
             if (bar) bar.style.width = '0%';
-            if (detail) detail.textContent = file.name + ' • ' + (file.size / 1048576).toFixed(2) + ' MB. Tap “Upload & Create Questions” to process this same file.';
+            if (detail) detail.textContent = file.name + ' • ' + (file.size / 1048576).toFixed(2) + ' MB. Extraction will start automatically.';
+            // One file selection should start the whole import flow; the button remains available for retries.
+            const runButton = document.getElementById('btnRunPdfExtraction');
+            if (runButton) {
+              runButton.disabled = true;
+              runButton.classList.add('opacity-60');
+            }
+            window.setTimeout(function() {
+              if (typeof window.gyanManchRunPdfExtraction === 'function') {
+                window.gyanManchRunPdfExtraction();
+              } else {
+                if (runButton) {
+                  runButton.disabled = false;
+                  runButton.classList.remove('opacity-60');
+                }
+                if (status) status.textContent = 'Extractor did not load — reload the page and choose the file again.';
+                if (percent) percent.textContent = 'Error';
+                showToast('Question extractor is not ready. Reload the page and try again.', 'error');
+              }
+            }, 300);
           });
         }
 
