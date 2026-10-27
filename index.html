@@ -6954,12 +6954,15 @@ Answer Key:
             // Keep one uploaded paper as one test. Do not accidentally merge staged questions from other PDFs.
             const currentPaperItems = db.pdfImportQueue.filter(item => item.fileName === batchFileName && item.examId === exam.id);
             const missingHindiOptionItem = currentPaperItems.find(item => {
+              const questionEn = String(item.text_en || '').trim();
+              const questionHi = String(item.text_hi || '').trim();
+              if (questionEn && (!questionHi || questionHi === questionEn)) return true;
               const en = Array.isArray(item.options_en) ? item.options_en : [];
               const hi = Array.isArray(item.options_hi) ? item.options_hi : [];
-              return en.slice(0, 5).some((value, idx) => String(value || '').trim() && !String(hi[idx] || '').trim());
+              return en.slice(0, 5).some((value, idx) => String(value || '').trim() && (!String(hi[idx] || '').trim() || String(hi[idx] || '').trim() === String(value || '').trim()));
             });
             if (missingHindiOptionItem) {
-              showToast('Hindi options are missing in one or more questions. Fill every Hindi option in the review queue before publishing this PDF.', 'error');
+              showToast('Hindi question/options are missing or untranslated. Fill every Hindi field in the review queue before publishing this PDF.', 'error');
               return;
             }
             const normalizeApprovedQuestion = (value) => String(value || '').toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
@@ -7080,9 +7083,13 @@ Answer Key:
               showToast('Please select the Answer Key (Option A/B/C/D) before approving.', 'error');
               return;
             }
+            if (String(item.text_en || '').trim() && (!String(item.text_hi || '').trim() || String(item.text_hi || '').trim() === String(item.text_en || '').trim())) {
+              showToast('Hindi question translation missing. Fill the Hindi question before approving.', 'error');
+              return;
+            }
             const optionEn = Array.isArray(item.options_en) ? item.options_en : [];
             const optionHi = Array.isArray(item.options_hi) ? item.options_hi : [];
-            const missingHindiOptions = optionEn.slice(0, 5).some((value, idx) => String(value || '').trim() && !String(optionHi[idx] || '').trim());
+            const missingHindiOptions = optionEn.slice(0, 5).some((value, idx) => String(value || '').trim() && (!String(optionHi[idx] || '').trim() || String(optionHi[idx] || '').trim() === String(value || '').trim()));
             if (missingHindiOptions) {
               showToast('Hindi option translation missing. Fill the Hindi field for every English option before approving.', 'error');
               return;
@@ -7248,7 +7255,7 @@ Answer Key:
               examId: exam.id,
               subjectId: mode === 'full_mock' ? suggested.subjectId : (targetSubjectId || suggested.subjectId),
               subjectSuggestion: suggested.subjectId, subjectConfidence: suggested.confidence, chapterId: 'ch_polity',
-              text_en: textEn, text_hi: textHi || textEn, options_en: optionsEn, options_hi: optionsHi,
+              text_en: textEn, text_hi: textHi, options_en: optionsEn, options_hi: optionsHi,
               correctOption,
               marks, negativeMarks: negative,
               explanation_en: String(item.explanation_en || ''), explanation_hi: String(item.explanation_hi || ''),
