@@ -5381,12 +5381,33 @@ table{max-width:100%;border-collapse:collapse}
         });
 
         pane.querySelectorAll('.btn-del-test').forEach(function(btn) {
-          btn.addEventListener('click', function() {
+          btn.addEventListener('click', async function() {
             const tId = btn.getAttribute('data-del-test');
-            db.tests = db.tests.filter(x => x.id !== tId);
-            saveDatabase(db);
-            showToast('Test deleted.', 'info');
-            renderAdminCatalogueTab(pane);
+            const target = db.tests.find(x => x.id === tId);
+            if (!target) return;
+            const confirmed = window.confirm('Delete "' + (target.title || 'this test') + '" from the student test catalogue? It will no longer appear to students. Existing attempt history will be retained.');
+            if (!confirmed) return;
+            btn.disabled = true;
+            btn.textContent = 'Deleting…';
+            try {
+              const client = window.gyanManchSupabase;
+              if (client && state.currentUser && state.currentUser.role === 'admin') {
+                // Archive the shared test instead of hard-deleting it, so historical attempts remain valid.
+                const remote = await client.from('tests')
+                  .update({ status: 'archived', published_at: null })
+                  .eq('legacy_id', tId)
+                  .select('id');
+                if (remote.error) throw remote.error;
+              }
+              db.tests = db.tests.filter(x => x.id !== tId);
+              saveDatabase(db);
+              showToast('Test removed from the student catalogue. Existing attempt history is preserved.', 'success');
+              renderAdminCatalogueTab(pane);
+            } catch (error) {
+              btn.disabled = false;
+              btn.textContent = 'Delete';
+              showToast('Could not delete this shared test: ' + (error && error.message ? error.message : 'Check administrator permissions and retry.'), 'error');
+            }
           });
         });
       }
@@ -6965,6 +6986,11 @@ Answer Key:
               createdQIds.push(newQId);
             });
 
+            const untranslated = currentPaperItems.find(item => !String(item.text_hi || '').trim() || (item.options_en || []).some((v, i) => String(v || '').trim() && !String((item.options_hi || [])[i] || '').trim()));
+            if (untranslated) {
+              showToast('Hindi translation is missing for one or more questions/options. Review or re-import the paper before publishing.', 'error');
+              return;
+            }
             const selectedMode = (document.getElementById('pdfTargetModeSelect') && document.getElementById('pdfTargetModeSelect').value) || 'full_mock';
             const selectedSubId = (document.getElementById('pdfTargetSubjectSelect') && document.getElementById('pdfTargetSubjectSelect').value) || 'sub_ga';
             const selectedChapId = (document.getElementById('pdfTargetChapterSelect') && document.getElementById('pdfTargetChapterSelect').value) || 'ch_geog';
@@ -7040,7 +7066,11 @@ Answer Key:
             const item = db.pdfImportQueue.find(x => x.id === stgId);
             if (!item) return;
 
-            if (item.correctOption === null || item.correctOption < 0 || item.correctOption > 4) {
+            if (!String(item.text_hi || '').trim() || (item.options_en || []).some((v, i) => String(v || '').trim() && !String((item.options_hi || [])[i] || '').trim())) {
+              showToast('Hindi translation is missing. Complete the Hindi question and all Hindi options before approving.', 'error');
+              return;
+            }
+            if (item.correctOption === null || item.correctOption < 0 || item.correctOption > 3) {
               showToast('Please select the Answer Key (Option A/B/C/D) before approving.', 'error');
               return;
             }
