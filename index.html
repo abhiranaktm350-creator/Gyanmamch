@@ -462,6 +462,38 @@ table{max-width:100%;border-collapse:collapse}
     #mainHeader #btnMobileMenu svg { stroke:#1558a6 !important; }
   </style>
 
+
+  <!-- Mobile layout: stack list items vertically and remove the side hamburger menu. -->
+  <style id="gm-mobile-vertical-lists-and-hide-menu">
+    @media (max-width: 767px) {
+      /* Lists should read top-to-bottom on phones, not as horizontal rows. */
+      #appMain ul,
+      #appMain ol,
+      #appMain [role="list"] {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100%;
+        min-width: 0;
+      }
+      #appMain ul > li,
+      #appMain ol > li,
+      #appMain [role="list"] > [role="listitem"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+      }
+      /* Hide the three-line menu icon/button across all pages on mobile. */
+      #mainHeader #btnMobileMenu,
+      #mainHeader #hdrBtnMenu,
+      #headerAuthArea #btnMobileMenu,
+      #headerAuthArea #hdrBtnMenu {
+        display: none !important;
+      }
+    }
+  </style>
+
 </head>
 <body class="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
 
