@@ -6311,17 +6311,25 @@ table{max-width:100%;border-collapse:collapse}
             if (percent) percent.textContent = '0%';
             if (bar) bar.style.width = '0%';
             if (detail) detail.textContent = file.name + ' • ' + (file.size / 1048576).toFixed(2) + ' MB. Extraction will start automatically.';
-            // Avoid relying on a window-global function that can be unavailable in cached/partial page loads.
-            // The button's registered handler is the single source of truth for extraction and error reporting.
             const runButton = document.getElementById('btnRunPdfExtraction');
             if (runButton) {
               runButton.disabled = false;
               runButton.classList.remove('opacity-60');
-              runButton.textContent = '📄 Upload & Create Questions';
+              runButton.textContent = '📄 Processing PDF…';
             }
-            if (status) status.textContent = 'File ready — tap “Upload & Create Questions” to start extraction.';
-            if (detail) detail.textContent = file.name + ' • ' + (file.size / 1048576).toFixed(2) + ' MB. Your file is selected; extraction has not started yet.';
-            if (percent) percent.textContent = 'Ready';
+            if (status) status.textContent = 'File selected — starting extraction automatically…';
+            if (detail) detail.textContent = file.name + ' • ' + (file.size / 1048576).toFixed(2) + ' MB. Keep this page open while questions are created.';
+            if (percent) percent.textContent = 'Starting';
+            // Auto-run once after the whole page has initialized. No second upload or extra click is required.
+            if (window.gyanManchPdfAutoRunTimer) clearTimeout(window.gyanManchPdfAutoRunTimer);
+            window.gyanManchPdfAutoRunTimer = setTimeout(function() {
+              if (pdfFileInput.files && pdfFileInput.files[0] === file && typeof window.gyanManchRunPdfExtraction === 'function') {
+                window.gyanManchRunPdfExtraction();
+              } else {
+                if (status) status.textContent = 'Could not start extraction — reload the page and select the PDF again.';
+                if (runButton) runButton.textContent = '📄 Retry PDF Extraction';
+              }
+            }, 150);
           });
         }
 
