@@ -6295,97 +6295,22 @@ table{max-width:100%;border-collapse:collapse}
         const pdfChapSel = document.getElementById('pdfTargetChapterSelect');
         const pdfFileInput = document.getElementById('inpPdfFile');
         if (pdfFileInput) {
-          pdfFileInput.addEventListener('change', async function() {
+          // Selecting a file only prepares it. The single “Upload & Create Questions” action
+          // reads it locally and sends extracted text to the question extractor; it must not
+          // create a separate storage job that can fail before questions are staged.
+          pdfFileInput.addEventListener('change', function() {
             const file = pdfFileInput.files && pdfFileInput.files[0];
             if (!file) return;
-            if (!window.gyanManchSupabase || !state.currentUser || !['admin','teacher'].includes(state.currentUser.role)) {
-              showToast('Sign in as an approved administrator before uploading question papers.', 'error');
-              pdfFileInput.value = '';
-              return;
-            }
-            const buttons = ['btnRunPdfExtraction','btnRunOcrPaperScan'].map(id => document.getElementById(id)).filter(Boolean);
-            buttons.forEach(b => { b.disabled = true; });
-            const progressPanel = document.getElementById('pdfImportProgressPanel');
-            const progressStatus = document.getElementById('pdfImportProgressStatus');
-            const progressPercent = document.getElementById('pdfImportProgressPercent');
-            const progressBar = document.getElementById('pdfImportProgressBar');
-            const progressDetail = document.getElementById('pdfImportProgressDetail');
-            function showUploadProgress(percent, status, detail) {
-              if (progressPanel) progressPanel.classList.remove('hidden');
-              if (progressStatus) progressStatus.textContent = status;
-              if (progressPercent) progressPercent.textContent = Math.round(percent) + '%';
-              if (progressBar) progressBar.style.width = Math.round(percent) + '%';
-              if (progressDetail) progressDetail.textContent = detail || '';
-            }
-            try {
-              const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g,'_').slice(-120);
-              const path = state.currentUser.id + '/' + Date.now() + '_' + safeName;
-              const sessionResult = await window.gyanManchSupabase.auth.getSession();
-              const accessToken = sessionResult && sessionResult.data && sessionResult.data.session && sessionResult.data.session.access_token;
-              if (!accessToken) throw new Error('Session expired. Please log in again.');
-              const supabaseUrl = (window.GYAN_MANCH_SUPABASE_URL || window.SUPABASE_URL || '').replace(/\/$/, '');
-              const publishableKey = window.GYAN_MANCH_SUPABASE_KEY || window.SUPABASE_PUBLISHABLE_KEY || '';
-              if (!supabaseUrl || !publishableKey) {
-                // SDK upload fallback: upload still works, but browser cannot expose byte-level progress.
-                showUploadProgress(5, 'Uploading PDF…', file.name + ' • ' + (file.size / 1048576).toFixed(2) + ' MB');
-                const fallbackUpload = await window.gyanManchSupabase.storage.from('question-pdfs').upload(path,file,{upsert:false,contentType:file.type || 'application/pdf'});
-                if (fallbackUpload.error) throw fallbackUpload.error;
-                showUploadProgress(100, 'PDF uploaded', 'Saved privately. Next, select “Upload & Create Questions”.');
-              } else {
-                await new Promise(function(resolve, reject) {
-                  const xhr = new XMLHttpRequest();
-                  xhr.open('POST', supabaseUrl + '/storage/v1/object/question-pdfs/' + path.split('/').map(encodeURIComponent).join('/'));
-                  xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-                  xhr.setRequestHeader('apikey', publishableKey);
-                  xhr.setRequestHeader('Content-Type', file.type || 'application/pdf');
-                  xhr.setRequestHeader('x-upsert', 'false');
-                  xhr.upload.onprogress = function(event) {
-                    if (event.lengthComputable) showUploadProgress((event.loaded / event.total) * 100, 'Uploading PDF… ' + Math.round((event.loaded / event.total) * 100) + '%', (event.loaded / 1048576).toFixed(2) + ' MB of ' + (event.total / 1048576).toFixed(2) + ' MB uploaded');
-                  };
-                  xhr.onload = function() {
-                    if (xhr.status >= 200 && xhr.status < 300) { showUploadProgress(100, 'PDF uploaded', 'Saved privately. Next, select “Upload & Create Questions”.'); resolve(); }
-                    else {
-                      let msg = 'Storage upload failed (' + xhr.status + ')';
-                      try { const body = JSON.parse(xhr.responseText); if (body.message) msg = body.message; else if (body.error) msg = body.error; } catch (_) {}
-                      reject(new Error(msg));
-                    }
-                  };
-                  xhr.onerror = function() { reject(new Error('Network error while uploading PDF.')); };
-                  xhr.onabort = function() { reject(new Error('PDF upload cancelled.')); };
-                  xhr.send(file);
-                });
-              }
-              const examLookup = await window.gyanManchSupabase.from('exams').select('id').eq('legacy_id',pdfExSel ? pdfExSel.value : '').maybeSingle();
-              if (examLookup.error) throw examLookup.error;
-              const job = await window.gyanManchSupabase.from('pdf_import_jobs').insert({
-                uploaded_by:state.currentUser.id, file_path:path, original_filename:file.name, status:'uploaded', target_exam_id:examLookup.data ? examLookup.data.id : null
-              }).select('id').single();
-              if (job.error) throw job.error;
-              window.gyanManchPdfJobId = job.data.id;
-              window.gyanManchPdfFilePath = path;
-              window.gyanManchPdfFileName = file.name;
-              showToast('PDF uploaded. Starting question extraction automatically…', 'success');
-              // One upload action should continue directly into extraction; no second button tap needed.
-              if (progressPanel) showUploadProgress(100, 'PDF uploaded — starting extraction…', 'The same file is now being read for questions, options and inline answers.');
-              setTimeout(function() {
-                const extractionButton = document.getElementById('btnRunPdfExtraction');
-                if (typeof window.gyanManchRunPdfExtraction === 'function') {
-                  window.gyanManchRunPdfExtraction();
-                } else if (extractionButton) {
-                  // Fallback to the visible extraction control if the named handler has not been exposed yet.
-                  extractionButton.click();
-                  showUploadProgress(100, 'PDF uploaded — extraction requested', 'If questions do not appear, use the button below to retry.');
-                } else {
-                  showUploadProgress(0, 'Extraction could not start', 'The extraction control is missing from this view. Reopen the PDF Import tab.');
-                  showToast('PDF uploaded, but the extraction control is not available. Reopen PDF Import and retry.', 'error');
-                }
-              }, 150);
-            } catch (error) {
-              showUploadProgress(0, 'Upload failed', error.message || 'Please retry.');
-              showToast('Private upload failed: ' + (error.message || 'Please retry.'), 'error');
-            } finally {
-              buttons.forEach(b => { b.disabled = false; });
-            }
+            const panel = document.getElementById('pdfImportProgressPanel');
+            const status = document.getElementById('pdfImportProgressStatus');
+            const percent = document.getElementById('pdfImportProgressPercent');
+            const bar = document.getElementById('pdfImportProgressBar');
+            const detail = document.getElementById('pdfImportProgressDetail');
+            if (panel) panel.classList.remove('hidden');
+            if (status) status.textContent = 'File selected — ready to extract';
+            if (percent) percent.textContent = '0%';
+            if (bar) bar.style.width = '0%';
+            if (detail) detail.textContent = file.name + ' • ' + (file.size / 1048576).toFixed(2) + ' MB. Tap “Upload & Create Questions” to process this same file.';
           });
         }
 
