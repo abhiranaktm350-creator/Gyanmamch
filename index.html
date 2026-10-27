@@ -6424,7 +6424,8 @@ table{max-width:100%;border-collapse:collapse}
         });
 
         // Load 5-Question Multi-Page Sample Paper with End-of-Paper Answer Key
-        document.getElementById('btnSimulateBilingualPdf').addEventListener('click', function() {
+        const btnSimulateBilingualPdf = document.getElementById('btnSimulateBilingualPdf');
+        if (btnSimulateBilingualPdf) btnSimulateBilingualPdf.addEventListener('click', function() {
           const multiQSample = `
 1. Where is the headquarters of the Forest Research Institute (FRI) located in Uttarakhand? / उत्तराखंड में वन अनुसंधान संस्थान (FRI) का मुख्यालय कहाँ स्थित है?
 (A) Dehradun / देहरादून
