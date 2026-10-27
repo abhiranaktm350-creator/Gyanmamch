@@ -7140,28 +7140,14 @@ Answer Key:
 
           const extractedItems = [];
           for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
-            let extractionResult;
-            try {
-              const apiResponse = await fetch('/api/extract-questions', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': 'Bearer ' + accessToken
-                },
-                body: JSON.stringify({
-                  text: chunks[chunkIndex].slice(0, 18000),
-                  answer_key: String(answerKeyText || '').slice(0, 12000),
-                  chunk_number: chunkIndex + 1,
-                  total_chunks: chunks.length
-                })
-              });
-              const apiPayload = await apiResponse.json().catch(() => ({}));
-              extractionResult = apiResponse.ok
-                ? { data: apiPayload, error: null }
-                : { data: null, error: { message: apiPayload.error || 'Question extraction request failed (' + apiResponse.status + ').' } };
-            } catch (requestError) {
-              extractionResult = { data: null, error: requestError };
-            }
+            const extractionResult = await client.functions.invoke('extract-questions-preview', {
+              body: {
+                text: chunks[chunkIndex].slice(0, 18000),
+                answer_key: String(answerKeyText || '').slice(0, 12000),
+                chunk_number: chunkIndex + 1,
+                total_chunks: chunks.length
+              }
+            });
             if (extractionResult.error) {
               let failureMessage = extractionResult.error.message || 'Request failed';
               try {
