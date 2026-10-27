@@ -6456,6 +6456,7 @@ Answer Key:
             return;
           }
           const file = fileInput.files[0];
+          let importJobId = null;
           const queueIdsBeforeUpload = new Set(db.pdfImportQueue.map(function(item) { return item.id; }));
           const targetExId = document.getElementById('pdfTargetExamSelect').value;
           const targetSubId = document.getElementById('pdfTargetSubjectSelect').value;
@@ -6501,7 +6502,7 @@ Answer Key:
               xhr.send(file);
             });
 
-            let importJobId = null;
+            importJobId = null;
             try {
               const examLookup = await client.from('exams').select('id').eq('legacy_id', targetExId).maybeSingle();
               const jobInsert = await client.from('pdf_import_jobs').insert({
@@ -6521,7 +6522,7 @@ Answer Key:
             }
 
             async function finalizeImportJob() {
-              const paperItems = db.pdfImportQueue.filter(function(item) { return !queueIdsBeforeUpload.has(item.id) && item.fileName === file.name; });
+              const paperItems = db.pdfImportQueue.filter(function(item) { return !queueIdsBeforeUpload.has(item.id) && (item.fileName === file.name || item.fileName === 'Scanned_' + file.name); });
               if (importJobId) {
                 const payload = paperItems.map(function(item) {
                   return { question_en:item.text_en || '', question_hi:item.text_hi || '', options_en:item.options_en || [], options_hi:item.options_hi || [], correct_option:item.correctOption, explanation_en:item.explanation_en || '', explanation_hi:item.explanation_hi || '' };
@@ -6612,8 +6613,14 @@ Answer Key:
             setImportProgress(100, 'Processing complete — ' + addedCount + ' questions added', 'Open the review queue below. Check options and answers before approving.');
             renderAdminDashboardView(document.getElementById('appMain'));
           } catch (err) {
-            setImportProgress(0, 'Could not process this file', err && err.message ? err.message : 'Please try another PDF.');
-            showToast('PDF Extraction Error: ' + (err && err.message ? err.message : 'Please try again.'), 'error');
+            const errorMessage = err && err.message ? err.message : 'Please try another PDF.';
+            if (importJobId && window.gyanManchSupabase) {
+              try {
+                await window.gyanManchSupabase.from('pdf_import_jobs').update({ status: 'failed', error_message: errorMessage }).eq('id', importJobId);
+              } catch (_) {}
+            }
+            setImportProgress(0, 'Upload / extraction failed', errorMessage + ' If the PDF was uploaded, select it again after fixing the issue.');
+            showToast('PDF Extraction Error: ' + errorMessage, 'error');
           } finally {
             if (runButton) { runButton.disabled = false; runButton.classList.remove('opacity-60'); }
           }
@@ -6654,7 +6661,7 @@ Answer Key:
             if (isPdf && window.pdfjsLib) {
               const arrayBuf = await file.arrayBuffer();
               const pdf = await window.pdfjsLib.getDocument({ data: arrayBuf }).promise;
-              const maxPages = Math.min(pdf.numPages, 10);
+              const maxPages = pdf.numPages;
 
               for (let p = 1; p <= maxPages; p++) {
                 if (statusEl) statusEl.textContent = '📷 Rendering & Scanning PDF Page ' + p + ' of ' + maxPages + '...';
