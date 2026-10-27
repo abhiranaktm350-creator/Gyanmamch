@@ -7097,7 +7097,7 @@ Answer Key:
               text_en: item.text_en,
               text_hi: item.text_hi || item.text_en,
               options_en: item.options_en,
-              options_hi: item.options_hi || item.options_en,
+              options_hi: Array.isArray(item.options_hi) ? item.options_hi : [],
               correctOption: Number(item.correctOption),
               marks: Number(item.marks || 2.0),
               negativeMarks: Number(item.negativeMarks || 0.5),
