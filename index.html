@@ -7208,26 +7208,27 @@ Answer Key:
 
           const extractedItems = [];
           for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
-            const extractionResponse = await fetch('/api/extract-questions', {
-              method: 'POST',
-              headers: {
-                'content-type': 'application/json',
-                'authorization': 'Bearer ' + accessToken
-              },
-              body: JSON.stringify({
+            const extractionResult = await client.functions.invoke('extract-questions', {
+              body: {
                 text: chunks[chunkIndex].slice(0, 18000),
                 answer_key: String(answerKeyText || '').slice(0, 12000),
                 chunk_number: chunkIndex + 1,
                 total_chunks: chunks.length
-              })
+              }
             });
-            let payload = null;
-            try { payload = await extractionResponse.json(); } catch (_) {}
-            if (!extractionResponse.ok) {
-              const failureMessage = payload && payload.error ? payload.error : ('Request failed (' + extractionResponse.status + ')');
-              showToast('PDF extraction failed: ' + failureMessage, 'error');
+            if (extractionResult.error) {
+              let failureMessage = extractionResult.error.message || 'Request failed';
+              try {
+                const context = extractionResult.error.context;
+                if (context && typeof context.json === 'function') {
+                  const failure = await context.json();
+                  if (failure && failure.error) failureMessage = failure.error;
+                }
+              } catch (_) {}
+              showToast('PDF extraction failed: ' + failureMessage + '. Try a smaller PDF or check the scanned pages.', 'error');
               return false;
             }
+            const payload = extractionResult.data;
             if (!payload || !Array.isArray(payload.questions)) {
               showToast('PDF extraction returned an invalid result. Please retry.', 'error');
               return false;
