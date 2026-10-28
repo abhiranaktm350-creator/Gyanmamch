@@ -3762,7 +3762,8 @@ table{max-width:100%;border-collapse:collapse}
 
       function openSubmitConfirmationModal() {
         const cbt = state.activeCbt;
-        if (!cbt || cbt.isSubmitting) return;
+        if (!cbt) { showToast('No active test found. Please reopen the mock test and try again.', 'error'); return; }
+        if (cbt.isSubmitting) { showToast('Your test is already being submitted. Please wait.', 'warning'); return; }
 
         const submitModal = document.getElementById('modalConfirmSubmit');
         const statsBox = document.getElementById('submitSummaryStats');
@@ -3835,6 +3836,7 @@ table{max-width:100%;border-collapse:collapse}
           </div>
         `;
         submitModal.classList.remove('hidden');
+        submitModal.classList.add('flex');
       }
 
       function withSubmitRequestTimeout(requestPromise, label) {
@@ -8417,31 +8419,26 @@ Answer Key:
           if (startBtn) { event.preventDefault(); resumeCbtExam(); }
           if (pauseBtn) { event.preventDefault(); pauseCbtExam(); }
         }, true);
-        // Register CBT submit controls before the large global binder. If any unrelated
-        // control in bindGlobalEvents throws during setup, exam submission still works.
-        document.addEventListener('click', function(event) {
-          const btn = event.target && event.target.closest
-            ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCbtSaveNext, #btnCancelSubmitModal')
-            : null;
-          if (!btn) return;
-          // The last-question button is rendered as "Submit Test". Handle it here
-          // because the normal per-button binder can fail before registering.
-          const activeCbt = state.activeCbt;
-          if (btn.id === 'btnCbtSaveNext' && (!activeCbt || activeCbt.currentIndex < activeCbt.questions.length - 1)) return;
+        // Robust submit wiring: bind the two persistent submit controls directly and
+        // keep the dynamically rendered last-question button handled by its own binder.
+        function safeOpenSubmitModal(event) {
+          if (event) { event.preventDefault(); event.stopPropagation(); }
+          try { openSubmitConfirmationModal(); }
+          catch (error) {
+            console.error('Unable to open submit confirmation:', error);
+            showToast('Could not open submit confirmation. Please try again.', 'error');
+          }
+        }
+        const topSubmitButton = document.getElementById('btnOpenSubmitModal');
+        const sidebarSubmitButton = document.getElementById('btnSidebarSubmitTest');
+        if (topSubmitButton) topSubmitButton.onclick = safeOpenSubmitModal;
+        if (sidebarSubmitButton) sidebarSubmitButton.onclick = safeOpenSubmitModal;
+        const cancelSubmitButton = document.getElementById('btnCancelSubmitModal');
+        if (cancelSubmitButton) cancelSubmitButton.onclick = function(event) {
           event.preventDefault();
-          event.stopPropagation();
-          if (event.stopImmediatePropagation) event.stopImmediatePropagation();
-
-          if (btn.id === 'btnOpenSubmitModal' || btn.id === 'btnSidebarSubmitTest' || btn.id === 'btnCbtSaveNext') {
-            if (typeof openSubmitConfirmationModal === 'function') openSubmitConfirmationModal();
-            return;
-          }
-          if (btn.id === 'btnCancelSubmitModal') {
-            const modal = document.getElementById('modalConfirmSubmit');
-            if (modal) modal.classList.add('hidden');
-            return;
-          }
-        }, true);
+          const modal = document.getElementById('modalConfirmSubmit');
+          if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        };
         bindGlobalEvents();
         bindLanAndBackupControls();
         syncHeaderUI();
