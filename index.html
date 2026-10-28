@@ -948,9 +948,11 @@ table{max-width:100%;border-collapse:collapse}
           const active = state.activeCbt;
           if (!active || active.currentIndex < active.questions.length - 1) return;
         }
+        // Do not stop propagation at document-capture: doing so prevents the click
+        // from reaching the actual button and can suppress its native/direct handler.
+        // The isSubmitting guard below prevents duplicate finalization if another
+        // compatible handler is also attached.
         event.preventDefault();
-        event.stopPropagation();
-        if (event.stopImmediatePropagation) event.stopImmediatePropagation();
 
         if (btn.id === 'btnCancelSubmitModal') {
           const modal = document.getElementById('modalConfirmSubmit');
