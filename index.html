@@ -700,7 +700,7 @@ table{max-width:100%;border-collapse:collapse}
           <span id="cbtSectionTimerValue" class="font-mono text-sm text-indigo-800">20:00</span>
           <button id="btnCbtNextSectionLock" type="button" class="ml-1 px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold">Submit Section →</button>
         </div>
-        <div id="cbtAutoSaveIndicator" class="text-[11px] text-emerald-700 font-medium flex items-center gap-1 shrink-0">
+        <div id="cbtAutoSaveIndicator" class="hidden text-[11px] text-emerald-700 font-medium items-center gap-1 shrink-0" aria-hidden="true">
           <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
           <span>Auto-saved</span>
         </div>
@@ -3796,6 +3796,16 @@ table{max-width:100%;border-collapse:collapse}
         document.getElementById('modalConfirmSubmit').classList.remove('hidden');
       }
 
+      function withSubmitRequestTimeout(requestPromise, label) {
+        let timeoutId;
+        const timeout = new Promise(function(_, reject) {
+          timeoutId = setTimeout(function() {
+            reject(new Error(label + ' timed out. Showing your result locally; please check your connection.'));
+          }, 10000);
+        });
+        return Promise.race([requestPromise, timeout]).finally(function() { clearTimeout(timeoutId); });
+      }
+
       async function finalizeAndScoreAttempt(isAutoTimeout) {
         const cbt = state.activeCbt;
         if (!cbt) return;
@@ -3853,19 +3863,19 @@ table{max-width:100%;border-collapse:collapse}
         if (window.gyanManchSupabase && state.currentUser && state.currentUser.role === 'student') {
           try {
             const client = window.gyanManchSupabase;
-            const testLookup = await client.from('tests').select('id').eq('legacy_id', cbt.test.id).eq('status', 'published').single();
+            const testLookup = await withSubmitRequestTimeout(client.from('tests').select('id').eq('legacy_id', cbt.test.id).eq('status', 'published').single(), 'Test lookup');
             if (testLookup.error) throw testLookup.error;
             const legacyQuestionIds = cbt.questions.map(q => q.id);
-            const questionLookup = await client.from('questions').select('id,legacy_id').in('legacy_id', legacyQuestionIds);
+            const questionLookup = await withSubmitRequestTimeout(client.from('questions').select('id,legacy_id').in('legacy_id', legacyQuestionIds), 'Question lookup');
             if (questionLookup.error) throw questionLookup.error;
             const questionUuidByLegacy = {};
             (questionLookup.data || []).forEach(q => { questionUuidByLegacy[q.legacy_id] = q.id; });
-            const attemptInsert = await client.from('attempts').insert({
+            const attemptInsert = await withSubmitRequestTimeout(client.from('attempts').insert({
               user_id: state.currentUser.id,
               test_id: testLookup.data.id,
               status: 'in_progress',
               total_questions: cbt.questions.length
-            }).select('id').single();
+            }).select('id').single(), 'Attempt creation');
             if (attemptInsert.error) throw attemptInsert.error;
             const serverAnswers = [];
             cbt.questions.forEach(q => {
@@ -3878,12 +3888,12 @@ table{max-width:100%;border-collapse:collapse}
                 });
               }
             });
-            const scored = await client.rpc('submit_and_score_attempt', {
+            const scored = await withSubmitRequestTimeout(client.rpc('submit_and_score_attempt', {
               p_attempt_id: attemptInsert.data.id,
               p_answers: serverAnswers,
               p_time_taken_seconds: timeTakenSeconds,
               p_auto_submit: !!isAutoTimeout
-            });
+            }), 'Score submission');
             if (scored.error) throw scored.error;
             const serverRow = Array.isArray(scored.data) ? scored.data[0] : scored.data;
             if (!serverRow) throw new Error('Server did not return a scored attempt.');
@@ -3895,7 +3905,7 @@ table{max-width:100%;border-collapse:collapse}
             incorrectCount = Number(serverRow.incorrect_count || 0);
             unansweredCount = Number(serverRow.unattempted_count || 0);
             accuracy = Number(serverRow.accuracy || 0);
-            const reviewResult = await client.rpc('get_attempt_review', { p_attempt_id: backendAttemptId });
+            const reviewResult = await withSubmitRequestTimeout(client.rpc('get_attempt_review', { p_attempt_id: backendAttemptId }), 'Answer review');
             if (!reviewResult.error && Array.isArray(reviewResult.data)) {
               const reviewMap = {};
               reviewResult.data.forEach(row => {
