@@ -6460,7 +6460,7 @@ table{max-width:100%;border-collapse:collapse}
         }
 
         // Parse Raw Text / CSV Block (Multi-Question)
-        document.getElementById('btnParseRawBlock').addEventListener('click', function() {
+        document.getElementById('btnParseRawBlock').addEventListener('click', async function() {
           const rawText = document.getElementById('inpRawBlockExtract').value.trim();
           if (!rawText) {
             showToast('Please paste question text or CSV content first.', 'warning');
@@ -6468,7 +6468,36 @@ table{max-width:100%;border-collapse:collapse}
           }
           const targetExId = document.getElementById('pdfTargetExamSelect').value;
           const targetSubId = document.getElementById('pdfTargetSubjectSelect').value;
-          parseAllQuestionsFromText(rawText, 'Bulk_Paper_Import.pdf', targetExId, targetSubId);
+          const previousIds = new Set(db.pdfImportQueue.map(item => item.id));
+          parseAllQuestionsFromText(rawText, 'Bulk_Paper_Import.csv', targetExId, targetSubId);
+          const staged = db.pdfImportQueue.filter(item => !previousIds.has(item.id) && item.text_en);
+          const client = window.gyanManchSupabase;
+          if (staged.length && client && state.currentUser && ['admin','teacher'].includes(state.currentUser.role)) {
+            try {
+              for (let offset = 0; offset < staged.length; offset += 40) {
+                const batch = staged.slice(offset, offset + 40);
+                const result = await client.functions.invoke('extract-questions', {
+                  body: { action: 'translate-hindi', items: batch.map((item, index) => ({
+                    index, question_en: item.text_en, question_hi: item.text_hi,
+                    options_en: item.options_en || [], options_hi: item.options_hi || []
+                  })) }
+                });
+                if (result.error) throw result.error;
+                const translations = result.data && result.data.translations;
+                if (!Array.isArray(translations) || translations.length !== batch.length) throw new Error('Google Hindi translation did not return every question.');
+                translations.forEach((translation, index) => {
+                  const item = batch[index];
+                  if (!item) return;
+                  if (translation.question_hi) item.text_hi = translation.question_hi;
+                  if (Array.isArray(translation.options_hi)) item.options_hi = translation.options_hi;
+                });
+              }
+              saveDatabase(db);
+              showToast('Google Hindi translation completed for questions and options. Review before approval.', 'success');
+            } catch (error) {
+              showToast('Questions are staged, but Google Hindi translation failed. Retry after checking connection: ' + (error.message || 'translation error'), 'error');
+            }
+          }
           renderAdminDashboardView(document.getElementById('appMain'));
         });
 
@@ -6990,7 +7019,6 @@ Answer Key:
               const candidateEn = normalizeApprovedQuestion(item.text_en);
               const candidateHi = normalizeApprovedQuestion(item.text_hi);
               const duplicateInDb = db.questions.some(q => {
-                if (q.examId && q.examId !== exam.id) return false;
                 const qEn = normalizeApprovedQuestion(q.text_en);
                 const qHi = normalizeApprovedQuestion(q.text_hi);
                 return (candidateEn && (candidateEn === qEn || candidateEn === qHi)) ||
@@ -7428,7 +7456,6 @@ Answer Key:
           const normalizedImportedEn = normalizeImportedQuestion(textEn);
           const normalizedImportedHi = normalizeImportedQuestion(textHi);
           const isDup = db.questions.some(q => {
-            if (q.examId && q.examId !== exam.id) return false;
             const qEn = normalizeImportedQuestion(q.text_en);
             const qHi = normalizeImportedQuestion(q.text_hi);
             return (normalizedImportedEn && (normalizedImportedEn === qEn || normalizedImportedEn === qHi)) ||
