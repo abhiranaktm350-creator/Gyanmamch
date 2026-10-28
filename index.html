@@ -151,7 +151,8 @@
     body.student-clean-mode #mainHeader .flex.items-center.bg-slate-800.p-0\.5 { display:none !important; }
     #frontExamListing { display:none !important; } /* Keep mock-test cards inside category/exam pages only. */
     #topSampleBanner { display:none !important; } /* Hide the official edition / backup controls bar from the starting page. */
-    @media (max-width: 767px) { #headerAuthArea #hdrBtnMenu { display:none !important; } }
+    /* Keep the single three-line navigation control visible on mobile. */
+    @media (max-width: 767px) { #headerAuthArea #hdrBtnMenu { display:none !important; } #mainHeader #btnMobileMenu { display:flex !important; align-items:center; justify-content:center; flex:none; } }
     body.student-clean-mode #mainHeader { position:relative; }
     body.student-clean-mode #mainHeader > div:first-child { min-height:56px; height:auto; padding-top:6px; padding-bottom:6px; }
     @media (max-width: 767px) { #btnGlobalBack { display:none !important; } #headerAuthArea #hdrBtnLogout { display:none !important; } }
@@ -3800,15 +3801,17 @@ table{max-width:100%;border-collapse:collapse}
         const cbt = state.activeCbt;
         if (!cbt) return;
 
+        if (cbt.isSubmitting) return;
+        cbt.isSubmitting = true;
         if (cbt.timerInterval) {
           clearInterval(cbt.timerInterval);
           cbt.timerInterval = null;
         }
 
+        /* Keep the exam visible while the server saves and scores the attempt. */
+        const confirmSubmitButton = document.getElementById('btnFinalConfirmSubmit');
+        if (confirmSubmitButton) { confirmSubmitButton.disabled = true; confirmSubmitButton.textContent = 'Submitting…'; }
         document.getElementById('modalConfirmSubmit').classList.add('hidden');
-        document.getElementById('cbtOverlay').classList.add('hidden');
-        const preStartGateOnClose = document.getElementById('cbtPreStartGate'); if (preStartGateOnClose) { preStartGateOnClose.classList.add('hidden'); preStartGateOnClose.classList.remove('flex'); }
-        document.body.classList.remove('exam-active');
 
         // Calculate Score using trusted Question Bank verification rules
         let totalScore = 0;
@@ -3933,6 +3936,9 @@ table{max-width:100%;border-collapse:collapse}
         db.attempts.push(completedAttempt);
         saveDatabase(db);
         state.activeCbt = null;
+        document.getElementById('cbtOverlay').classList.add('hidden');
+        const preStartGateOnClose = document.getElementById('cbtPreStartGate'); if (preStartGateOnClose) { preStartGateOnClose.classList.add('hidden'); preStartGateOnClose.classList.remove('flex'); }
+        document.body.classList.remove('exam-active');
 
         showToast(
           isAutoTimeout
@@ -7734,9 +7740,15 @@ Answer Key:
           });
         });
 
-        document.getElementById('btnMobileMenu').addEventListener('click', function() {
-          document.getElementById('mobileMenuPanel').classList.toggle('hidden');
-        });
+        const mobileMenuButton = document.getElementById('btnMobileMenu');
+        const mobileMenuPanel = document.getElementById('mobileMenuPanel');
+        if (mobileMenuButton && mobileMenuPanel) {
+          mobileMenuButton.setAttribute('aria-expanded', mobileMenuPanel.classList.contains('hidden') ? 'false' : 'true');
+          mobileMenuButton.addEventListener('click', function() {
+            const isNowOpen = mobileMenuPanel.classList.toggle('hidden') === false;
+            mobileMenuButton.setAttribute('aria-expanded', isNowOpen ? 'true' : 'false');
+          });
+        }
 
         // Global Language Switch (English / हिंदी)
         document.getElementById('langSwitchEn').addEventListener('click', function() {
@@ -7936,8 +7948,23 @@ Answer Key:
         document.getElementById('btnCancelSubmitModal').addEventListener('click', function() {
           document.getElementById('modalConfirmSubmit').classList.add('hidden');
         });
-        document.getElementById('btnFinalConfirmSubmit').addEventListener('click', function() {
-          finalizeAndScoreAttempt(false);
+        document.getElementById('btnFinalConfirmSubmit').addEventListener('click', async function() {
+          const btn = this;
+          if (!state.activeCbt || state.activeCbt.isSubmitting) return;
+          btn.disabled = true;
+          btn.textContent = 'Submitting…';
+          try {
+            await finalizeAndScoreAttempt(false);
+          } catch (error) {
+            if (state.activeCbt) state.activeCbt.isSubmitting = false;
+            btn.disabled = false;
+            btn.textContent = 'Confirm & View Result';
+            const modal = document.getElementById('modalConfirmSubmit');
+            if (modal) modal.classList.remove('hidden');
+            const message = document.getElementById('submitSummaryStats');
+            if (message) message.insertAdjacentHTML('beforeend', '<p class="col-span-2 text-sm text-rose-700" role="alert">Submission could not finish. Your answers are still on screen. Please try again. ' + escapeHtml(error && error.message ? error.message : '') + '</p>');
+            console.error('Gyan Manch submission failed:', error);
+          }
         });
 
         document.getElementById('btnAbortTest').addEventListener('click', function() {
