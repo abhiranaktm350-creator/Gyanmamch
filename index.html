@@ -8398,14 +8398,18 @@ Answer Key:
         // control in bindGlobalEvents throws during setup, exam submission still works.
         document.addEventListener('click', function(event) {
           const btn = event.target && event.target.closest
-            ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCancelSubmitModal, #btnFinalConfirmSubmit')
+            ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCbtSaveNext, #btnCancelSubmitModal, #btnFinalConfirmSubmit')
             : null;
           if (!btn) return;
+          // The last-question button is rendered as "Submit Test". Handle it here
+          // because the normal per-button binder can fail before registering.
+          const activeCbt = state.activeCbt;
+          if (btn.id === 'btnCbtSaveNext' && (!activeCbt || activeCbt.currentIndex < activeCbt.questions.length - 1)) return;
           event.preventDefault();
           event.stopPropagation();
           if (event.stopImmediatePropagation) event.stopImmediatePropagation();
 
-          if (btn.id === 'btnOpenSubmitModal' || btn.id === 'btnSidebarSubmitTest') {
+          if (btn.id === 'btnOpenSubmitModal' || btn.id === 'btnSidebarSubmitTest' || btn.id === 'btnCbtSaveNext') {
             if (typeof openSubmitConfirmationModal === 'function') openSubmitConfirmationModal();
             return;
           }
