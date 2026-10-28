@@ -7931,37 +7931,62 @@ Answer Key:
           renderCbtPalette();
         });
 
-        // Both submit entry points must use the same guarded confirmation flow.
-        ['btnOpenSubmitModal', 'btnSidebarSubmitTest'].forEach(function(buttonId) {
-          const submitEntryButton = document.getElementById(buttonId);
-          if (!submitEntryButton) return;
-          submitEntryButton.type = 'button';
-          submitEntryButton.onclick = function(event) {
-            if (event) { event.preventDefault(); event.stopPropagation(); }
+        // Robust capture-phase submit handling: works for both top and palette buttons,
+        // even if another delegated listener or mobile layout intercepts the click.
+        document.addEventListener('click', function(event) {
+          const target = event.target && event.target.closest ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnFinalConfirmSubmit, #btnCancelSubmitModal') : null;
+          if (!target) return;
+
+          if (target.id === 'btnOpenSubmitModal' || target.id === 'btnSidebarSubmitTest') {
+            event.preventDefault();
+            event.stopPropagation();
+            if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
             openSubmitConfirmationModal();
-          };
-        });
-        document.getElementById('btnCancelSubmitModal').addEventListener('click', function() {
-          document.getElementById('modalConfirmSubmit').classList.add('hidden');
-        });
-        document.getElementById('btnFinalConfirmSubmit').addEventListener('click', async function() {
-          const btn = this;
-          if (!state.activeCbt || state.activeCbt.isSubmitting) return;
-          btn.disabled = true;
-          btn.textContent = 'Submitting…';
-          try {
-            await finalizeAndScoreAttempt(false);
-          } catch (error) {
-            if (state.activeCbt) state.activeCbt.isSubmitting = false;
-            btn.disabled = false;
-            btn.textContent = 'Confirm & View Result';
-            const modal = document.getElementById('modalConfirmSubmit');
-            if (modal) modal.classList.remove('hidden');
-            const message = document.getElementById('submitSummaryStats');
-            if (message) message.insertAdjacentHTML('beforeend', '<p data-submit-error="true" class="col-span-2 text-sm text-rose-700" role="alert">Submission failed. Your answers are still on screen. Please try again. ' + escapeHtml(error && error.message ? error.message : '') + '</p>');
-            console.error('Gyan Manch submission failed:', error);
+            return;
           }
-        });
+
+          if (target.id === 'btnCancelSubmitModal') {
+            event.preventDefault();
+            event.stopPropagation();
+            if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+            const modal = document.getElementById('modalConfirmSubmit');
+            if (modal) modal.classList.add('hidden');
+            return;
+          }
+
+          if (target.id === 'btnFinalConfirmSubmit') {
+            event.preventDefault();
+            event.stopPropagation();
+            if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+            const btn = target;
+            if (!state.activeCbt || state.activeCbt.isSubmitting) return;
+            btn.disabled = true;
+            btn.textContent = 'Submitting…';
+            Promise.resolve().then(function() {
+              return finalizeAndScoreAttempt(false);
+            }).catch(function(error) {
+              if (state.activeCbt) {
+                state.activeCbt.isSubmitting = false;
+                if (state.activeCbt.timerInterval) {
+                  clearInterval(state.activeCbt.timerInterval);
+                  state.activeCbt.timerInterval = null;
+                }
+              }
+              btn.disabled = false;
+              btn.textContent = 'Confirm & View Result';
+              const modal = document.getElementById('modalConfirmSubmit');
+              if (modal) modal.classList.remove('hidden');
+              const message = document.getElementById('submitSummaryStats');
+              if (message) {
+                const oldError = message.querySelector('[data-submit-error="true"]');
+                if (oldError) oldError.remove();
+                const errorText = error && error.message ? error.message : 'Please try again.';
+                message.insertAdjacentHTML('beforeend', '<p data-submit-error="true" class="col-span-2 text-sm text-rose-700" role="alert">Submission failed. Your answers are still on screen. ' + escapeHtml(errorText) + '</p>');
+              }
+              console.error('Gyan Manch submission failed:', error);
+            });
+          }
+        }, true);
 
         document.getElementById('btnAbortTest').addEventListener('click', function() {
           if (state.activeCbt && state.activeCbt.timerInterval) {
