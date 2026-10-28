@@ -7936,62 +7936,7 @@ Answer Key:
           renderCbtPalette();
         });
 
-        // Robust capture-phase submit handling: works for both top and palette buttons,
-        // even if another delegated listener or mobile layout intercepts the click.
-        document.addEventListener('click', function(event) {
-          const target = event.target && event.target.closest ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCancelSubmitModal') : null;
-          if (!target) return;
-
-          if (target.id === 'btnOpenSubmitModal' || target.id === 'btnSidebarSubmitTest') {
-            event.preventDefault();
-            event.stopPropagation();
-            if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
-            openSubmitConfirmationModal();
-            return;
-          }
-
-          if (target.id === 'btnCancelSubmitModal') {
-            event.preventDefault();
-            event.stopPropagation();
-            if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
-            const modal = document.getElementById('modalConfirmSubmit');
-            if (modal) modal.classList.add('hidden');
-            return;
-          }
-
-          if (target.id === 'btnFinalConfirmSubmit') {
-            event.preventDefault();
-            event.stopPropagation();
-            if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
-            const btn = target;
-            if (!state.activeCbt || state.activeCbt.isSubmitting) return;
-            btn.disabled = true;
-            btn.textContent = 'Submitting…';
-            Promise.resolve().then(function() {
-              return finalizeAndScoreAttempt(false);
-            }).catch(function(error) {
-              if (state.activeCbt) {
-                state.activeCbt.isSubmitting = false;
-                if (state.activeCbt.timerInterval) {
-                  clearInterval(state.activeCbt.timerInterval);
-                  state.activeCbt.timerInterval = null;
-                }
-              }
-              btn.disabled = false;
-              btn.textContent = 'Confirm & View Result';
-              const modal = document.getElementById('modalConfirmSubmit');
-              if (modal) modal.classList.remove('hidden');
-              const message = document.getElementById('submitSummaryStats');
-              if (message) {
-                const oldError = message.querySelector('[data-submit-error="true"]');
-                if (oldError) oldError.remove();
-                const errorText = error && error.message ? error.message : 'Please try again.';
-                message.insertAdjacentHTML('beforeend', '<p data-submit-error="true" class="col-span-2 text-sm text-rose-700" role="alert">Submission failed. Your answers are still on screen. ' + escapeHtml(errorText) + '</p>');
-              }
-              console.error('Gyan Manch submission failed:', error);
-            });
-          }
-        }, true);
+        // Submission controls are handled once by the single delegated handler at the end of this script.
 
         document.getElementById('btnAbortTest').addEventListener('click', function() {
           if (state.activeCbt && state.activeCbt.timerInterval) {
