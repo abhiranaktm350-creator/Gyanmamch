@@ -656,10 +656,7 @@ table{max-width:100%;border-collapse:collapse}
           <span id="cbtSectionTimerValue" class="font-mono text-sm text-indigo-800">20:00</span>
           <button id="btnCbtNextSectionLock" type="button" class="ml-1 px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold">Submit Section →</button>
         </div>
-        <div id="cbtAutoSaveIndicator" class="text-[11px] text-emerald-700 font-medium flex items-center gap-1 shrink-0">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
-          <span>Auto-saved</span>
-        </div>
+        <div id="cbtAutoSaveIndicator" class="hidden" aria-live="polite"></div>
       </div>
     </div>
 
@@ -3641,14 +3638,31 @@ table{max-width:100%;border-collapse:collapse}
       }
 
       function triggerAutoSaveIndicator() {
+        // Persist the current attempt locally instead of showing a misleading "auto-saved" claim.
+        const cbt = state.activeCbt;
+        if (!cbt) return;
+        try {
+          const draft = {
+            version: 1,
+            attemptId: cbt.attemptId,
+            testId: cbt.test && cbt.test.id,
+            savedAt: new Date().toISOString(),
+            currentIndex: Number(cbt.currentIndex) || 0,
+            viewLang: cbt.viewLang || 'en',
+            remainingSeconds: Math.max(0, Number(cbt.remainingSeconds) || 0),
+            totalDurationSeconds: Math.max(1, Number(cbt.totalDurationSeconds) || 1),
+            answers: cbt.answers || {}
+          };
+          const key = 'gyanmanch_cbt_draft_' + String(draft.testId || 'unknown');
+          window.localStorage.setItem(key, JSON.stringify(draft));
+        } catch (saveError) {
+          console.warn('Gyan Manch local response save failed:', saveError);
+        }
         const ind = document.getElementById('cbtAutoSaveIndicator');
-        if (!ind) return;
-        ind.innerHTML = `<span class="w-2 h-2 rounded-full bg-indigo-500 animate-ping inline-block"></span><span>Saving response...</span>`;
-        setTimeout(function() {
-          if (ind) {
-            ind.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span><span>All responses auto-saved</span>`;
-          }
-        }, 350);
+        if (ind) {
+          ind.classList.add('hidden');
+          ind.textContent = '';
+        }
       }
 
       function renderCbtPalette() {
