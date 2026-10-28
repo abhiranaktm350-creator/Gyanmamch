@@ -8478,7 +8478,7 @@ Answer Key:
         // control in bindGlobalEvents throws during setup, exam submission still works.
         document.addEventListener('click', function(event) {
           const btn = event.target && event.target.closest
-            ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnFinalConfirmSubmit, #btnCancelSubmitModal')
+            ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCancelSubmitModal')
             : null;
           if (!btn) return;
           event.preventDefault();
@@ -8493,34 +8493,6 @@ Answer Key:
             const modal = document.getElementById('modalConfirmSubmit');
             if (modal) modal.classList.add('hidden');
             return;
-          }
-          if (btn.id === 'btnFinalConfirmSubmit') {
-            if (!state.activeCbt || state.activeCbt.isSubmitting) return;
-            btn.disabled = true;
-            btn.textContent = 'Submitting…';
-            Promise.resolve().then(function() {
-              if (typeof finalizeAndScoreAttempt !== 'function') throw new Error('Submit handler is not available.');
-              return finalizeAndScoreAttempt(false);
-            }).catch(function(error) {
-              if (state.activeCbt) state.activeCbt.isSubmitting = false;
-              btn.disabled = false;
-              btn.textContent = 'Confirm & View Result';
-              const modal = document.getElementById('modalConfirmSubmit');
-              if (modal) modal.classList.remove('hidden');
-              const stats = document.getElementById('submitSummaryStats');
-              if (stats) {
-                let msg = stats.querySelector('[data-submit-error="true"]');
-                if (!msg) {
-                  msg = document.createElement('p');
-                  msg.setAttribute('data-submit-error', 'true');
-                  msg.className = 'col-span-2 text-sm text-rose-700';
-                  msg.setAttribute('role', 'alert');
-                  stats.appendChild(msg);
-                }
-                msg.textContent = 'Submission failed. Your answers are still on screen. ' + (error && error.message ? error.message : 'Please try again.');
-              }
-              console.error('Gyan Manch submission failed:', error);
-            });
           }
         }, true);
         bindGlobalEvents();
