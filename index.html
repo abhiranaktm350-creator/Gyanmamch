@@ -3860,7 +3860,9 @@ table{max-width:100%;border-collapse:collapse}
         let unanswered = 0;
         let marked = 0;
         cbt.questions.forEach(function(q) {
-          const st = cbt.answers[q.id];
+          // Some imported/legacy mocks may not have an answer-state object for every question.
+          // Missing state must count as unanswered, not crash the submit-confirmation flow.
+          const st = (cbt.answers && cbt.answers[q.id]) || {};
           if (st.selectedOption !== null && st.selectedOption !== undefined) answered += 1;
           else unanswered += 1;
           if (st.markedForReview) marked += 1;
