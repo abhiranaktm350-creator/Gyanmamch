@@ -3768,12 +3768,42 @@ table{max-width:100%;border-collapse:collapse}
         const statsBox = document.getElementById('submitSummaryStats');
         if (!submitModal || !statsBox) {
           console.error('Submit confirmation UI is missing from the exam page.');
+          showToast('Submit window is unavailable. Please refresh and reopen the test.', 'error');
           return;
         }
         const confirmButton = document.getElementById('btnFinalConfirmSubmit');
         if (confirmButton) {
           confirmButton.disabled = false;
           confirmButton.textContent = 'Confirm & View Result';
+          // Bind directly to the actual modal button. Delegated document click handlers
+          // can be interrupted by other capture listeners on some mobile/browser flows.
+          confirmButton.onclick = async function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const active = state.activeCbt;
+            if (!active || active.isSubmitting) return;
+            confirmButton.disabled = true;
+            confirmButton.textContent = 'Submitting…';
+            try {
+              await finalizeAndScoreAttempt(false);
+            } catch (error) {
+              if (state.activeCbt) {
+                state.activeCbt.isSubmitting = false;
+                if (state.activeCbt.timerInterval) {
+                  clearInterval(state.activeCbt.timerInterval);
+                  state.activeCbt.timerInterval = null;
+                }
+              }
+              confirmButton.disabled = false;
+              confirmButton.textContent = 'Confirm & View Result';
+              submitModal.classList.remove('hidden');
+              const errorText = error && error.message ? error.message : 'Please try again.';
+              const oldError = statsBox.querySelector('[data-submit-error="true"]');
+              if (oldError) oldError.remove();
+              statsBox.insertAdjacentHTML('beforeend', '<p data-submit-error="true" class="col-span-2 text-sm text-rose-700" role="alert">Submission failed. Your answers are still on screen. ' + escapeHtml(errorText) + '</p>');
+              console.error('Gyan Manch submission failed:', error);
+            }
+          };
         }
         const oldError = statsBox.querySelector('[data-submit-error="true"]');
         if (oldError) oldError.remove();
@@ -7934,7 +7964,7 @@ Answer Key:
         // Robust capture-phase submit handling: works for both top and palette buttons,
         // even if another delegated listener or mobile layout intercepts the click.
         document.addEventListener('click', function(event) {
-          const target = event.target && event.target.closest ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnFinalConfirmSubmit, #btnCancelSubmitModal') : null;
+          const target = event.target && event.target.closest ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCancelSubmitModal') : null;
           if (!target) return;
 
           if (target.id === 'btnOpenSubmitModal' || target.id === 'btnSidebarSubmitTest') {
