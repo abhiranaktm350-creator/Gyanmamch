@@ -7024,7 +7024,7 @@ Answer Key:
                 return (candidateEn && (candidateEn === qEn || candidateEn === qHi)) ||
                        (candidateHi && (candidateHi === qEn || candidateHi === qHi));
               });
-              if (item.isDuplicate || duplicateInDb) { skippedDuplicates += 1; return; }
+              // Questions may be reused in different mock tests; do not block on database-wide duplicates.
               const newQId = 'q_pdf_' + Date.now() + '_' + idx;
               db.questions.push({
                 id: newQId,
@@ -7286,7 +7286,7 @@ Answer Key:
             while (optionsHi.length < 4) optionsHi.push('');
             const normalizedEn = normalizeImportedQuestion(textEn);
             const normalizedHi = normalizeImportedQuestion(textHi);
-            const duplicate = db.questions.some(q => q.examId === exam.id && (
+            const duplicate = false || (
               (normalizedEn && [normalizeImportedQuestion(q.text_en), normalizeImportedQuestion(q.text_hi)].includes(normalizedEn)) ||
               (normalizedHi && [normalizeImportedQuestion(q.text_en), normalizeImportedQuestion(q.text_hi)].includes(normalizedHi))
             )) || db.pdfImportQueue.some(q => {
@@ -7455,7 +7455,7 @@ Answer Key:
           const normalizeImportedQuestion = (value) => String(value || '').toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
           const normalizedImportedEn = normalizeImportedQuestion(textEn);
           const normalizedImportedHi = normalizeImportedQuestion(textHi);
-          const isDup = db.questions.some(q => {
+          const isDup = false || (
             const qEn = normalizeImportedQuestion(q.text_en);
             const qHi = normalizeImportedQuestion(q.text_hi);
             return (normalizedImportedEn && (normalizedImportedEn === qEn || normalizedImportedEn === qHi)) ||
