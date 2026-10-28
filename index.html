@@ -3185,6 +3185,37 @@ table{max-width:100%;border-collapse:collapse}
           timerInterval: null
         };
 
+        // Recover a same-test unfinished local draft before starting the timer.
+        try {
+          const draftKey = 'gyanmanch_cbt_draft_' + String(test.id || 'unknown');
+          const savedRaw = window.localStorage.getItem(draftKey);
+          if (savedRaw) {
+            const saved = JSON.parse(savedRaw);
+            const savedAt = Date.parse(saved.savedAt || '');
+            const ageMs = Date.now() - savedAt;
+            const validDraft = saved.version === 1 &&
+              String(saved.testId) === String(test.id) &&
+              ageMs >= 0 && ageMs < 24 * 60 * 60 * 1000 &&
+              saved.answers && typeof saved.answers === 'object' &&
+              Number(saved.remainingSeconds) > 0;
+            if (validDraft) {
+              questionsList.forEach(function(q) {
+                if (saved.answers[q.id]) {
+                  answersMap[q.id] = Object.assign(answersMap[q.id], saved.answers[q.id]);
+                }
+              });
+              state.activeCbt.answers = answersMap;
+              state.activeCbt.currentIndex = Math.max(0, Math.min(questionsList.length - 1, Number(saved.currentIndex) || 0));
+              state.activeCbt.remainingSeconds = Math.min(state.activeCbt.totalDurationSeconds, Number(saved.remainingSeconds));
+              state.activeCbt.viewLang = ['en', 'hi', 'both'].includes(saved.viewLang) ? saved.viewLang : state.activeCbt.viewLang;
+              state.activeCbt.attemptId = saved.attemptId || state.activeCbt.attemptId;
+              showToast('Recovered your saved responses for this test.', 'info');
+            }
+          }
+        } catch (restoreError) {
+          console.warn('Gyan Manch saved response recovery failed:', restoreError);
+        }
+
         // Start the clock immediately after the attempt exists, before any UI rendering.
         // This prevents a rendering error from leaving the exam clock stopped.
         try { resumeCbtExam(); } catch (timerStartError) {
