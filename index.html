@@ -3762,7 +3762,21 @@ table{max-width:100%;border-collapse:collapse}
 
       function openSubmitConfirmationModal() {
         const cbt = state.activeCbt;
-        if (!cbt) return;
+        if (!cbt || cbt.isSubmitting) return;
+
+        const submitModal = document.getElementById('modalConfirmSubmit');
+        const statsBox = document.getElementById('submitSummaryStats');
+        if (!submitModal || !statsBox) {
+          console.error('Submit confirmation UI is missing from the exam page.');
+          return;
+        }
+        const confirmButton = document.getElementById('btnFinalConfirmSubmit');
+        if (confirmButton) {
+          confirmButton.disabled = false;
+          confirmButton.textContent = 'Confirm & View Result';
+        }
+        const oldError = statsBox.querySelector('[data-submit-error="true"]');
+        if (oldError) oldError.remove();
 
         let answered = 0;
         let unanswered = 0;
@@ -3774,7 +3788,6 @@ table{max-width:100%;border-collapse:collapse}
           if (st.markedForReview) marked += 1;
         });
 
-        const statsBox = document.getElementById('submitSummaryStats');
         statsBox.innerHTML = `
           <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
             <div class="text-xs text-emerald-700">Answered</div>
@@ -3793,7 +3806,7 @@ table{max-width:100%;border-collapse:collapse}
             <div class="text-xl font-extrabold text-slate-900 font-mono">${formatSeconds(cbt.remainingSeconds)}</div>
           </div>
         `;
-        document.getElementById('modalConfirmSubmit').classList.remove('hidden');
+        submitModal.classList.remove('hidden');
       }
 
       function withSubmitRequestTimeout(requestPromise, label) {
@@ -7918,8 +7931,16 @@ Answer Key:
           renderCbtPalette();
         });
 
-        document.getElementById('btnOpenSubmitModal').addEventListener('click', openSubmitConfirmationModal);
-        document.getElementById('btnSidebarSubmitTest').addEventListener('click', openSubmitConfirmationModal);
+        // Both submit entry points must use the same guarded confirmation flow.
+        ['btnOpenSubmitModal', 'btnSidebarSubmitTest'].forEach(function(buttonId) {
+          const submitEntryButton = document.getElementById(buttonId);
+          if (!submitEntryButton) return;
+          submitEntryButton.type = 'button';
+          submitEntryButton.onclick = function(event) {
+            if (event) { event.preventDefault(); event.stopPropagation(); }
+            openSubmitConfirmationModal();
+          };
+        });
         document.getElementById('btnCancelSubmitModal').addEventListener('click', function() {
           document.getElementById('modalConfirmSubmit').classList.add('hidden');
         });
@@ -7937,7 +7958,7 @@ Answer Key:
             const modal = document.getElementById('modalConfirmSubmit');
             if (modal) modal.classList.remove('hidden');
             const message = document.getElementById('submitSummaryStats');
-            if (message) message.insertAdjacentHTML('beforeend', '<p class="col-span-2 text-sm text-rose-700" role="alert">Submission failed. Your answers are still on screen. Please try again. ' + escapeHtml(error && error.message ? error.message : '') + '</p>');
+            if (message) message.insertAdjacentHTML('beforeend', '<p data-submit-error="true" class="col-span-2 text-sm text-rose-700" role="alert">Submission failed. Your answers are still on screen. Please try again. ' + escapeHtml(error && error.message ? error.message : '') + '</p>');
             console.error('Gyan Manch submission failed:', error);
           }
         });
