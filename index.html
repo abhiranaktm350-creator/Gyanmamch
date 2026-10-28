@@ -7870,14 +7870,38 @@ Answer Key:
           renderCbtPalette();
         });
 
-        document.getElementById('btnOpenSubmitModal').addEventListener('click', openSubmitConfirmationModal);
-        document.getElementById('btnSidebarSubmitTest').addEventListener('click', openSubmitConfirmationModal);
-        document.getElementById('btnCancelSubmitModal').addEventListener('click', function() {
-          document.getElementById('modalConfirmSubmit').classList.add('hidden');
-        });
-        document.getElementById('btnFinalConfirmSubmit').addEventListener('click', function() {
-          finalizeAndScoreAttempt(false);
-        });
+        // Use one capture-phase submit path so other exam handlers cannot swallow clicks.
+        // Prevent default and stop competing handlers; both submit buttons open the same confirmation.
+        if (!window.__gyanManchSubmitButtonsBound) {
+          window.__gyanManchSubmitButtonsBound = true;
+          document.addEventListener('click', function(event) {
+            const target = event.target && event.target.closest
+              ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCancelSubmitModal, #btnFinalConfirmSubmit')
+              : null;
+            if (!target) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            if (target.id === 'btnOpenSubmitModal' || target.id === 'btnSidebarSubmitTest') {
+              if (!state.activeCbt) {
+                showToast('No active test found. Reopen the test and try again.', 'error');
+                return;
+              }
+              openSubmitConfirmationModal();
+            } else if (target.id === 'btnCancelSubmitModal') {
+              document.getElementById('modalConfirmSubmit').classList.add('hidden');
+            } else if (target.id === 'btnFinalConfirmSubmit') {
+              if (!state.activeCbt) {
+                document.getElementById('modalConfirmSubmit').classList.add('hidden');
+                showToast('This test attempt is no longer active.', 'error');
+                return;
+              }
+              Promise.resolve(finalizeAndScoreAttempt(false)).catch(function(error) {
+                console.error('Manual test submission failed:', error);
+                showToast('Submission failed. Please try Submit Test again.', 'error');
+              });
+            }
+          }, true);
+        }
 
         document.getElementById('btnAbortTest').addEventListener('click', function() {
           if (state.activeCbt && state.activeCbt.timerInterval) {
