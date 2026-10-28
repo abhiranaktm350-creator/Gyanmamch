@@ -3775,10 +3775,33 @@ table{max-width:100%;border-collapse:collapse}
         if (confirmButton) {
           confirmButton.disabled = false;
           confirmButton.textContent = 'Confirm & View Result';
-          // Bind directly to the actual modal button. Delegated document click handlers
-          // can be interrupted by other capture listeners on some mobile/browser flows.
-          // Submission is handled by the single early capture-phase listener below.
-          confirmButton.onclick = null;
+          // Bind the confirmation button directly. This avoids relying on document-level
+          // delegated handlers for the final, critical submission action.
+          confirmButton.onclick = function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const active = state.activeCbt;
+            if (!active || active.isSubmitting) return;
+            confirmButton.disabled = true;
+            confirmButton.textContent = 'Submitting…';
+            Promise.resolve().then(function() {
+              return finalizeAndScoreAttempt(false);
+            }).catch(function(error) {
+              if (state.activeCbt) state.activeCbt.isSubmitting = false;
+              confirmButton.disabled = false;
+              confirmButton.textContent = 'Confirm & View Result';
+              const modal = document.getElementById('modalConfirmSubmit');
+              if (modal) modal.classList.remove('hidden');
+              const stats = document.getElementById('submitSummaryStats');
+              if (stats) {
+                const prior = stats.querySelector('[data-submit-error="true"]');
+                if (prior) prior.remove();
+                const msg = error && error.message ? error.message : 'Please try again.';
+                stats.insertAdjacentHTML('beforeend', '<p data-submit-error="true" class="col-span-2 text-sm text-rose-700" role="alert">Submission failed. Your answers are still on screen. ' + escapeHtml(msg) + '</p>');
+              }
+              console.error('Gyan Manch direct submission failed:', error);
+            });
+          };
         }
         const oldError = statsBox.querySelector('[data-submit-error="true"]');
         if (oldError) oldError.remove();
@@ -8398,7 +8421,7 @@ Answer Key:
         // control in bindGlobalEvents throws during setup, exam submission still works.
         document.addEventListener('click', function(event) {
           const btn = event.target && event.target.closest
-            ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCbtSaveNext, #btnCancelSubmitModal, #btnFinalConfirmSubmit')
+            ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCbtSaveNext, #btnCancelSubmitModal')
             : null;
           if (!btn) return;
           // The last-question button is rendered as "Submit Test". Handle it here
@@ -8417,29 +8440,6 @@ Answer Key:
             const modal = document.getElementById('modalConfirmSubmit');
             if (modal) modal.classList.add('hidden');
             return;
-          }
-          if (btn.id === 'btnFinalConfirmSubmit') {
-            const active = state.activeCbt;
-            if (!active || active.isSubmitting) return;
-            btn.disabled = true;
-            btn.textContent = 'Submitting…';
-            Promise.resolve().then(function() {
-              return finalizeAndScoreAttempt(false);
-            }).catch(function(error) {
-              if (state.activeCbt) state.activeCbt.isSubmitting = false;
-              btn.disabled = false;
-              btn.textContent = 'Confirm & View Result';
-              const modal = document.getElementById('modalConfirmSubmit');
-              if (modal) modal.classList.remove('hidden');
-              const stats = document.getElementById('submitSummaryStats');
-              if (stats) {
-                const prior = stats.querySelector('[data-submit-error="true"]');
-                if (prior) prior.remove();
-                const msg = error && error.message ? error.message : 'Please try again.';
-                stats.insertAdjacentHTML('beforeend', '<p data-submit-error="true" class="col-span-2 text-sm text-rose-700" role="alert">Submission failed. Your answers are still on screen. ' + escapeHtml(msg) + '</p>');
-              }
-              console.error('Gyan Manch submission failed:', error);
-            });
           }
         }, true);
         bindGlobalEvents();
