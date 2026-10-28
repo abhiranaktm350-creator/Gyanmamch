@@ -3252,7 +3252,7 @@ table{max-width:100%;border-collapse:collapse}
               if (ans) ans.timeSpent = Number(ans.timeSpent || 0) + 1;
               const qTimer = document.getElementById('cbtQuestionTimeBadge');
               if (qTimer && ans) qTimer.textContent = 'Q Timer: ' + formatSeconds(ans.timeSpent);
-              if (active.remainingSeconds <= 0) { clearInterval(active.timerInterval); active.timerInterval = null; finalizeAndScoreAttempt(true); }
+              if (active.remainingSeconds <= 0) { clearInterval(active.timerInterval); active.timerInterval = null; Promise.resolve(finalizeAndScoreAttempt(true)).catch(function(error) { if (state.activeCbt) state.activeCbt.isSubmitting = false; console.error('Automatic timeout submission failed:', error); showToast('Time is up, but submission failed. Tap Submit Test to retry.', 'error'); }); }
             }, 1000);
           }
         }
@@ -3390,7 +3390,7 @@ table{max-width:100%;border-collapse:collapse}
             window.clearInterval(active.timerInterval);
             active.timerInterval = null;
             showToast('Time expired! Automatically submitting your mock test attempt...', 'warning');
-            finalizeAndScoreAttempt(true);
+            Promise.resolve(finalizeAndScoreAttempt(true)).catch(function(error) { if (state.activeCbt) state.activeCbt.isSubmitting = false; console.error('Automatic timeout submission failed:', error); showToast('Time is up, but submission failed. Tap Submit Test to retry.', 'error'); });
           }
         }, 250);
       }
@@ -3777,33 +3777,8 @@ table{max-width:100%;border-collapse:collapse}
           confirmButton.textContent = 'Confirm & View Result';
           // Bind directly to the actual modal button. Delegated document click handlers
           // can be interrupted by other capture listeners on some mobile/browser flows.
-          confirmButton.onclick = async function(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            const active = state.activeCbt;
-            if (!active || active.isSubmitting) return;
-            confirmButton.disabled = true;
-            confirmButton.textContent = 'Submitting…';
-            try {
-              await finalizeAndScoreAttempt(false);
-            } catch (error) {
-              if (state.activeCbt) {
-                state.activeCbt.isSubmitting = false;
-                if (state.activeCbt.timerInterval) {
-                  clearInterval(state.activeCbt.timerInterval);
-                  state.activeCbt.timerInterval = null;
-                }
-              }
-              confirmButton.disabled = false;
-              confirmButton.textContent = 'Confirm & View Result';
-              submitModal.classList.remove('hidden');
-              const errorText = error && error.message ? error.message : 'Please try again.';
-              const oldError = statsBox.querySelector('[data-submit-error="true"]');
-              if (oldError) oldError.remove();
-              statsBox.insertAdjacentHTML('beforeend', '<p data-submit-error="true" class="col-span-2 text-sm text-rose-700" role="alert">Submission failed. Your answers are still on screen. ' + escapeHtml(errorText) + '</p>');
-              console.error('Gyan Manch submission failed:', error);
-            }
-          };
+          // Submission is handled by the single early capture-phase listener below.
+          confirmButton.onclick = null;
         }
         const oldError = statsBox.querySelector('[data-submit-error="true"]');
         if (oldError) oldError.remove();
@@ -8478,7 +8453,7 @@ Answer Key:
         // control in bindGlobalEvents throws during setup, exam submission still works.
         document.addEventListener('click', function(event) {
           const btn = event.target && event.target.closest
-            ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCancelSubmitModal')
+            ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCancelSubmitModal, #btnFinalConfirmSubmit')
             : null;
           if (!btn) return;
           event.preventDefault();
@@ -8493,6 +8468,29 @@ Answer Key:
             const modal = document.getElementById('modalConfirmSubmit');
             if (modal) modal.classList.add('hidden');
             return;
+          }
+          if (btn.id === 'btnFinalConfirmSubmit') {
+            const active = state.activeCbt;
+            if (!active || active.isSubmitting) return;
+            btn.disabled = true;
+            btn.textContent = 'Submitting…';
+            Promise.resolve().then(function() {
+              return finalizeAndScoreAttempt(false);
+            }).catch(function(error) {
+              if (state.activeCbt) state.activeCbt.isSubmitting = false;
+              btn.disabled = false;
+              btn.textContent = 'Confirm & View Result';
+              const modal = document.getElementById('modalConfirmSubmit');
+              if (modal) modal.classList.remove('hidden');
+              const stats = document.getElementById('submitSummaryStats');
+              if (stats) {
+                const prior = stats.querySelector('[data-submit-error="true"]');
+                if (prior) prior.remove();
+                const msg = error && error.message ? error.message : 'Please try again.';
+                stats.insertAdjacentHTML('beforeend', '<p data-submit-error="true" class="col-span-2 text-sm text-rose-700" role="alert">Submission failed. Your answers are still on screen. ' + escapeHtml(msg) + '</p>');
+              }
+              console.error('Gyan Manch submission failed:', error);
+            });
           }
         }, true);
         bindGlobalEvents();
