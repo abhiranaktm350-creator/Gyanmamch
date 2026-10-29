@@ -938,26 +938,33 @@ table{max-width:100%;border-collapse:collapse}
       'use strict';
 
       // Submit flow is wired directly to the actual exam controls after the app initializes.
-      // Avoid a document-capture listener: it can intercept clicks before app-level state
-      // and other handlers are ready, making the visible Submit button appear inert.
       function bindExamSubmitControls() {
-        // Delegate the two primary submit buttons from document instead of binding
-        // to their current DOM nodes. This survives exam UI rerenders/recreated buttons.
+        // Capture the click before nested UI handlers can stop propagation. The exam
+        // renderer reuses/repaints controls, so use one delegated path for both submit
+        // controls and the bottom Save & Next button when it represents the final question.
         if (document.documentElement.dataset.gmSubmitDelegationBound !== '1') {
           document.documentElement.dataset.gmSubmitDelegationBound = '1';
           document.addEventListener('click', function(event) {
             const target = event.target;
             const button = target && typeof target.closest === 'function'
-              ? target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest')
+              ? target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCbtSaveNext')
               : null;
             if (!button) return;
+            const active = state.activeCbt;
+            const isHeaderSubmit = button.matches('#btnOpenSubmitModal, #btnSidebarSubmitTest');
+            const isFinalQuestionSubmit = button.id === 'btnCbtSaveNext' && active &&
+              Array.isArray(active.questions) && active.questions.length > 0 &&
+              active.currentIndex === active.questions.length - 1;
+            if (!isHeaderSubmit && !isFinalQuestionSubmit) return;
             event.preventDefault();
+            event.stopPropagation();
+            if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
             try { openSubmitConfirmationModal(); }
             catch (error) {
-              console.error('Could not open submit confirmation:', error);
+              console.error('[Gyan Manch submit] confirmation open failed:', error);
               showToast('Could not open submit confirmation. Please try again.', 'error');
             }
-          });
+          }, true);
         }
         const saveNext = document.getElementById('btnCbtSaveNext');
         if (saveNext && saveNext.dataset.submitBound !== '1') {
