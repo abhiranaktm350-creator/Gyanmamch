@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <defs>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#12a4ff"/><stop offset="1" stop-color="#123b9b"/></linearGradient>
+  </defs>
+  <circle cx="120" cy="120" r="112" fill="#f5faff" stroke="url(#blue)" stroke-width="9"/>
+  <path d="M42 140 Q80 119 119 148 L119 188 Q78 160 42 179Z" fill="#168df0"/>
+  <path d="M198 140 Q160 119 121 148 L121 188 Q162 160 198 179Z" fill="#123b9b"/>
+  <path d="M48 159 Q84 146 115 168 M192 159 Q156 146 125 168" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+  <path d="M120 35 L174 57 L120 80 L66 57Z" fill="url(#blue)"/>
+  <path d="M83 66 V83 Q120 105 157 83 V66 L120 83Z" fill="#164ba8"/>
+  <path d="M174 58 V82" stroke="#f7b928" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="174" cy="86" r="5" fill="#f7b928"/><path d="M169 92 L179 92 L174 104Z" fill="#f7b928"/>
+  <circle cx="120" cy="108" r="16" fill="url(#blue)"/>
+  <path d="M83 132 Q120 155 157 132 L143 158 L120 174 L97 158Z" fill="url(#blue)"/>
+  <path d="M70 201 Q120 214 170 201" fill="none" stroke="#168df0" stroke-width="5" stroke-linecap="round"/>
+</svg>
