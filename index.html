@@ -1001,9 +1001,9 @@ table{max-width:100%;border-collapse:collapse}
           });
         }
       }
-      // Capture submit clicks before any legacy/delegated click handlers can swallow them.
+      // Capture at WINDOW level, before document-level capture handlers can swallow clicks.
       // This is the single authoritative route for all three visible submission buttons.
-      document.addEventListener('click', function(event) {
+      window.addEventListener('click', function(event) {
         const target = event.target && event.target.closest ? event.target.closest(
           '#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnFinalConfirmSubmit'
         ) : null;
