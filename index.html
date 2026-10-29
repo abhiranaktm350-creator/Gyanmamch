@@ -957,7 +957,7 @@ table{max-width:100%;border-collapse:collapse}
               // The bottom control is relabelled to "Submit Test ✓" on the final question.
               // Trust that rendered intent as well as the current index, so a stale index
               // cannot make the visible submit control silently behave like Save & Next.
-              const buttonLabel = (button.textContent || '').replace(/\\s+/g, ' ').trim();
+              const buttonLabel = (button.textContent || '').replace(/\s+/g, ' ').trim();
               const isFinalQuestionSubmit = button.id === 'btnCbtSaveNext' && (
                 /^Submit Test/i.test(buttonLabel) ||
                 (active && Array.isArray(active.questions) && active.questions.length > 0 &&
