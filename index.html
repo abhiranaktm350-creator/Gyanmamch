@@ -3839,6 +3839,13 @@ table{max-width:100%;border-collapse:collapse}
 
         const submitModal = document.getElementById('modalConfirmSubmit');
         const statsBox = document.getElementById('submitSummaryStats');
+        // This modal is reused across attempts. Reset the confirm control each time it opens.
+        const confirmButton = document.getElementById('btnFinalConfirmSubmit');
+        if (confirmButton) {
+          confirmButton.disabled = false;
+          confirmButton.textContent = 'Confirm & View Result';
+          confirmButton.removeAttribute('aria-busy');
+        }
         if (!submitModal || !statsBox) {
           console.error('Submit confirmation UI is missing from the exam page.');
           showToast('Submit window is unavailable. Please refresh and reopen the test.', 'error');
