@@ -7141,6 +7141,56 @@ Answer Key:
       }
 
       // Multi-Question Parser: Extracts ALL questions, options (inline or multi-line), and End-of-PDF Answer Key tables!
+      // Translate missing Hindi question/option fields after PDF extraction.
+      // English originals remain untouched; failed translations stay blank for admin review.
+      async function translatePdfFieldToHindi(value) {
+        const source = String(value || '').trim();
+        if (!source || !/[A-Za-z]/.test(source) || /^[\d\s.,%+\-*/=()₹$]+$/.test(source)) return source;
+        try {
+          const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=hi&dt=t&q=' + encodeURIComponent(source);
+          const response = await fetch(url, { method: 'GET' });
+          if (!response.ok) throw new Error('Translation service returned ' + response.status);
+          const payload = await response.json();
+          const translated = Array.isArray(payload && payload[0]) ? payload[0].map(part => part && part[0] || '').join('').trim() : '';
+          return translated && /[\u0900-\u097F]/.test(translated) ? translated : '';
+        } catch (error) {
+          console.warn('Hindi translation unavailable for PDF field:', error);
+          return '';
+        }
+      }
+
+      async function autoTranslatePdfQueueItems(items) {
+        const queueItems = Array.isArray(items) ? items : [];
+        for (const item of queueItems) {
+          if (!item) continue;
+          const englishQuestion = String(item.text_en || '').trim();
+          const hindiQuestion = String(item.text_hi || '').trim();
+          if (englishQuestion && (!hindiQuestion || hindiQuestion === englishQuestion || !/[\u0900-\u097F]/.test(hindiQuestion))) {
+            item.text_hi = await translatePdfFieldToHindi(englishQuestion);
+          }
+          const enOptions = Array.isArray(item.options_en) ? item.options_en : [];
+          const hiOptions = Array.isArray(item.options_hi) ? item.options_hi.slice() : [];
+          while (hiOptions.length < enOptions.length) hiOptions.push('');
+          for (let i = 0; i < enOptions.length; i++) {
+            const enOption = String(enOptions[i] || '').trim();
+            const hiOption = String(hiOptions[i] || '').trim();
+            if (!enOption) { hiOptions[i] = ''; continue; }
+            if (!hiOption || hiOption === enOption || !/[\u0900-\u097F]/.test(hiOption)) {
+              hiOptions[i] = await translatePdfFieldToHindi(enOption);
+            }
+          }
+          item.options_hi = hiOptions;
+          const missingQuestion = englishQuestion && !String(item.text_hi || '').trim();
+          const missingOptions = enOptions.some((v, i) => String(v || '').trim() && !String(hiOptions[i] || '').trim());
+          const existingWarning = String(item.extractionWarning || '');
+          const keptWarnings = existingWarning.split(/(?<=\.)\s+/).filter(w => w && !/Hindi question translation is missing|Hindi options are missing|Hindi translation/i.test(w));
+          if (missingQuestion) keptWarnings.push('Hindi question translation is missing. Add/review it before publishing.');
+          if (missingOptions) keptWarnings.push('One or more Hindi options are missing. Complete them before publishing.');
+          item.extractionWarning = keptWarnings.join(' ') || null;
+        }
+        return queueItems;
+      }
+
       async function tryBackgroundExtractQuestions(rawText, sourceFileName, targetExamId, targetSubjectId, answerKeyText) {
         const client = window.gyanManchSupabase;
         if (!client || !state.currentUser || !['admin','teacher'].includes(state.currentUser.role)) return false;
@@ -7249,8 +7299,12 @@ Answer Key:
             staged++;
           });
           if (!staged) return false;
+          const stagedForFile = db.pdfImportQueue.filter(q => q.fileName === sourceFileName && q.examId === exam.id);
+          showToast('Questions extracted. Translating Hindi questions and options…', 'info');
+          await autoTranslatePdfQueueItems(stagedForFile);
           saveDatabase(db);
-          showToast('Extracted ' + staged + ' question(s) from ' + chunks.length + ' PDF section(s). Check the answer written below each question, then review before publishing.', 'success');
+          showToast('Extracted ' + staged + ' question(s). Hindi options were auto-translated where possible; review translations and answers before publishing.', 'success');
+          try { renderAdminDashboardView(document.getElementById('appMain')); } catch (_) {}
           return true;
         } catch (error) {
           showToast('PDF extraction error: ' + (error && error.message ? error.message : 'Please retry.'), 'error');
@@ -7441,7 +7495,16 @@ Answer Key:
         });
 
         saveDatabase(db);
-        showToast('Successfully extracted ' + extractedCount + ' question(s) from "' + sourceFileName + '" with ' + exam.code + ' marking (+' + posMarks + '/-' + negMarks + ')!', 'success');
+        showToast('Extracted ' + extractedCount + ' question(s). Translating Hindi questions and options…', 'info');
+        const stagedForFile = db.pdfImportQueue.filter(q => q.fileName === sourceFileName && q.examId === exam.id);
+        autoTranslatePdfQueueItems(stagedForFile).then(function() {
+          saveDatabase(db);
+          showToast('Hindi question/options translation finished where available. Please review before publishing.', 'success');
+          try { renderAdminDashboardView(document.getElementById('appMain')); } catch (_) {}
+        }).catch(function(error) {
+          console.warn('PDF Hindi translation review fallback:', error);
+          showToast('Some Hindi translations could not be generated. Please fill missing fields in admin review.', 'warning');
+        });
       }
 
       // --- ADMIN TAB 5: ANALYTICS & PERMITTED CSV EXPORT ---
