@@ -3754,7 +3754,13 @@ table{max-width:100%;border-collapse:collapse}
 
       async function finalizeAndScoreAttempt(isAutoTimeout) {
         const cbt = state.activeCbt;
-        if (!cbt) return;
+        if (!cbt || cbt.finalized) return;
+        if (cbt.submitInProgress && !isAutoTimeout) {
+          // Manual confirmation already owns the submit operation; continue once.
+          cbt.submitInProgress = false;
+        }
+        cbt.finalized = true;
+        cbt.submitInProgress = true;
 
         if (cbt.timerInterval) {
           clearInterval(cbt.timerInterval);
@@ -7870,14 +7876,46 @@ Answer Key:
           renderCbtPalette();
         });
 
-        document.getElementById('btnOpenSubmitModal').addEventListener('click', openSubmitConfirmationModal);
-        document.getElementById('btnSidebarSubmitTest').addEventListener('click', openSubmitConfirmationModal);
-        document.getElementById('btnCancelSubmitModal').addEventListener('click', function() {
-          document.getElementById('modalConfirmSubmit').classList.add('hidden');
-        });
-        document.getElementById('btnFinalConfirmSubmit').addEventListener('click', function() {
-          finalizeAndScoreAttempt(false);
-        });
+        // Capture submit actions before any document-level handler; delegate so recreated UI still works.
+        if (!window.__gyanManchSubmitButtonsBound) {
+          window.__gyanManchSubmitButtonsBound = true;
+          window.addEventListener('click', function(event) {
+            const target = event.target && event.target.closest
+              ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCancelSubmitModal, #btnFinalConfirmSubmit')
+              : null;
+            if (!target) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            if (target.id === 'btnOpenSubmitModal' || target.id === 'btnSidebarSubmitTest') {
+              if (!state.activeCbt) {
+                showToast('No active test found. Reopen the test and try again.', 'error');
+                return;
+              }
+              openSubmitConfirmationModal();
+              return;
+            }
+            if (target.id === 'btnCancelSubmitModal') {
+              document.getElementById('modalConfirmSubmit').classList.add('hidden');
+              return;
+            }
+            const active = state.activeCbt;
+            if (!active || active.finalized || active.submitInProgress) {
+              if (!active) showToast('This test attempt is no longer active.', 'error');
+              return;
+            }
+            active.submitInProgress = true;
+            target.disabled = true;
+            target.dataset.originalText = target.textContent;
+            target.textContent = 'Submitting…';
+            Promise.resolve(finalizeAndScoreAttempt(false)).catch(function(error) {
+              console.error('Manual test submission failed:', error);
+              if (state.activeCbt) state.activeCbt.submitInProgress = false;
+              target.disabled = false;
+              target.textContent = target.dataset.originalText || 'Confirm & View Result';
+              showToast('Submission failed. Please try Submit Test again.', 'error');
+            });
+          }, true);
+        }
 
         document.getElementById('btnAbortTest').addEventListener('click', function() {
           if (state.activeCbt && state.activeCbt.timerInterval) {
