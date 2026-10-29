@@ -8423,6 +8423,66 @@ Answer Key:
           if (startBtn) { event.preventDefault(); resumeCbtExam(); }
           if (pauseBtn) { event.preventDefault(); pauseCbtExam(); }
         }, true);
+        // Submit controls use a delegated capture handler so earlier optional UI binding
+        // failures cannot leave the exam submit buttons inert.
+        document.addEventListener('click', async function(event) {
+          const target = event.target && event.target.closest ? event.target.closest(
+            '#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCancelSubmitModal, #btnFinalConfirmSubmit'
+          ) : null;
+          if (!target) return;
+          event.preventDefault();
+          event.stopPropagation();
+          if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+
+          if (target.id === 'btnOpenSubmitModal' || target.id === 'btnSidebarSubmitTest') {
+            if (!state.activeCbt) {
+              if (typeof showToast === 'function') showToast('No active test was found. Please reopen the test and try again.', 'error');
+              return;
+            }
+            try {
+              openSubmitConfirmationModal();
+            } catch (error) {
+              console.error('Gyan Manch could not open submit confirmation:', error);
+              if (typeof showToast === 'function') showToast('Could not open submission confirmation. Please try again.', 'error');
+            }
+            return;
+          }
+
+          if (target.id === 'btnCancelSubmitModal') {
+            const modal = document.getElementById('modalConfirmSubmit');
+            if (modal) modal.classList.add('hidden');
+            return;
+          }
+
+          if (target.id === 'btnFinalConfirmSubmit') {
+            const cbt = state.activeCbt;
+            if (!cbt || cbt.isSubmitting) return;
+            target.disabled = true;
+            target.textContent = 'Submitting…';
+            try {
+              await finalizeAndScoreAttempt(false);
+            } catch (error) {
+              if (state.activeCbt) state.activeCbt.isSubmitting = false;
+              target.disabled = false;
+              target.textContent = 'Confirm & View Result';
+              const modal = document.getElementById('modalConfirmSubmit');
+              if (modal) modal.classList.remove('hidden');
+              const message = document.getElementById('submitSummaryStats');
+              if (message) {
+                const oldError = message.querySelector('[data-submit-error]');
+                if (oldError) oldError.remove();
+                const errorBox = document.createElement('p');
+                errorBox.className = 'col-span-2 text-sm text-rose-700';
+                errorBox.setAttribute('role', 'alert');
+                errorBox.setAttribute('data-submit-error', 'true');
+                errorBox.textContent = 'Submission could not finish. Your answers are still on screen. Please try again. ' + (error && error.message ? error.message : '');
+                message.appendChild(errorBox);
+              }
+              console.error('Gyan Manch submission failed:', error);
+            }
+          }
+        }, true);
+
         bindGlobalEvents();
         bindLanAndBackupControls();
         syncHeaderUI();
