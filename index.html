@@ -1001,6 +1001,51 @@ table{max-width:100%;border-collapse:collapse}
           });
         }
       }
+      // Capture submit clicks before any legacy/delegated click handlers can swallow them.
+      // This is the single authoritative route for all three visible submission buttons.
+      document.addEventListener('click', function(event) {
+        const target = event.target && event.target.closest ? event.target.closest(
+          '#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnFinalConfirmSubmit'
+        ) : null;
+        if (!target) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        if (target.id === 'btnOpenSubmitModal' || target.id === 'btnSidebarSubmitTest') {
+          try {
+            openSubmitConfirmationModal();
+          } catch (error) {
+            console.error('Submit confirmation could not be opened:', error);
+            showToast('Could not open submit confirmation. Please try again.', 'error');
+          }
+          return;
+        }
+
+        const active = state.activeCbt;
+        if (!active || active.isSubmitting) {
+          if (!active) showToast('No active test found. Please reopen the mock test and try again.', 'error');
+          return;
+        }
+        target.disabled = true;
+        target.textContent = 'Submitting…';
+        Promise.resolve().then(function() {
+          return finalizeAndScoreAttempt(false);
+        }).catch(function(error) {
+          if (state.activeCbt) state.activeCbt.isSubmitting = false;
+          target.disabled = false;
+          target.textContent = 'Confirm & View Result';
+          const modal = document.getElementById('modalConfirmSubmit');
+          if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+          const stats = document.getElementById('submitSummaryStats');
+          if (stats) {
+            const prior = stats.querySelector('[data-submit-error="true"]');
+            if (prior) prior.remove();
+            const msg = error && error.message ? error.message : 'Please try again.';
+            stats.insertAdjacentHTML('beforeend', '<p data-submit-error="true" class="col-span-2 text-sm text-rose-700" role="alert">Submission failed. Your answers are still on screen. ' + escapeHtml(msg) + '</p>');
+          }
+          console.error('Final exam submission failed:', error);
+        });
+      }, true);
       document.addEventListener('DOMContentLoaded', bindExamSubmitControls);
       // Also bind immediately when this script runs after DOM parsing.
       if (document.readyState !== 'loading') bindExamSubmitControls();
