@@ -7146,17 +7146,33 @@ Answer Key:
       async function translatePdfFieldToHindi(value) {
         const source = String(value || '').trim();
         if (!source || !/[A-Za-z]/.test(source) || /^[\d\s.,%+\-*\/=()₹$]+$/.test(source)) return source;
-        try {
-          const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=hi&dt=t&q=' + encodeURIComponent(source);
-          const response = await fetch(url, { method: 'GET' });
-          if (!response.ok) throw new Error('Translation service returned ' + response.status);
-          const payload = await response.json();
-          const translated = Array.isArray(payload && payload[0]) ? payload[0].map(part => part && part[0] || '').join('').trim() : '';
-          return translated && /[\u0900-\u097F]/.test(translated) ? translated : '';
-        } catch (error) {
-          console.warn('Hindi translation unavailable for PDF field:', error);
-          return '';
+        const hasHindi = function(value) { return /[\u0900-\u097F]/.test(String(value || '')); };
+        // Try Google Translate first, then MyMemory as a fallback if the browser/network blocks it.
+        const providers = [
+          async function() {
+            const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=hi&dt=t&q=' + encodeURIComponent(source);
+            const response = await fetch(url, { method: 'GET' });
+            if (!response.ok) throw new Error('Google Translate returned ' + response.status);
+            const payload = await response.json();
+            return Array.isArray(payload && payload[0]) ? payload[0].map(part => part && part[0] || '').join('').trim() : '';
+          },
+          async function() {
+            const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(source) + '&langpair=en|hi';
+            const response = await fetch(url, { method: 'GET' });
+            if (!response.ok) throw new Error('MyMemory returned ' + response.status);
+            const payload = await response.json();
+            return String(payload && payload.responseData && payload.responseData.translatedText || '').trim();
+          }
+        ];
+        for (const provider of providers) {
+          try {
+            const translated = await provider();
+            if (translated && hasHindi(translated) && translated.toLowerCase() !== source.toLowerCase()) return translated;
+          } catch (error) {
+            console.warn('PDF Hindi translation provider failed; trying fallback:', error);
+          }
         }
+        return '';
       }
 
       async function autoTranslatePdfQueueItems(items) {
@@ -7300,7 +7316,7 @@ Answer Key:
           });
           if (!staged) return false;
           const stagedForFile = db.pdfImportQueue.filter(q => q.fileName === sourceFileName && q.examId === exam.id);
-          showToast('Questions extracted. Translating Hindi questions and options…', 'info');
+          showToast('Questions extracted. Translating Hindi questions and all four options…', 'info');
           await autoTranslatePdfQueueItems(stagedForFile);
           saveDatabase(db);
           showToast('Extracted ' + staged + ' question(s). Hindi options were auto-translated where possible; review translations and answers before publishing.', 'success');
