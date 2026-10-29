@@ -7145,7 +7145,7 @@ Answer Key:
       // English originals remain untouched; failed translations stay blank for admin review.
       async function translatePdfFieldToHindi(value) {
         const source = String(value || '').trim();
-        if (!source || !/[A-Za-z]/.test(source) || /^[\d\s.,%+\-*/=()₹$]+$/.test(source)) return source;
+        if (!source || !/[A-Za-z]/.test(source) || /^[\d\s.,%+\-*\/=()₹$]+$/.test(source)) return source;
         try {
           const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=hi&dt=t&q=' + encodeURIComponent(source);
           const response = await fetch(url, { method: 'GET' });
