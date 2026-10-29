@@ -3525,7 +3525,7 @@ table{max-width:100%;border-collapse:collapse}
         const hindiCandidates = [q.text_hi, q.question_hi, q.question_text_hi, q.questionTextHi, q.hindiText, q.statement_hi];
         q.text_hi = '';
         for (const candidate of hindiCandidates) { q.text_hi = readQuestionText(candidate, 'hi'); if (q.text_hi.trim()) break; }
-        if (!q.text_hi.trim()) q.text_hi = q.text_en;
+        if (!q.text_hi.trim()) q.text_hi = '';
         if (!Array.isArray(q.options_en) || q.options_en.length === 0) {
           const rawOptions = (Array.isArray(q.options) && q.options.length ? q.options : null) || q.choices || q.answers || q.options_en || [];
           q.options_en = Array.isArray(rawOptions) ? rawOptions.map(function(o){
@@ -3533,7 +3533,9 @@ table{max-width:100%;border-collapse:collapse}
             return o && (o.text_en || o.en || o.english || o.text || o.label || o.value || o.hi || o.text_hi) || '';
           }) : [];
         }
-        if (!Array.isArray(q.options_hi) || q.options_hi.length === 0) q.options_hi = (Array.isArray(q.options) && q.options.length) ? q.options.map(function(o, i){ return o && typeof o === 'object' ? (o.text_hi || o.hi || o.hindi || o.text_en || o.text || q.options_en[i] || '') : (q.options_en[i] || ''); }) : q.options_en.slice();
+        if (!Array.isArray(q.options_hi) || q.options_hi.length === 0) q.options_hi = (Array.isArray(q.options) && q.options.length) ? q.options.map(function(o){ return o && typeof o === 'object' ? (o.text_hi || o.hi || o.hindi || '') : ''; }) : ['', '', '', ''];
+        q.options_hi = q.options_hi.slice(0, 5).map(function(value){ return String(value || ''); });
+        while (q.options_hi.length < Math.min(4, q.options_en.length || 4)) q.options_hi.push('');
         if (!cbt.answers) cbt.answers = {};
         if (!cbt.answers[q.id]) cbt.answers[q.id] = { selectedOption: null, markedForReview: false, timeSpent: 0 };
         const ansState = cbt.answers[q.id];
@@ -5818,8 +5820,13 @@ table{max-width:100%;border-collapse:collapse}
           ];
           const enteredOptionPairs = rawOptionPairs.filter(pair => pair[0] !== '');
           const optEn = enteredOptionPairs.map(pair => pair[0]);
-          const optHi = enteredOptionPairs.map(pair => pair[1] || pair[0]);
+          const optHi = enteredOptionPairs.map(pair => pair[1]);
+          const manualTextHi = document.getElementById('admQTextHi').value.trim();
           if (optEn.length < 2) { showToast('Kam se kam 2 options enter karein.', 'error'); return; }
+          if (!manualTextHi || optHi.some((value, index) => optEn[index] && !String(value || '').trim())) {
+            showToast('Publish karne se pehle Hindi question aur har bhare hue option ka Hindi translation add karein.', 'error');
+            return;
+          }
           const correctIndex = Number(document.getElementById('admQCorrect').value);
           if (correctIndex >= optEn.length) { showToast('Selected correct answer ke liye option enter nahi kiya gaya.', 'error'); return; }
 
@@ -6983,7 +6990,7 @@ Answer Key:
                 subjectId: item.subjectId || 'sub_ga',
                 chapterId: item.chapterId || 'ch_geog',
                 text_en: item.text_en,
-                text_hi: item.text_hi || item.text_en,
+                text_hi: item.text_hi || '',
                 options_en: item.options_en,
                 options_hi: Array.isArray(item.options_hi) ? item.options_hi : [],
                 correctOption: Number(item.correctOption),
@@ -7095,7 +7102,7 @@ Answer Key:
               subjectId: item.subjectId || 'sub_ga',
               chapterId: item.chapterId || 'ch_geog',
               text_en: item.text_en,
-              text_hi: item.text_hi || item.text_en,
+              text_hi: item.text_hi || '',
               options_en: item.options_en,
               options_hi: Array.isArray(item.options_hi) ? item.options_hi : [],
               correctOption: Number(item.correctOption),
