@@ -945,24 +945,38 @@ table{max-width:100%;border-collapse:collapse}
         if (document.documentElement.dataset.gmSubmitDelegationBound !== '1') {
           document.documentElement.dataset.gmSubmitDelegationBound = '1';
           document.addEventListener('click', function(event) {
-            const target = event.target;
-            const button = target && typeof target.closest === 'function'
-              ? target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCbtSaveNext')
-              : null;
-            if (!button) return;
-            const active = state.activeCbt;
-            const isHeaderSubmit = button.matches('#btnOpenSubmitModal, #btnSidebarSubmitTest');
-            const isFinalQuestionSubmit = button.id === 'btnCbtSaveNext' && active &&
-              Array.isArray(active.questions) && active.questions.length > 0 &&
-              active.currentIndex === active.questions.length - 1;
-            if (!isHeaderSubmit && !isFinalQuestionSubmit) return;
-            event.preventDefault();
-            event.stopPropagation();
-            if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
-            try { openSubmitConfirmationModal(); }
-            catch (error) {
-              console.error('[Gyan Manch submit] confirmation open failed:', error);
-              showToast('Could not open submit confirmation. Please try again.', 'error');
+            try {
+              const target = event.target;
+              const button = target && typeof target.closest === 'function'
+                ? target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCbtSaveNext')
+                : null;
+              if (!button) return;
+
+              const isHeaderSubmit = button.matches('#btnOpenSubmitModal, #btnSidebarSubmitTest');
+              const active = (typeof state !== 'undefined') ? state.activeCbt : null;
+              // The bottom control is relabelled to "Submit Test ✓" on the final question.
+              // Trust that rendered intent as well as the current index, so a stale index
+              // cannot make the visible submit control silently behave like Save & Next.
+              const buttonLabel = (button.textContent || '').replace(/\\s+/g, ' ').trim();
+              const isFinalQuestionSubmit = button.id === 'btnCbtSaveNext' && (
+                /^Submit Test/i.test(buttonLabel) ||
+                (active && Array.isArray(active.questions) && active.questions.length > 0 &&
+                 active.currentIndex === active.questions.length - 1)
+              );
+              if (!isHeaderSubmit && !isFinalQuestionSubmit) return;
+
+              event.preventDefault();
+              event.stopPropagation();
+              if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+              console.info('[Gyan Manch submit] submit control click captured:', button.id);
+              if (typeof openSubmitConfirmationModal !== 'function') {
+                throw new Error('Submit confirmation handler is not available.');
+              }
+              openSubmitConfirmationModal();
+            } catch (error) {
+              console.error('[Gyan Manch submit] click handling failed:', error);
+              try { showToast('Submit could not start: ' + (error && error.message ? error.message : 'Please try again.'), 'error'); }
+              catch (_) {}
             }
           }, true);
         }
