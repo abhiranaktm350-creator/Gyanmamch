@@ -3763,19 +3763,40 @@ table{max-width:100%;border-collapse:collapse}
 
       function openSubmitConfirmationModal() {
         const cbt = state.activeCbt;
-        if (!cbt) return;
+        if (!cbt) {
+          showToast('No active test found. Please reopen the mock test and try again.', 'error');
+          return;
+        }
+        if (cbt.isSubmitting) {
+          showToast('Your test is already being submitted. Please wait.', 'warning');
+          return;
+        }
+
+        const submitModal = document.getElementById('modalConfirmSubmit');
+        const statsBox = document.getElementById('submitSummaryStats');
+        if (!submitModal || !statsBox || !Array.isArray(cbt.questions)) {
+          console.error('Submit confirmation UI or question list is unavailable.');
+          showToast('Submit window is unavailable. Please refresh and reopen the test.', 'error');
+          return;
+        }
+
+        const confirmButton = document.getElementById('btnFinalConfirmSubmit');
+        if (confirmButton) {
+          confirmButton.disabled = false;
+          confirmButton.textContent = 'Confirm & View Result';
+          confirmButton.removeAttribute('aria-busy');
+        }
 
         let answered = 0;
         let unanswered = 0;
         let marked = 0;
         cbt.questions.forEach(function(q) {
-          const st = cbt.answers[q.id];
+          const st = (cbt.answers && cbt.answers[q.id]) || {};
           if (st.selectedOption !== null && st.selectedOption !== undefined) answered += 1;
           else unanswered += 1;
           if (st.markedForReview) marked += 1;
         });
 
-        const statsBox = document.getElementById('submitSummaryStats');
         statsBox.innerHTML = `
           <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
             <div class="text-xs text-emerald-700">Answered</div>
@@ -3794,7 +3815,8 @@ table{max-width:100%;border-collapse:collapse}
             <div class="text-xl font-extrabold text-slate-900 font-mono">${formatSeconds(cbt.remainingSeconds)}</div>
           </div>
         `;
-        document.getElementById('modalConfirmSubmit').classList.remove('hidden');
+        submitModal.classList.remove('hidden');
+        submitModal.classList.add('flex');
       }
 
       async function finalizeAndScoreAttempt(isAutoTimeout) {
