@@ -941,12 +941,16 @@ table{max-width:100%;border-collapse:collapse}
       // Avoid a document-capture listener: it can intercept clicks before app-level state
       // and other handlers are ready, making the visible Submit button appear inert.
       function bindExamSubmitControls() {
-        const openIds = ['btnOpenSubmitModal', 'btnSidebarSubmitTest'];
-        openIds.forEach(function(id) {
-          const button = document.getElementById(id);
-          if (!button || button.dataset.submitBound === '1') return;
-          button.dataset.submitBound = '1';
-          button.addEventListener('click', function(event) {
+        // Delegate the two primary submit buttons from document instead of binding
+        // to their current DOM nodes. This survives exam UI rerenders/recreated buttons.
+        if (document.documentElement.dataset.gmSubmitDelegationBound !== '1') {
+          document.documentElement.dataset.gmSubmitDelegationBound = '1';
+          document.addEventListener('click', function(event) {
+            const target = event.target;
+            const button = target && typeof target.closest === 'function'
+              ? target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest')
+              : null;
+            if (!button) return;
             event.preventDefault();
             try { openSubmitConfirmationModal(); }
             catch (error) {
@@ -954,7 +958,7 @@ table{max-width:100%;border-collapse:collapse}
               showToast('Could not open submit confirmation. Please try again.', 'error');
             }
           });
-        });
+        }
         const saveNext = document.getElementById('btnCbtSaveNext');
         if (saveNext && saveNext.dataset.submitBound !== '1') {
           saveNext.dataset.submitBound = '1';
