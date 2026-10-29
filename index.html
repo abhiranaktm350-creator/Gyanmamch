@@ -938,103 +938,6 @@ table{max-width:100%;border-collapse:collapse}
     (function() {
       'use strict';
 
-      // Submit flow is wired directly to the actual exam controls after the app initializes.
-      function bindExamSubmitControls() {
-        // Capture the click before nested UI handlers can stop propagation. The exam
-        // renderer reuses/repaints controls, so use one delegated path for both submit
-        // controls and the bottom Save & Next button when it represents the final question.
-        if (document.documentElement.dataset.gmSubmitDelegationBound !== '1') {
-          document.documentElement.dataset.gmSubmitDelegationBound = '1';
-          document.addEventListener('click', function(event) {
-            try {
-              const target = event.target;
-              const button = target && typeof target.closest === 'function'
-                ? target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCbtSaveNext')
-                : null;
-              if (!button) return;
-
-              const isHeaderSubmit = button.matches('#btnOpenSubmitModal, #btnSidebarSubmitTest');
-              const active = (typeof state !== 'undefined') ? state.activeCbt : null;
-              // The bottom control is relabelled to "Submit Test ✓" on the final question.
-              // Trust that rendered intent as well as the current index, so a stale index
-              // cannot make the visible submit control silently behave like Save & Next.
-              const buttonLabel = (button.textContent || '').replace(/\s+/g, ' ').trim();
-              const isFinalQuestionSubmit = button.id === 'btnCbtSaveNext' && (
-                /^Submit Test/i.test(buttonLabel) ||
-                (active && Array.isArray(active.questions) && active.questions.length > 0 &&
-                 active.currentIndex === active.questions.length - 1)
-              );
-              if (!isHeaderSubmit && !isFinalQuestionSubmit) return;
-
-              event.preventDefault();
-              event.stopPropagation();
-              if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
-              console.info('[Gyan Manch submit] submit control click captured:', button.id);
-              if (typeof openSubmitConfirmationModal !== 'function') {
-                throw new Error('Submit confirmation handler is not available.');
-              }
-              openSubmitConfirmationModal();
-            } catch (error) {
-              console.error('[Gyan Manch submit] click handling failed:', error);
-              try { showToast('Submit could not start: ' + (error && error.message ? error.message : 'Please try again.'), 'error'); }
-              catch (_) {}
-            }
-          }, true);
-        }
-        const saveNext = document.getElementById('btnCbtSaveNext');
-        if (saveNext && saveNext.dataset.submitBound !== '1') {
-          saveNext.dataset.submitBound = '1';
-          saveNext.addEventListener('click', function(event) {
-            const active = state.activeCbt;
-            if (!active || active.currentIndex < active.questions.length - 1) return;
-            event.preventDefault();
-            openSubmitConfirmationModal();
-          });
-        }
-        const cancel = document.getElementById('btnCancelSubmitModal');
-        if (cancel && cancel.dataset.submitBound !== '1') {
-          cancel.dataset.submitBound = '1';
-          cancel.addEventListener('click', function(event) {
-            event.preventDefault();
-            const modal = document.getElementById('modalConfirmSubmit');
-            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
-          });
-        }
-        const confirm = document.getElementById('btnFinalConfirmSubmit');
-        if (confirm && confirm.dataset.submitBound !== '1') {
-          confirm.dataset.submitBound = '1';
-          confirm.addEventListener('click', function(event) {
-            event.preventDefault();
-            const active = state.activeCbt;
-            if (!active || active.isSubmitting) return;
-            confirm.disabled = true;
-            confirm.textContent = 'Submitting…';
-            Promise.resolve().then(function() { return finalizeAndScoreAttempt(false); }).catch(function(error) {
-              if (state.activeCbt) state.activeCbt.isSubmitting = false;
-              confirm.disabled = false;
-              confirm.textContent = 'Confirm & View Result';
-              const modal = document.getElementById('modalConfirmSubmit');
-              if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
-              const stats = document.getElementById('submitSummaryStats');
-              if (stats) {
-                const prior = stats.querySelector('[data-submit-error="true"]');
-                if (prior) prior.remove();
-                const msg = error && error.message ? error.message : 'Please try again.';
-                stats.insertAdjacentHTML('beforeend', '<p data-submit-error="true" class="mt-3 text-sm text-rose-700">' + escapeHtml(msg) + '</p>');
-              }
-              console.error('Final exam submission failed:', error);
-            });
-          });
-        }
-      }
-
-      // Bind once after the DOM exists; direct handlers are the single submit path.
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', bindExamSubmitControls, { once: true });
-      } else {
-        bindExamSubmitControls();
-      }
-
       // Configure PDF.js worker if available
       if (window.pdfjsLib) {
         window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -3350,7 +3253,7 @@ table{max-width:100%;border-collapse:collapse}
               if (ans) ans.timeSpent = Number(ans.timeSpent || 0) + 1;
               const qTimer = document.getElementById('cbtQuestionTimeBadge');
               if (qTimer && ans) qTimer.textContent = 'Q Timer: ' + formatSeconds(ans.timeSpent);
-              if (active.remainingSeconds <= 0) { clearInterval(active.timerInterval); active.timerInterval = null; Promise.resolve(finalizeAndScoreAttempt(true)).catch(function(error) { if (state.activeCbt) state.activeCbt.isSubmitting = false; console.error('Automatic timeout submission failed:', error); showToast('Time is up, but submission failed. Tap Submit Test to retry.', 'error'); }); }
+              if (active.remainingSeconds <= 0) { clearInterval(active.timerInterval); active.timerInterval = null; finalizeAndScoreAttempt(true); }
             }, 1000);
           }
         }
@@ -3488,7 +3391,7 @@ table{max-width:100%;border-collapse:collapse}
             window.clearInterval(active.timerInterval);
             active.timerInterval = null;
             showToast('Time expired! Automatically submitting your mock test attempt...', 'warning');
-            Promise.resolve(finalizeAndScoreAttempt(true)).catch(function(error) { if (state.activeCbt) state.activeCbt.isSubmitting = false; console.error('Automatic timeout submission failed:', error); showToast('Time is up, but submission failed. Tap Submit Test to retry.', 'error'); });
+            finalizeAndScoreAttempt(true);
           }
         }, 250);
       }
@@ -3860,38 +3763,19 @@ table{max-width:100%;border-collapse:collapse}
 
       function openSubmitConfirmationModal() {
         const cbt = state.activeCbt;
-        if (!cbt) { showToast('No active test found. Please reopen the mock test and try again.', 'error'); return; }
-        if (cbt.isSubmitting) { showToast('Your test is already being submitted. Please wait.', 'warning'); return; }
-
-        const submitModal = document.getElementById('modalConfirmSubmit');
-        const statsBox = document.getElementById('submitSummaryStats');
-        // This modal is reused across attempts. Reset the confirm control each time it opens.
-        const confirmButton = document.getElementById('btnFinalConfirmSubmit');
-        if (confirmButton) {
-          confirmButton.disabled = false;
-          confirmButton.textContent = 'Confirm & View Result';
-          confirmButton.removeAttribute('aria-busy');
-        }
-        if (!submitModal || !statsBox) {
-          console.error('Submit confirmation UI is missing from the exam page.');
-          showToast('Submit window is unavailable. Please refresh and reopen the test.', 'error');
-          return;
-        }
-        const oldError = statsBox.querySelector('[data-submit-error="true"]');
-        if (oldError) oldError.remove();
+        if (!cbt) return;
 
         let answered = 0;
         let unanswered = 0;
         let marked = 0;
         cbt.questions.forEach(function(q) {
-          // Some imported/legacy mocks may not have an answer-state object for every question.
-          // Missing state must count as unanswered, not crash the submit-confirmation flow.
-          const st = (cbt.answers && cbt.answers[q.id]) || {};
+          const st = cbt.answers[q.id];
           if (st.selectedOption !== null && st.selectedOption !== undefined) answered += 1;
           else unanswered += 1;
           if (st.markedForReview) marked += 1;
         });
 
+        const statsBox = document.getElementById('submitSummaryStats');
         statsBox.innerHTML = `
           <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
             <div class="text-xs text-emerald-700">Answered</div>
@@ -3910,18 +3794,7 @@ table{max-width:100%;border-collapse:collapse}
             <div class="text-xl font-extrabold text-slate-900 font-mono">${formatSeconds(cbt.remainingSeconds)}</div>
           </div>
         `;
-        submitModal.classList.remove('hidden');
-        submitModal.classList.add('flex');
-      }
-
-      function withSubmitRequestTimeout(requestPromise, label) {
-        let timeoutId;
-        const timeout = new Promise(function(_, reject) {
-          timeoutId = setTimeout(function() {
-            reject(new Error(label + ' timed out. Showing your result locally; please check your connection.'));
-          }, 10000);
-        });
-        return Promise.race([requestPromise, timeout]).finally(function() { clearTimeout(timeoutId); });
+        document.getElementById('modalConfirmSubmit').classList.remove('hidden');
       }
 
       async function finalizeAndScoreAttempt(isAutoTimeout) {
@@ -3935,10 +3808,10 @@ table{max-width:100%;border-collapse:collapse}
           cbt.timerInterval = null;
         }
 
-        // Do not close the exam until the attempt is saved and scored.
+        /* Keep the exam visible while the server saves and scores the attempt. */
+        const confirmSubmitButton = document.getElementById('btnFinalConfirmSubmit');
+        if (confirmSubmitButton) { confirmSubmitButton.disabled = true; confirmSubmitButton.textContent = 'Submitting…'; }
         document.getElementById('modalConfirmSubmit').classList.add('hidden');
-        const submitButton = document.getElementById('btnFinalConfirmSubmit');
-        if (submitButton) { submitButton.disabled = true; submitButton.textContent = 'Submitting…'; }
 
         // Calculate Score using trusted Question Bank verification rules
         let totalScore = 0;
@@ -3981,19 +3854,19 @@ table{max-width:100%;border-collapse:collapse}
         if (window.gyanManchSupabase && state.currentUser && state.currentUser.role === 'student') {
           try {
             const client = window.gyanManchSupabase;
-            const testLookup = await withSubmitRequestTimeout(client.from('tests').select('id').eq('legacy_id', cbt.test.id).eq('status', 'published').single(), 'Test lookup');
+            const testLookup = await client.from('tests').select('id').eq('legacy_id', cbt.test.id).eq('status', 'published').single();
             if (testLookup.error) throw testLookup.error;
             const legacyQuestionIds = cbt.questions.map(q => q.id);
-            const questionLookup = await withSubmitRequestTimeout(client.from('questions').select('id,legacy_id').in('legacy_id', legacyQuestionIds), 'Question lookup');
+            const questionLookup = await client.from('questions').select('id,legacy_id').in('legacy_id', legacyQuestionIds);
             if (questionLookup.error) throw questionLookup.error;
             const questionUuidByLegacy = {};
             (questionLookup.data || []).forEach(q => { questionUuidByLegacy[q.legacy_id] = q.id; });
-            const attemptInsert = await withSubmitRequestTimeout(client.from('attempts').insert({
+            const attemptInsert = await client.from('attempts').insert({
               user_id: state.currentUser.id,
               test_id: testLookup.data.id,
               status: 'in_progress',
               total_questions: cbt.questions.length
-            }).select('id').single(), 'Attempt creation');
+            }).select('id').single();
             if (attemptInsert.error) throw attemptInsert.error;
             const serverAnswers = [];
             cbt.questions.forEach(q => {
@@ -4006,12 +3879,12 @@ table{max-width:100%;border-collapse:collapse}
                 });
               }
             });
-            const scored = await withSubmitRequestTimeout(client.rpc('submit_and_score_attempt', {
+            const scored = await client.rpc('submit_and_score_attempt', {
               p_attempt_id: attemptInsert.data.id,
               p_answers: serverAnswers,
               p_time_taken_seconds: timeTakenSeconds,
               p_auto_submit: !!isAutoTimeout
-            }), 'Score submission');
+            });
             if (scored.error) throw scored.error;
             const serverRow = Array.isArray(scored.data) ? scored.data[0] : scored.data;
             if (!serverRow) throw new Error('Server did not return a scored attempt.');
@@ -4023,7 +3896,7 @@ table{max-width:100%;border-collapse:collapse}
             incorrectCount = Number(serverRow.incorrect_count || 0);
             unansweredCount = Number(serverRow.unattempted_count || 0);
             accuracy = Number(serverRow.accuracy || 0);
-            const reviewResult = await withSubmitRequestTimeout(client.rpc('get_attempt_review', { p_attempt_id: backendAttemptId }), 'Answer review');
+            const reviewResult = await client.rpc('get_attempt_review', { p_attempt_id: backendAttemptId });
             if (!reviewResult.error && Array.isArray(reviewResult.data)) {
               const reviewMap = {};
               reviewResult.data.forEach(row => {
@@ -8070,9 +7943,31 @@ Answer Key:
           renderCbtPalette();
         });
 
-        // Submission controls are handled once by the single delegated handler at the end of this script.
+        document.getElementById('btnOpenSubmitModal').addEventListener('click', openSubmitConfirmationModal);
+        document.getElementById('btnSidebarSubmitTest').addEventListener('click', openSubmitConfirmationModal);
+        document.getElementById('btnCancelSubmitModal').addEventListener('click', function() {
+          document.getElementById('modalConfirmSubmit').classList.add('hidden');
+        });
+        document.getElementById('btnFinalConfirmSubmit').addEventListener('click', async function() {
+          const btn = this;
+          if (!state.activeCbt || state.activeCbt.isSubmitting) return;
+          btn.disabled = true;
+          btn.textContent = 'Submitting…';
+          try {
+            await finalizeAndScoreAttempt(false);
+          } catch (error) {
+            if (state.activeCbt) state.activeCbt.isSubmitting = false;
+            btn.disabled = false;
+            btn.textContent = 'Confirm & View Result';
+            const modal = document.getElementById('modalConfirmSubmit');
+            if (modal) modal.classList.remove('hidden');
+            const message = document.getElementById('submitSummaryStats');
+            if (message) message.insertAdjacentHTML('beforeend', '<p class="col-span-2 text-sm text-rose-700" role="alert">Submission could not finish. Your answers are still on screen. Please try again. ' + escapeHtml(error && error.message ? error.message : '') + '</p>');
+            console.error('Gyan Manch submission failed:', error);
+          }
+        });
 
-                document.getElementById('btnAbortTest').addEventListener('click', function() {
+        document.getElementById('btnAbortTest').addEventListener('click', function() {
           if (state.activeCbt && state.activeCbt.timerInterval) {
             clearInterval(state.activeCbt.timerInterval);
           }
