@@ -7876,46 +7876,49 @@ Answer Key:
           renderCbtPalette();
         });
 
-        // Capture submit actions before any document-level handler; delegate so recreated UI still works.
-        if (!window.__gyanManchSubmitButtonsBound) {
-          window.__gyanManchSubmitButtonsBound = true;
-          window.addEventListener('click', function(event) {
-            const target = event.target && event.target.closest
-              ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCancelSubmitModal, #btnFinalConfirmSubmit')
-              : null;
-            if (!target) return;
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            if (target.id === 'btnOpenSubmitModal' || target.id === 'btnSidebarSubmitTest') {
-              if (!state.activeCbt) {
-                showToast('No active test found. Reopen the test and try again.', 'error');
-                return;
-              }
-              openSubmitConfirmationModal();
-              return;
-            }
-            if (target.id === 'btnCancelSubmitModal') {
-              document.getElementById('modalConfirmSubmit').classList.add('hidden');
-              return;
-            }
-            const active = state.activeCbt;
-            if (!active || active.finalized || active.submitInProgress) {
-              if (!active) showToast('This test attempt is no longer active.', 'error');
-              return;
-            }
-            active.submitInProgress = true;
-            target.disabled = true;
-            target.dataset.originalText = target.textContent;
-            target.textContent = 'Submitting…';
-            Promise.resolve(finalizeAndScoreAttempt(false)).catch(function(error) {
-              console.error('Manual test submission failed:', error);
-              if (state.activeCbt) state.activeCbt.submitInProgress = false;
-              target.disabled = false;
-              target.textContent = target.dataset.originalText || 'Confirm & View Result';
-              showToast('Submission failed. Please try Submit Test again.', 'error');
-            });
-          }, true);
+        // Rebind the delegated submit handler on every CBT-control initialization.
+        // Keeping a one-time global flag here can leave the listener closing over stale state
+        // after the exam UI is rebuilt, making Submit buttons appear to do nothing.
+        if (window.__gyanManchSubmitClickHandler) {
+          window.removeEventListener('click', window.__gyanManchSubmitClickHandler, true);
         }
+        window.__gyanManchSubmitClickHandler = function(event) {
+          const target = event.target && event.target.closest
+            ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnCancelSubmitModal, #btnFinalConfirmSubmit')
+            : null;
+          if (!target) return;
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          if (target.id === 'btnOpenSubmitModal' || target.id === 'btnSidebarSubmitTest') {
+            if (!state.activeCbt) {
+              showToast('No active test found. Reopen the test and try again.', 'error');
+              return;
+            }
+            openSubmitConfirmationModal();
+            return;
+          }
+          if (target.id === 'btnCancelSubmitModal') {
+            document.getElementById('modalConfirmSubmit').classList.add('hidden');
+            return;
+          }
+          const active = state.activeCbt;
+          if (!active || active.finalized || active.submitInProgress) {
+            if (!active) showToast('This test attempt is no longer active.', 'error');
+            return;
+          }
+          active.submitInProgress = true;
+          target.disabled = true;
+          target.dataset.originalText = target.textContent;
+          target.textContent = 'Submitting…';
+          Promise.resolve(finalizeAndScoreAttempt(false)).catch(function(error) {
+            console.error('Manual test submission failed:', error);
+            if (state.activeCbt) state.activeCbt.submitInProgress = false;
+            target.disabled = false;
+            target.textContent = target.dataset.originalText || 'Confirm & View Result';
+            showToast('Submission failed. Please try Submit Test again.', 'error');
+          });
+        };
+        window.addEventListener('click', window.__gyanManchSubmitClickHandler, true);
 
         document.getElementById('btnAbortTest').addEventListener('click', function() {
           if (state.activeCbt && state.activeCbt.timerInterval) {
