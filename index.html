@@ -7177,6 +7177,42 @@ Answer Key:
 
       async function autoTranslatePdfQueueItems(items) {
         const queueItems = Array.isArray(items) ? items : [];
+        // Prefer the authenticated Supabase Edge Function for translation. Browser-side
+        // translation endpoints can be blocked by CORS/network filters on mobile devices.
+        const client = window.gyanManchSupabase;
+        if (client && state.currentUser && queueItems.length) {
+          try {
+            const translationItems = queueItems.slice(0, 40).map((item, index) => ({
+              index,
+              question_en: String(item && item.text_en || ''),
+              question_hi: String(item && item.text_hi || ''),
+              options_en: Array.isArray(item && item.options_en) ? item.options_en.slice(0, 4) : [],
+              options_hi: Array.isArray(item && item.options_hi) ? item.options_hi.slice(0, 4) : []
+            }));
+            const response = await client.functions.invoke('extract-questions', {
+              body: { action: 'translate-hindi', items: translationItems }
+            });
+            const translations = response && response.data && Array.isArray(response.data.translations)
+              ? response.data.translations : [];
+            translations.forEach((translated) => {
+              const index = Number(translated && translated.index);
+              const item = queueItems[index];
+              if (!item || !translated) return;
+              const questionHi = String(translated.question_hi || '').trim();
+              if (questionHi && /[\\u0900-\\u097F]/.test(questionHi)) item.text_hi = questionHi;
+              const optionsHi = Array.isArray(translated.options_hi) ? translated.options_hi : [];
+              const mergedOptions = Array.isArray(item.options_hi) ? item.options_hi.slice() : [];
+              while (mergedOptions.length < (Array.isArray(item.options_en) ? item.options_en.length : 4)) mergedOptions.push('');
+              for (let i = 0; i < Math.min(4, optionsHi.length); i++) {
+                const optionHi = String(optionsHi[i] || '').trim();
+                if (optionHi && /[\\u0900-\\u097F]/.test(optionHi)) mergedOptions[i] = optionHi;
+              }
+              item.options_hi = mergedOptions;
+            });
+          } catch (error) {
+            console.warn('Server-side Hindi translation unavailable; trying browser translation fallback:', error);
+          }
+        }
         for (const item of queueItems) {
           if (!item) continue;
           const englishQuestion = String(item.text_en || '').trim();
