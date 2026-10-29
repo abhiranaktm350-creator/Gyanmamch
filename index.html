@@ -8398,6 +8398,44 @@ Answer Key:
           if (startBtn) { event.preventDefault(); resumeCbtExam(); }
           if (pauseBtn) { event.preventDefault(); pauseCbtExam(); }
         }, true);
+        // Reliable delegated submit controls: survive rerenders and prevent click defaults.
+        document.addEventListener('click', async function(event) {
+          const target = event.target && event.target.closest ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnFinalConfirmSubmit') : null;
+          if (!target) return;
+          event.preventDefault();
+          event.stopImmediatePropagation();
+
+          if (target.id === 'btnOpenSubmitModal' || target.id === 'btnSidebarSubmitTest') {
+            if (state.activeCbt) openSubmitConfirmationModal();
+            return;
+          }
+
+          if (!state.activeCbt || state.activeCbt.isSubmitting) return;
+          target.disabled = true;
+          target.textContent = 'Submitting…';
+          try {
+            await finalizeAndScoreAttempt(false);
+          } catch (error) {
+            if (state.activeCbt) state.activeCbt.isSubmitting = false;
+            target.disabled = false;
+            target.textContent = 'Confirm & View Result';
+            const modal = document.getElementById('modalConfirmSubmit');
+            if (modal) modal.classList.remove('hidden');
+            const message = document.getElementById('submitSummaryStats');
+            if (message) {
+              const oldError = message.querySelector('[data-submit-error]');
+              if (oldError) oldError.remove();
+              const errorBox = document.createElement('p');
+              errorBox.setAttribute('data-submit-error', 'true');
+              errorBox.className = 'col-span-2 text-sm text-rose-700';
+              errorBox.setAttribute('role', 'alert');
+              errorBox.textContent = 'Submission failed. Your answers are still on screen. Please try again. ' + (error && error.message ? error.message : '');
+              message.appendChild(errorBox);
+            }
+            console.error('Gyan Manch delegated submission failed:', error);
+          }
+        }, true);
+
         bindGlobalEvents();
         bindLanAndBackupControls();
         syncHeaderUI();
