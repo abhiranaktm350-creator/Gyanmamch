@@ -3359,6 +3359,27 @@ table{max-width:100%;border-collapse:collapse}
         if (heading) heading.textContent = 'Exam in Progress';
         if (btn) btn.textContent = 'Resume Exam';
         if (gate) { gate.classList.add('hidden'); gate.classList.remove('flex'); }
+        // Paint Question 1 after the pre-start overlay is removed; repeat on the next frame
+        // to avoid a blank first question on slower mobile browsers.
+        if (cbt.currentIndex < 0 || cbt.currentIndex >= cbt.questions.length) cbt.currentIndex = 0;
+        renderCbtHeaderAndTabs();
+        renderCbtCurrentQuestion();
+        renderCbtPalette();
+        window.requestAnimationFrame(function() {
+          if (state.activeCbt !== cbt) return;
+          if (!Number.isInteger(cbt.currentIndex) || cbt.currentIndex < 0 || cbt.currentIndex >= cbt.questions.length) cbt.currentIndex = 0;
+          renderCbtCurrentQuestion();
+          renderCbtPalette();
+          const stem = document.getElementById('cbtQuestionStemContainer');
+          const options = document.getElementById('cbtOptionsContainer');
+          if (stem && !stem.textContent.trim()) {
+            console.error('Gyan Manch: first question stem is blank after start', cbt.questions[0]);
+            cbt.currentIndex = 0;
+            renderCbtCurrentQuestion();
+          }
+          if (stem) { stem.style.visibility = 'visible'; stem.style.display = 'block'; }
+          if (options) { options.style.visibility = 'visible'; options.style.display = 'grid'; }
+        });
         updateCbtTimerDisplay();
 
         // Deadline-based timer: remains accurate even if the browser delays an interval callback.
@@ -8399,7 +8420,7 @@ Answer Key:
           if (pauseBtn) { event.preventDefault(); pauseCbtExam(); }
         }, true);
         // Reliable delegated submit controls: survive rerenders and prevent click defaults.
-        document.addEventListener('click', async function(event) {
+        window.addEventListener('click', async function(event) {
           const target = event.target && event.target.closest ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnFinalConfirmSubmit') : null;
           if (!target) return;
           event.preventDefault();
