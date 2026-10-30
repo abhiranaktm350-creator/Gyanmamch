@@ -236,6 +236,8 @@ replaceOnce("<div class=\"text-[11px] text-slate-400 hidden sm:inline\">Time:</d
 
 replaceOnce("        const timerText = document.getElementById('cbtTimerText');\n        if (timerText) {", "        const timerLabel = document.getElementById('cbtTimerLabel');\n        if (timerLabel) timerLabel.textContent = cbt.hasSectionalTiming ? 'Total:' : 'Time:';\n        const nextSectionButton = document.getElementById('btnCbtNextSectionLock');\n        if (nextSectionButton) nextSectionButton.classList.add('hidden');\n        const timerText = document.getElementById('cbtTimerText');\n        if (timerText) {", "show overall and section clocks distinctly and prevent manual section skipping");
 
+replaceOnce("          const rem = cbt.remainingSeconds;", "          const rem = cbt.hasSectionalTiming ? cbt.sectionRemainingSeconds : cbt.remainingSeconds;", "primary CBT clock uses active section time");
+
 const longQuestionCss = `
 <style id="gm-cbt-long-question-fix">
   /* Long stems/options must expand the exam card; the question column owns scrolling. */
