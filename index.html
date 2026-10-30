@@ -3963,7 +3963,9 @@ function syncCbtSideDrawerUI() {
         optContainer.querySelectorAll('.cbt-option-btn').forEach(function(btn) {
           btn.addEventListener('click', function() {
             const chosen = Number(btn.getAttribute('data-opt-idx'));
-            ansState.selectedOption = chosen;
+            // CBT answer selection is a toggle: tapping the selected option again clears it.
+            // Tapping a different option replaces the previous answer for this question.
+            ansState.selectedOption = ansState.selectedOption === chosen ? null : chosen;
             triggerAutoSaveIndicator();
             renderCbtCurrentQuestion();
             renderCbtPalette();
