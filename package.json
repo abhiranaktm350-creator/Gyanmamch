@@ -8,6 +8,6 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "rm -rf dist && mkdir -p dist && cp index.html _headers manifest.webmanifest cbt-modern.css dist/ && node scripts/inject-cbt-css.mjs"
+    "build": "rm -rf dist && mkdir -p dist && cp index.html _headers manifest.webmanifest cbt-modern.css dist/ && node scripts/inject-cbt-css.mjs && node scripts/inject-exam-timing.mjs"
   }
 }
