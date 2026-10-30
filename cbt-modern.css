@@ -1,0 +1,159 @@
+/* Modern SSC / Banking CBT exam workstation. Loaded only in the preview build. */
+body.exam-active { background:#eef3f9 !important; color:#172b4d !important; }
+body.exam-active #cbtOverlay { background:#eef3f9 !important; color:#172b4d !important; font-family:Inter,"Noto Sans Devanagari",sans-serif !important; }
+body.exam-active #cbtOverlay > .bg-slate-900:first-child {
+  background:#fff !important; color:#172b4d !important; border-bottom:1px solid #cbd8e6 !important;
+  box-shadow:0 2px 8px rgba(15,45,80,.08); min-height:64px; padding:9px 18px !important;
+}
+body.exam-active #cbtOverlay > .bg-slate-900:first-child button { color:#23415f !important; }
+body.exam-active #cbtOverlay > .bg-slate-900:first-child .bg-slate-800 {
+  background:#eef4fb !important; border-color:#d6e1ee !important; color:#23415f !important;
+}
+body.exam-active #cbtOverlay #cbtLangEn,
+body.exam-active #cbtOverlay #cbtLangHi,
+body.exam-active #cbtOverlay #cbtLangBoth { min-height:30px; padding:5px 10px !important; border-radius:6px !important; }
+body.exam-active #cbtOverlay #cbtLangEn.bg-indigo-600,
+body.exam-active #cbtOverlay #cbtLangHi.bg-indigo-600,
+body.exam-active #cbtOverlay #cbtLangBoth.bg-indigo-600 { background:#1769d2 !important; color:#fff !important; }
+body.exam-active #cbtOverlay #cbtTimerBox {
+  background:#f1f7ff !important; border:1px solid #c6d9ef !important; border-radius:8px !important;
+  padding:7px 12px !important; min-width:112px; justify-content:center;
+}
+body.exam-active #cbtOverlay #cbtTimerBox svg { color:#1769d2 !important; }
+body.exam-active #cbtOverlay #cbtTimerText { color:#124b87 !important; font-size:18px !important; }
+body.exam-active #cbtOverlay #btnOpenSubmitModal,
+body.exam-active #cbtOverlay #btnCbtLastSubmit {
+  background:#1769d2 !important; border:1px solid #1769d2 !important; border-radius:8px !important;
+  min-height:38px; padding:8px 16px !important; font-size:13px !important;
+}
+body.exam-active #cbtOverlay #btnCbtPauseExam { display:none !important; }
+body.exam-active #cbtOverlay #btnToggleCbtPaletteTop { color:#23415f !important; border-radius:8px; }
+body.exam-active #cbtOverlay > .bg-white.border-b.border-slate-200 {
+  background:#f8fbff !important; border-bottom:1px solid #d5e0ec !important;
+  min-height:52px; padding:4px 18px !important;
+}
+body.exam-active #cbtOverlay #cbtSectionTabs { gap:0 !important; min-height:44px; }
+body.exam-active #cbtOverlay #cbtSectionTabs button {
+  min-height:42px; padding:9px 17px !important; border-radius:0 !important;
+  border-bottom:3px solid transparent !important; color:#4b6279 !important;
+  background:transparent !important; font-weight:650 !important; white-space:nowrap;
+}
+body.exam-active #cbtOverlay #cbtSectionTabs button.bg-indigo-600,
+body.exam-active #cbtOverlay #cbtSectionTabs button[aria-current="true"] {
+  color:#1457a3 !important; background:#edf5ff !important; border-bottom-color:#1769d2 !important;
+}
+body.exam-active #cbtOverlay #cbtAutoSaveIndicator { color:#167246 !important; }
+body.exam-active #cbtOverlay > .flex-1.flex.flex-row.overflow-hidden.relative {
+  background:#edf2f8 !important; min-height:0;
+}
+body.exam-active #cbtOverlay > .flex-1.flex.flex-row.overflow-hidden.relative > div:first-child {
+  background:#edf2f8 !important; padding:16px 18px !important; min-width:0;
+}
+body.exam-active #cbtOverlay .max-w-5xl {
+  max-width:100% !important; width:100% !important; min-height:100%;
+  border:1px solid #d4dfeb !important; border-radius:12px !important;
+  box-shadow:0 2px 9px rgba(20,50,85,.06) !important; padding:22px 24px !important;
+}
+body.exam-active #cbtOverlay #cbtQuestionNumberBadge {
+  background:#1769d2 !important; border-radius:6px !important; font-size:13px !important;
+  box-shadow:none !important; padding:7px 12px !important;
+}
+body.exam-active #cbtOverlay #cbtQuestionSubChapBadge {
+  background:#f1f5f9 !important; border:1px solid #d9e2ec !important;
+  color:#53677d !important; border-radius:6px !important;
+}
+body.exam-active #cbtOverlay #cbtQuestionTimeBadge { display:none !important; }
+body.exam-active #cbtOverlay #btnReportQuestion {
+  width:32px !important; height:32px !important; border-radius:7px !important;
+}
+body.exam-active #cbtOverlay #cbtQuestionStemContainer {
+  background:#fff !important; border:0 !important; border-left:3px solid #1769d2 !important;
+  border-radius:5px !important; padding:18px 17px !important; margin-bottom:20px !important;
+  font-size:18px !important; line-height:1.8 !important; color:#172b4d !important;
+  -webkit-text-fill-color:#172b4d !important;
+}
+body.exam-active #cbtOverlay #cbtOptionsContainer { grid-template-columns:minmax(0,1fr) !important; gap:10px !important; }
+body.exam-active #cbtOverlay #cbtOptionsContainer .cbt-option-btn {
+  min-height:52px !important; border:1px solid #cbd7e4 !important; border-radius:8px !important;
+  background:#fff !important; color:#263b52 !important; padding:12px 15px !important;
+  font-size:15px !important; box-shadow:none !important;
+}
+body.exam-active #cbtOverlay #cbtOptionsContainer .cbt-option-btn.option-selected {
+  background:#edf5ff !important; border:2px solid #1769d2 !important;
+  box-shadow:0 0 0 2px rgba(23,105,210,.08) !important; color:#124b87 !important;
+}
+body.exam-active #cbtOverlay .max-w-5xl > .mt-auto.pt-4.border-t.border-slate-200 {
+  display:grid !important; grid-template-columns:minmax(0,1fr) auto; gap:12px !important;
+  align-items:center; margin-top:22px !important;
+}
+body.exam-active #cbtOverlay #btnCbtMarkReview,
+body.exam-active #cbtOverlay #btnCbtClearResponse,
+body.exam-active #cbtOverlay #btnCbtPrev,
+body.exam-active #cbtOverlay #btnCbtSaveNext,
+body.exam-active #cbtOverlay #btnCbtLastSubmit {
+  min-height:42px; border-radius:7px !important; padding:9px 14px !important; font-size:13px !important;
+}
+body.exam-active #cbtOverlay #btnCbtMarkReview { color:#62439a !important; border-color:#cbbce5 !important; background:#f7f3fc !important; }
+body.exam-active #cbtOverlay #btnCbtClearResponse { color:#52677d !important; border-color:#cbd7e4 !important; background:#fff !important; }
+body.exam-active #cbtOverlay #btnCbtPrev { color:#36516d !important; border-color:#bfcddd !important; background:#fff !important; }
+body.exam-active #cbtOverlay #btnCbtSaveNext { color:#fff !important; background:#1769d2 !important; border:1px solid #1769d2 !important; }
+body.exam-active #cbtOverlay #cbtRightSideDrawer {
+  width:278px !important; max-width:278px !important; background:#fff !important;
+  border-left:1px solid #d1dce8 !important; box-shadow:-3px 0 12px rgba(20,50,85,.04) !important;
+}
+body.exam-active #cbtOverlay #cbtRightSideDrawer > div:first-child {
+  background:#f7faff !important; color:#23415f !important; border-bottom:1px solid #dce5ef;
+}
+body.exam-active #cbtOverlay #cbtRightSideDrawer > div:first-child span { color:#23415f !important; }
+body.exam-active #cbtOverlay #cbtRightSideDrawer .bg-slate-50 { background:#f7f9fc !important; }
+body.exam-active #cbtOverlay #cbtPaletteGrid { grid-template-columns:repeat(5,minmax(0,1fr)) !important; gap:8px !important; }
+body.exam-active #cbtOverlay #cbtPaletteGrid .cbt-pal-btn {
+  min-height:39px !important; border:1px solid #ccd8e5 !important; box-shadow:none !important;
+  border-radius:7px !important; font-size:12px !important;
+}
+body.exam-active #cbtOverlay #cbtPaletteGrid .cbt-pal-btn.bg-emerald-600 { background:#16834b !important; color:#fff !important; border-color:#16834b !important; }
+body.exam-active #cbtOverlay #cbtPaletteGrid .cbt-pal-btn.bg-purple-600 { background:#7447a8 !important; color:#fff !important; border-color:#7447a8 !important; }
+body.exam-active #cbtOverlay #cbtPaletteGrid .cbt-pal-btn.bg-indigo-600 { background:#315fa8 !important; color:#fff !important; border-color:#315fa8 !important; }
+body.exam-active #cbtOverlay #cbtPaletteGrid .cbt-pal-btn.bg-white { background:#fff !important; color:#9b3131 !important; border:1px solid #d58c8c !important; }
+body.exam-active #cbtOverlay #cbtPaletteGrid .q-badge-current { outline:2px solid #0f4fa8 !important; outline-offset:2px; transform:none !important; }
+body.exam-active #cbtOverlay #btnPaletteSubmitTest {
+  background:#1769d2 !important; border-radius:7px !important; min-height:40px; font-size:13px !important;
+}
+body.exam-active #cbtOverlay #cbtRightSideDrawer > div:last-child { background:#f8fafc !important; border-color:#dce5ef !important; }
+body.exam-active #cbtOverlay #btnAbortTest { border-radius:7px !important; min-height:35px; }
+body.exam-active #cbtOverlay #modalConfirmSubmit { z-index:2147483000 !important; }
+body.exam-active #cbtOverlay #modalConfirmSubmit > div { border-radius:12px !important; }
+@media (max-width:760px) {
+  body.exam-active #cbtOverlay > .bg-slate-900:first-child { padding:7px 9px !important; gap:7px !important; }
+  body.exam-active #cbtOverlay > .bg-slate-900:first-child > .flex.items-center.gap-2 { justify-content:flex-end; }
+  body.exam-active #cbtOverlay > .bg-white.border-b.border-slate-200 { padding:2px 8px !important; }
+  body.exam-active #cbtOverlay #cbtSectionTabs button { padding:8px 12px !important; font-size:12px !important; }
+  body.exam-active #cbtOverlay > .flex-1.flex.flex-row.overflow-hidden.relative > div:first-child { padding:8px !important; }
+  body.exam-active #cbtOverlay .max-w-5xl { padding:14px 12px !important; border-radius:9px !important; }
+  body.exam-active #cbtOverlay #cbtQuestionStemContainer { font-size:16px !important; padding:14px 12px !important; }
+  body.exam-active #cbtOverlay #cbtOptionsContainer .cbt-option-btn { min-height:49px !important; font-size:14px !important; }
+  body.exam-active #cbtOverlay .max-w-5xl > .mt-auto.pt-4.border-t.border-slate-200 {
+    grid-template-columns:minmax(0,1fr) !important; gap:8px !important;
+  }
+  body.exam-active #cbtOverlay .max-w-5xl > .mt-auto.pt-4.border-t.border-slate-200 > div:first-child,
+  body.exam-active #cbtOverlay .max-w-5xl > .mt-auto.pt-4.border-t.border-slate-200 > div:last-child {
+    display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px !important;
+  }
+  body.exam-active #cbtOverlay #btnCbtMarkReview,
+  body.exam-active #cbtOverlay #btnCbtClearResponse,
+  body.exam-active #cbtOverlay #btnCbtPrev,
+  body.exam-active #cbtOverlay #btnCbtSaveNext,
+  body.exam-active #cbtOverlay #btnCbtLastSubmit { width:100%; min-width:0; padding:9px 7px !important; font-size:12px !important; }
+  body.exam-active #cbtOverlay #cbtRightSideDrawer {
+    position:absolute !important; right:0 !important; top:0 !important; bottom:0 !important;
+    width:min(82vw,320px) !important; max-width:320px !important; z-index:40 !important;
+  }
+  body.exam-active #cbtOverlay #cbtPaletteGrid { grid-template-columns:repeat(5,minmax(0,1fr)) !important; }
+}
+@media (max-width:390px) {
+  body.exam-active #cbtOverlay #cbtTimerBox { min-width:94px; padding:5px 7px !important; }
+  body.exam-active #cbtOverlay #cbtTimerText { font-size:15px !important; }
+  body.exam-active #cbtOverlay #cbtLangEn,
+  body.exam-active #cbtOverlay #cbtLangHi,
+  body.exam-active #cbtOverlay #cbtLangBoth { padding:4px 7px !important; }
+}
