@@ -179,8 +179,14 @@ replaceExamObject("ex_ibps_clerk_mains", [
 
 
 replaceOnce(
-  "        const normalizedSections = Array.isArray(test.sections) ? test.sections : [];",
-  "        const normalizedSections = Array.isArray(test.sections) ? test.sections : [];\\n        if (hasSecTiming) {\\n          const sectionRank = function(question) { const idx = normalizedSections.findIndex(function(section) { return cbtSectionContainsQuestion(section, question); }); return idx < 0 ? 999 : idx; };\\n          questionsList.sort(function(a, b) { return sectionRank(a) - sectionRank(b); });\\n          const firstAvailableSection = normalizedSections.findIndex(function(section) { return questionsList.some(function(question) { return cbtSectionContainsQuestion(section, question); }); });\\n          if (firstAvailableSection >= 0) test._firstAvailableSectionIndex = firstAvailableSection;\\n        }",
+  `        const normalizedSections = Array.isArray(test.sections) ? test.sections : [];`,
+  `        const normalizedSections = Array.isArray(test.sections) ? test.sections : [];
+        if (hasSecTiming) {
+          const sectionRank = function(question) { const idx = normalizedSections.findIndex(function(section) { return cbtSectionContainsQuestion(section, question); }); return idx < 0 ? 999 : idx; };
+          questionsList.sort(function(a, b) { return sectionRank(a) - sectionRank(b); });
+          const firstAvailableSection = normalizedSections.findIndex(function(section) { return questionsList.some(function(question) { return cbtSectionContainsQuestion(section, question); }); });
+          if (firstAvailableSection >= 0) test._firstAvailableSectionIndex = firstAvailableSection;
+        }`,
   "sort questions by the latest official section profile"
 );
 replaceOnce(
