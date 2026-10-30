@@ -52,73 +52,69 @@ replaceExamObject("ex_ssc_chsl", [
 
 replaceExamObject("ex_ssc_chsl_t2", [
 "          {",
-"            id: 'ex_ssc_chsl_t2', categoryId: 'cat_ssc', code: 'SSC-CHSL-T2', name: 'SSC CHSL Tier-II (Sectional / Session Timed)',",
-"            syllabus: 'Session-I: Maths 30m + Reasoning 30m + English 40m + General Awareness 20m + Computer 15m (135m). Session-II: post-specific Skill / Typing Test (DEO 15m; LDC/JSA 10m). (+3.00 / -1.00)',",
+"            id: 'ex_ssc_chsl_t2', categoryId: 'cat_ssc', code: 'SSC-CHSL-T2', name: 'SSC CHSL Tier-II (Official 2026 CBT sections)',",
+"            syllabus: 'Session-I: Section-I Maths + Reasoning (60m); Section-II English + General Awareness (60m); Section-III Computer Knowledge (15m). Session-II: post-specific Skill / Typing Test (DEO 15m; LDC/JSA 10m). (+3 / -1)',",
 "            duration: 135, totalMarks: 405, posMarks: 3.0, negMarks: 1.00, officialQs: 135, isSample: false,",
 "            allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_english', 'sub_ga', 'sub_computer'],",
-"            hasSectionalTiming: true, timingProfileVersion: 'ssc-chsl-2026-tier2-v1',",
-"            timingVerificationNote: 'SSC CHSL 2026 notification: Session-I objective modules total 135 minutes. Session-II skill/typing duration depends on post.',",
-"            separateSkillSession: { id: 'chsl2_skill', name: 'Session-II Skill / Typing Test (post-specific)', durationMinutes: 15, durationOptions: [15, 10], mode: 'typing', note: 'DEO Skill Test: 15 minutes; LDC/JSA Typing Test: 10 minutes. Admin must choose the post-specific test.' },",
+"            hasSectionalTiming: true, timingProfileVersion: 'ssc-chsl-2026-tier2-v2',",
+"            timingVerificationNote: 'SSC CHSL 2026 notification: Section-I 60m, Section-II 60m, Section-III Computer 15m; Session-II skill/typing is separate.',",
+"            separateSkillSession: { id: 'chsl2_skill', name: 'Session-II Skill / Typing Test (post-specific)', durationMinutes: 15, durationOptions: [15, 10], mode: 'typing', note: 'DEO Skill Test: 15 minutes; LDC/JSA Typing Test: 10 minutes.' },",
 "            sessionConfig: [",
-"              { id: 'chsl2_math', name: 'Section-I, Module-I: Mathematical Abilities (30m)', name_hi: 'गणितीय क्षमताएं (30 मिनट)', subjectId: 'sub_quant', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'chsl2_reasoning', name: 'Section-I, Module-II: Reasoning & General Intelligence (30m)', name_hi: 'तर्कशक्ति एवं सामान्य बुद्धिमत्ता (30 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'chsl2_english', name: 'Section-II, Module-I: English Language & Comprehension (40m)', name_hi: 'अंग्रेजी भाषा एवं बोधगम्यता (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'chsl2_ga', name: 'Section-II, Module-II: General Awareness (20m)', name_hi: 'सामान्य जागरूकता (20 मिनट)', subjectId: 'sub_ga', durationMinutes: 20, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'chsl2_computer', name: 'Section-III: Computer Knowledge Test (15m)', name_hi: 'कंप्यूटर ज्ञान परीक्षा (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 }",
+"              { id: 'chsl2_section1', name: 'Section-I: Mathematical Abilities + Reasoning (60m)', name_hi: 'अनुभाग-I: गणितीय क्षमता एवं तर्कशक्ति (60 मिनट)', subjectIds: ['sub_quant', 'sub_reasoning'], durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'chsl2_section2', name: 'Section-II: English + General Awareness (60m)', name_hi: 'अनुभाग-II: अंग्रेजी एवं सामान्य जागरूकता (60 मिनट)', subjectIds: ['sub_english', 'sub_ga'], durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'chsl2_section3', name: 'Section-III: Computer Knowledge (15m)', name_hi: 'अनुभाग-III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 }",
 "            ]",
 "          }"
 ]);
 
 replaceExamObject("ex_ssc_cgl_t2", [
 "          {",
-"            id: 'ex_ssc_cgl_t2', categoryId: 'cat_ssc', code: 'SSC-CGL-T2', name: 'SSC CGL Tier-II Paper-I (Sectional / Session Timed)',",
-"            syllabus: 'Session-I: Maths 30m + Reasoning 30m + English 40m + General Awareness 20m + Computer 15m (135m). Session-II: DEST skill test 15m separately. (+3.00 / -1.00)',",
-"            duration: 150, totalMarks: 450, posMarks: 3.0, negMarks: 1.00, officialQs: 150, isSample: false,",
-"            allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_english', 'sub_ga', 'sub_computer', 'sub_science'],",
-"            hasSectionalTiming: true, timingProfileVersion: 'ssc-cgl-2026-tier2-v1',",
-"            timingVerificationNote: 'SSC CGL 2026 official notification. Session-I objective sections total 135 minutes; DEST is a separate 15-minute Session-II skill test, not an MCQ section.',",
-"            separateSkillSession: { id: 'cgl2_dest', name: 'Data Entry Speed Test (DEST) — separate Session-II', durationMinutes: 15, mode: 'typing', note: 'Separate skill test after Session-I; not included in the MCQ section countdown.' },",
+"            id: 'ex_ssc_cgl_t2', categoryId: 'cat_ssc', code: 'SSC-CGL-T2', name: 'SSC CGL Tier-II Paper-I (Official 2026 CBT sections)',",
+"            syllabus: 'Session-I: Section-I Maths + Reasoning (60m); Section-II English + General Awareness (60m); Section-III Computer Knowledge (15m). Session-II: DEST (15m, separate skill test). (+3 / -1)',",
+"            duration: 135, totalMarks: 390, posMarks: 3.0, negMarks: 1.00, officialQs: 135, isSample: false,",
+"            allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_english', 'sub_ga', 'sub_computer'],",
+"            hasSectionalTiming: true, timingProfileVersion: 'ssc-cgl-2026-tier2-v2',",
+"            timingVerificationNote: 'SSC CGL 2026 notification: Section-I 60m (Maths + Reasoning), Section-II 60m (English + GA), Section-III Computer 15m; Session-II DEST is separate.',",
+"            separateSkillSession: { id: 'cgl2_dest', name: 'Session-II: Data Entry Speed Test (DEST)', durationMinutes: 15, mode: 'typing', note: 'Separate skill test, not part of the 135-minute objective Session-I.' },",
 "            sessionConfig: [",
-"              { id: 'cgl2_math', name: 'Section-I, Module-I: Mathematical Abilities (30m)', name_hi: 'गणितीय क्षमताएं (30 मिनट)', subjectId: 'sub_quant', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'cgl2_reasoning', name: 'Section-I, Module-II: Reasoning & General Intelligence (30m)', name_hi: 'तर्कशक्ति एवं सामान्य बुद्धिमत्ता (30 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'cgl2_english', name: 'Section-II, Module-I: English Language & Comprehension (40m)', name_hi: 'अंग्रेजी भाषा एवं बोधगम्यता (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'cgl2_ga', name: 'Section-II, Module-II: General Awareness (20m)', name_hi: 'सामान्य जागरूकता (20 मिनट)', subjectId: 'sub_ga', durationMinutes: 20, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'cgl2_computer', name: 'Section-III: Computer Knowledge Test (15m)', name_hi: 'कंप्यूटर ज्ञान परीक्षा (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 }",
+"              { id: 'cgl2_section1', name: 'Section-I: Mathematical Abilities + Reasoning (60m)', name_hi: 'अनुभाग-I: गणितीय क्षमता एवं तर्कशक्ति (60 मिनट)', subjectIds: ['sub_quant', 'sub_reasoning'], durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'cgl2_section2', name: 'Section-II: English + General Awareness (60m)', name_hi: 'अनुभाग-II: अंग्रेजी एवं सामान्य जागरूकता (60 मिनट)', subjectIds: ['sub_english', 'sub_ga'], durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'cgl2_section3', name: 'Section-III: Computer Knowledge (15m)', name_hi: 'अनुभाग-III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 }",
 "            ]",
 "          }"
 ]);
 
 replaceExamObject("ex_ibps_po_mains", [
 "          {",
-"            id: 'ex_ibps_po_mains', categoryId: 'cat_banking', code: 'IBPS-PO-MAINS', name: 'IBPS PO Mains (CRP PO XV previous official timing profile)',",
-"            syllabus: 'Previous official CRP PO XV reference: Reasoning & Computer (60m) + Banking / Economy GA (35m) + English (40m) + Data Analysis & Interpretation (45m) • 180 Mins. Verify CRP PO XVI timing before current-cycle publication.',",
-"            duration: 180, totalMarks: 200, posMarks: 1.0, negMarks: 0.25, officialQs: 155, isSample: false,",
-"            allowedSubjects: ['sub_reasoning', 'sub_computer', 'sub_ga', 'sub_english', 'sub_quant'],",
-"            hasSectionalTiming: true, timingProfileVersion: 'ibps-po-xv-reference-v1',",
-"            timingVerificationNote: 'Previous official CRP PO XV pattern only. Latest CRP PO XVI detailed sectional timing was not independently verified; admin must confirm before current-cycle publication.',",
-"            separateSkillSession: { id: 'ibps_po_descriptive', name: 'Descriptive Writing Test — separate paper', durationMinutes: 30, mode: 'writing', note: 'Separate descriptive test after the objective Mains paper.' },",
+"            id: 'ex_ibps_po_mains', categoryId: 'cat_banking', code: 'IBPS-PO-MAINS', name: 'IBPS PO Mains (CRP PO/MT-XVI 2026)',",
+"            syllabus: 'Objective: Reasoning (45m) + General/Economy/Banking Awareness (35m) + English (35m) + Data Analysis & Interpretation (45m) = 160m. Descriptive paper (30m) is separate.',",
+"            duration: 160, totalMarks: 200, posMarks: 1.0, negMarks: 0.25, officialQs: 170, isSample: false,",
+"            allowedSubjects: ['sub_reasoning', 'sub_ga', 'sub_english', 'sub_quant'],",
+"            hasSectionalTiming: true, timingProfileVersion: 'ibps-po-xvi-2026-v1',",
+"            timingVerificationNote: 'CRP PO/MT-XVI 2026 notification: four separately timed objective tests totaling 160 minutes; descriptive paper is a separate 30-minute test.',",
+"            separateSkillSession: { id: 'ibps_po_descriptive', name: 'Descriptive Paper: Essay and Comprehension', durationMinutes: 30, mode: 'writing', note: 'Separate descriptive test after the objective Mains paper.' },",
 "            sessionConfig: [",
-"              { id: 'sec_ipm_1', name: 'Section 1: Reasoning & Computer Aptitude (60m)', name_hi: 'तर्कशक्ति एवं कंप्यूटर अभिक्षमता (60 मिनट)', subjectIds: ['sub_reasoning', 'sub_computer'], durationMinutes: 60, posMarks: 1.0, negMarks: 0.25 },",
-"              { id: 'sec_ipm_2', name: 'Section 2: General / Economy / Banking Awareness (35m)', name_hi: 'सामान्य / अर्थव्यवस्था / बैंकिंग जागरूकता (35 मिनट)', subjectId: 'sub_ga', durationMinutes: 35, posMarks: 1.0, negMarks: 0.25 },",
-"              { id: 'sec_ipm_3', name: 'Section 3: English Language (40m)', name_hi: 'अंग्रेजी भाषा (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 1.0, negMarks: 0.25 },",
-"              { id: 'sec_ipm_4', name: 'Section 4: Data Analysis & Interpretation (45m)', name_hi: 'डेटा विश्लेषण एवं व्याख्या (45 मिनट)', subjectId: 'sub_quant', durationMinutes: 45, posMarks: 1.0, negMarks: 0.25 }",
+"              { id: 'po16_reasoning', name: 'Reasoning (45m)', name_hi: 'तर्कशक्ति (45 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 45, posMarks: 1.5, negMarks: 0.375 },",
+"              { id: 'po16_awareness', name: 'General / Economy / Banking Awareness (35m)', name_hi: 'सामान्य / अर्थव्यवस्था / बैंकिंग जागरूकता (35 मिनट)', subjectId: 'sub_ga', durationMinutes: 35, posMarks: 1.2, negMarks: 0.30 },",
+"              { id: 'po16_english', name: 'English Language (35m)', name_hi: 'अंग्रेजी भाषा (35 मिनट)', subjectId: 'sub_english', durationMinutes: 35, posMarks: 0.5, negMarks: 0.125 },",
+"              { id: 'po16_data', name: 'Data Analysis & Interpretation (45m)', name_hi: 'डेटा विश्लेषण एवं व्याख्या (45 मिनट)', subjectId: 'sub_quant', durationMinutes: 45, posMarks: 1.5, negMarks: 0.375 }",
 "            ]",
 "          }"
 ]);
 
 replaceExamObject("ex_ibps_clerk_mains", [
 "          {",
-"            id: 'ex_ibps_clerk_mains', categoryId: 'cat_banking', code: 'IBPS-CLERK-MAINS', name: 'IBPS CSA Mains (CRP CSA XV previous official timing profile)',",
-"            syllabus: 'Previous official CRP CSA XV reference: General / Financial Awareness (20m) + English (35m) + Reasoning & Computer (35m) + Quantitative Aptitude (30m) • 120 Mins. Verify CRP CSA XVI timing before current-cycle publication.',",
-"            duration: 120, totalMarks: 200, posMarks: 1.0, negMarks: 0.25, officialQs: 190, isSample: false,",
-"            allowedSubjects: ['sub_ga', 'sub_english', 'sub_reasoning', 'sub_computer', 'sub_quant'],",
-"            hasSectionalTiming: true, timingProfileVersion: 'ibps-csa-xv-reference-v1',",
-"            timingVerificationNote: 'Previous official CRP CSA XV pattern only. Latest CRP CSA XVI detailed sectional timing was not independently verified; admin must confirm before current-cycle publication.',",
+"            id: 'ex_ibps_clerk_mains', categoryId: 'cat_banking', code: 'IBPS-CSA-MAINS', name: 'IBPS CSA Mains (CRP CSA-XVI 2026)',",
+"            syllabus: 'General / Financial Awareness (20m) + General English (35m) + Reasoning Ability (35m) + Quantitative Aptitude (35m) = 125 minutes.',",
+"            duration: 125, totalMarks: 200, posMarks: 1.0, negMarks: 0.25, officialQs: 160, isSample: false,",
+"            allowedSubjects: ['sub_ga', 'sub_english', 'sub_reasoning', 'sub_quant'],",
+"            hasSectionalTiming: true, timingProfileVersion: 'ibps-csa-xvi-2026-v1',",
+"            timingVerificationNote: 'CRP CSA-XVI 2026 notification: four separately timed objective tests totaling 125 minutes.',",
 "            sessionConfig: [",
-"              { id: 'sec_icm_1', name: 'Section 1: General / Financial Awareness (20m)', name_hi: 'सामान्य / वित्तीय जागरूकता (20 मिनट)', subjectId: 'sub_ga', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 },",
-"              { id: 'sec_icm_2', name: 'Section 2: General English (35m)', name_hi: 'अंग्रेजी भाषा (35 मिनट)', subjectId: 'sub_english', durationMinutes: 35, posMarks: 1.0, negMarks: 0.25 },",
-"              { id: 'sec_icm_3', name: 'Section 3: Reasoning & Computer (35m)', name_hi: 'तर्कशक्ति एवं कंप्यूटर (35 मिनट)', subjectIds: ['sub_reasoning', 'sub_computer'], durationMinutes: 35, posMarks: 1.0, negMarks: 0.25 },",
-"              { id: 'sec_icm_4', name: 'Section 4: Quantitative Aptitude (30m)', name_hi: 'मात्रात्मक अभियोग्यता (30 मिनट)', subjectId: 'sub_quant', durationMinutes: 30, posMarks: 1.0, negMarks: 0.25 }",
+"              { id: 'csa16_ga', name: 'General / Financial Awareness (20m)', name_hi: 'सामान्य / वित्तीय जागरूकता (20 मिनट)', subjectId: 'sub_ga', durationMinutes: 20, posMarks: 1.25, negMarks: 0.3125 },",
+"              { id: 'csa16_english', name: 'General English (35m)', name_hi: 'सामान्य अंग्रेजी (35 मिनट)', subjectId: 'sub_english', durationMinutes: 35, posMarks: 1.0, negMarks: 0.25 },",
+"              { id: 'csa16_reasoning', name: 'Reasoning Ability (35m)', name_hi: 'तर्कशक्ति (35 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 35, posMarks: 1.5, negMarks: 0.375 },",
+"              { id: 'csa16_quant', name: 'Quantitative Aptitude (35m)', name_hi: 'मात्रात्मक योग्यता (35 मिनट)', subjectId: 'sub_quant', durationMinutes: 35, posMarks: 1.25, negMarks: 0.3125 }",
 "            ]",
 "          }"
 ]);
@@ -156,6 +152,17 @@ replaceOnce(
   "official mock timing metadata"
 );
 
+replaceOnce(
+  "          const rem = cbt.remainingSeconds;",
+  "          const rem = cbt.hasSectionalTiming ? cbt.sectionRemainingSeconds : cbt.remainingSeconds;",
+  "show the active sectional countdown in the primary CBT timer"
+);
+
+replaceOnce(
+  '<div class="text-[11px] text-slate-400 hidden sm:inline">Time:</div>',
+  '<div class="text-[11px] text-slate-400 hidden sm:inline">Section Time:</div>',
+  "label the primary countdown as section time when applicable"
+);
 const sectionHelpers = [
 "      function cbtSectionContainsQuestion(section, question) {",
 "        if (!section || !question) return false;",
