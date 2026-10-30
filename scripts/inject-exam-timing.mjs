@@ -86,29 +86,21 @@ replaceExamObject("ex_ssc_mts", [
 
 replaceExamObject("ex_ibps_rrb_po", [
 "          {",
-"            id: 'ex_ibps_rrb_po', categoryId: 'cat_banking', code: 'IBPS-RRB-OS1', name: 'IBPS RRB Officer Scale-I Prelims (25 + 20 minute sectional timers)',",
-"            syllabus: 'Reasoning (40 Qs, 25m) + Quantitative Aptitude (40 Qs, 20m) • 80 questions in 45 minutes (+1 / -0.25).',",
+"            id: 'ex_ibps_rrb_po', categoryId: 'cat_banking', code: 'IBPS-RRB-OS1', name: 'IBPS RRB Officer Scale-I Prelims (45-minute composite CBT)',",
+"            syllabus: 'Reasoning (40 Qs) + Quantitative Aptitude (40 Qs) • 80 questions in 45 minutes (+1 / -0.25). One combined timer; no sectional lock.',",
 "            duration: 45, totalMarks: 80, posMarks: 1.0, negMarks: 0.25, officialQs: 80, isSample: false,",
-"            allowedSubjects: ['sub_reasoning', 'sub_quant'], hasSectionalTiming: true, timingProfileVersion: 'ibps-rrb-po-xv-2026-v2',",
-"            timingVerificationNote: 'IBPS RRB XV 2026: Reasoning 25 minutes, Quantitative Aptitude 20 minutes; separately timed tests.',",
-"            sessionConfig: [",
-"              { id: 'rrbpo_reasoning', name: 'Reasoning Ability (25m)', name_hi: 'तर्कशक्ति (25 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 25, posMarks: 1.0, negMarks: 0.25 },",
-"              { id: 'rrbpo_quant', name: 'Quantitative Aptitude (20m)', name_hi: 'मात्रात्मक योग्यता (20 मिनट)', subjectId: 'sub_quant', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 }",
-"            ]",
+"            allowedSubjects: ['sub_reasoning', 'sub_quant'], hasSectionalTiming: false, timingProfileVersion: 'ibps-rrb-po-xv-composite-v3',",
+"            timingVerificationNote: 'IBPS RRB Officer Scale-I Prelims: 45 minutes composite timing.'",
 "          }"
 ]);
 
 replaceExamObject("ex_ibps_rrb_oa", [
 "          {",
-"            id: 'ex_ibps_rrb_oa', categoryId: 'cat_banking', code: 'IBPS-RRB-OA', name: 'IBPS RRB Office Assistant Prelims (25 + 20 minute sectional timers)',",
-"            syllabus: 'Reasoning (40 Qs, 25m) + Numerical Ability (40 Qs, 20m) • 80 questions in 45 minutes (+1 / -0.25).',",
+"            id: 'ex_ibps_rrb_oa', categoryId: 'cat_banking', code: 'IBPS-RRB-OA', name: 'IBPS RRB Office Assistant Prelims (45-minute composite CBT)',",
+"            syllabus: 'Reasoning (40 Qs) + Numerical Ability (40 Qs) • 80 questions in 45 minutes (+1 / -0.25). One combined timer; no sectional lock.',",
 "            duration: 45, totalMarks: 80, posMarks: 1.0, negMarks: 0.25, officialQs: 80, isSample: false,",
-"            allowedSubjects: ['sub_reasoning', 'sub_quant'], hasSectionalTiming: true, timingProfileVersion: 'ibps-rrb-oa-xv-2026-v2',",
-"            timingVerificationNote: 'IBPS RRB XV 2026: Reasoning 25 minutes, Numerical Ability 20 minutes; separately timed tests.',",
-"            sessionConfig: [",
-"              { id: 'rrboa_reasoning', name: 'Reasoning Ability (25m)', name_hi: 'तर्कशक्ति (25 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 25, posMarks: 1.0, negMarks: 0.25 },",
-"              { id: 'rrboa_numerical', name: 'Numerical Ability (20m)', name_hi: 'संख्यात्मक योग्यता (20 मिनट)', subjectId: 'sub_quant', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 }",
-"            ]",
+"            allowedSubjects: ['sub_reasoning', 'sub_quant'], hasSectionalTiming: false, timingProfileVersion: 'ibps-rrb-oa-xv-composite-v3',",
+"            timingVerificationNote: 'IBPS RRB Office Assistant Prelims: 45 minutes composite timing.'",
 "          }"
 ]);
 
