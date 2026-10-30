@@ -553,6 +553,20 @@ table{max-width:100%;border-collapse:collapse}
     }
   </style>
 
+  <style id="gm-submit-modal-layer-fix">
+    #cbtOverlay #modalConfirmSubmit {
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 2147483000 !important;
+      pointer-events: auto !important;
+    }
+    #cbtOverlay #modalConfirmSubmit > div {
+      position: relative !important;
+      z-index: 2147483001 !important;
+      pointer-events: auto !important;
+    }
+    #cbtOverlay #modalConfirmSubmit.hidden { display: none !important; }
+  </style>
 </head>
 <body class="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
 
@@ -860,7 +874,6 @@ table{max-width:100%;border-collapse:collapse}
         </div>
       </aside>
     </div>
-  </div>
 
   <!-- MODAL: CONFIRM TEST SUBMISSION -->
   <div id="modalConfirmSubmit" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -877,6 +890,7 @@ table{max-width:100%;border-collapse:collapse}
         </button>
       </div>
     </div>
+  </div>
   </div>
 
   <!-- MODAL: PROTECTED ADMIN PASSWORD GATE -->
@@ -3254,6 +3268,22 @@ table{max-width:100%;border-collapse:collapse}
           }
         } catch (e) { /* Fullscreen can be unavailable in embedded/mobile browsers. */ }
       }
+
+function syncCbtSideDrawerUI() {
+  const drawer = document.getElementById('cbtRightSideDrawer');
+  const floatBtn = document.getElementById('btnExpandPaletteFloating');
+  const arrow = document.getElementById('cbtPaletteToggleArrow');
+  if (!drawer) return;
+  if (state.cbtPaletteCollapsed) {
+    drawer.classList.add('hidden');
+    if (floatBtn) floatBtn.classList.remove('hidden');
+    if (arrow) arrow.innerHTML = '&lt;'; 
+  } else {
+    drawer.classList.remove('hidden');
+    if (floatBtn) floatBtn.classList.add('hidden');
+    if (arrow) arrow.innerHTML = '&gt;'; 
+  }
+}
 
       function launchMockTest(testId, termsAccepted) {
         if (!termsAccepted) {
@@ -7964,21 +7994,7 @@ Answer Key:
         });
 
         // CBT Side Panel Collapse / Expand & Font Size Zoom Controls
-        function syncCbtSideDrawerUI() {
-          const drawer = document.getElementById('cbtRightSideDrawer');
-          const floatBtn = document.getElementById('btnExpandPaletteFloating');
-          const arrow = document.getElementById('cbtPaletteToggleArrow');
-          if (!drawer) return;
-          if (state.cbtPaletteCollapsed) {
-            drawer.classList.add('hidden');
-            if (floatBtn) floatBtn.classList.remove('hidden');
-            if (arrow) arrow.innerHTML = '&lt;'; 
-          } else {
-            drawer.classList.remove('hidden');
-            if (floatBtn) floatBtn.classList.add('hidden');
-            if (arrow) arrow.innerHTML = '&gt;'; 
-          }
-        }
+
 
         const btnStartExamNow = document.getElementById('btnCbtStartExamNow');
         if (btnStartExamNow && !btnStartExamNow.dataset.bound) {
