@@ -71,12 +71,12 @@ replaceExamObject("ex_ssc_chsl_t2", [
 
 replaceExamObject("ex_ssc_mts", [
 "          {",
-"            id: 'ex_ssc_mts', categoryId: 'cat_ssc', code: 'SSC-MTS', name: 'SSC MTS & Havaldar (2026 two-session CBT)',",
+"            id: 'ex_ssc_mts', categoryId: 'cat_ssc', code: 'SSC-MTS', name: 'SSC MTS & Havaldar (latest notified two-session CBT)',",
 "            syllabus: 'Session-I: Numerical & Mathematical Ability + Reasoning (40 Qs, 45m, +3/0). Session-II: General Awareness + English (50 Qs, 45m, +3/-1).',",
 "            duration: 90, totalMarks: 270, posMarks: 3.0, negMarks: 1.00, officialQs: 90, isSample: false,",
 "            allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_ga', 'sub_english'],",
-"            hasSectionalTiming: true, timingProfileVersion: 'ssc-mts-2026-session-v2',",
-"            timingVerificationNote: 'SSC MTS two separately timed 45-minute sessions; each session contains two subject modules.',",
+"            hasSectionalTiming: true, timingProfileVersion: 'ssc-mts-latest-notice-session-v3',",
+"            timingVerificationNote: 'Latest available SSC MTS notification: two 45-minute sessions. The 2026 notification was not yet published at research time.',",
 "            sessionConfig: [",
 "              { id: 'sess_mts_1', timerMode: 'session', name: 'Session-I: Numerical Ability + Reasoning (45m)', name_hi: 'सत्र-I: संख्यात्मक योग्यता एवं तर्कशक्ति (45 मिनट)', subjectIds: ['sub_quant', 'sub_reasoning'], durationMinutes: 45, posMarks: 3.0, negMarks: 0.00 },",
 "              { id: 'sess_mts_2', timerMode: 'session', name: 'Session-II: General Awareness + English (45m)', name_hi: 'सत्र-II: सामान्य जागरूकता एवं अंग्रेजी (45 मिनट)', subjectIds: ['sub_ga', 'sub_science', 'sub_english'], durationMinutes: 45, posMarks: 3.0, negMarks: 1.00 }",
