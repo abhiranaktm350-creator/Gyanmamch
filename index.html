@@ -3005,7 +3005,12 @@ table{max-width:100%;border-collapse:collapse}
         container.querySelectorAll('.btn-start-test').forEach(function(btn) {
           btn.addEventListener('click', function() {
             const testId = btn.getAttribute('data-start-test');
-            launchMockTest(testId);
+            try {
+              launchMockTest(testId);
+            } catch (startError) {
+              console.error('Gyan Manch mock test launch failed:', startError);
+              showToast('Test could not start: ' + (startError && startError.message ? startError.message : 'Unexpected error. Refresh and try again.'), 'error');
+            }
           });
         });
 
@@ -8364,7 +8369,14 @@ Answer Key:
           if (!termsAgree || !termsAgree.checked || !termsModal) return;
           const testId = termsModal.dataset.testId;
           termsModal.classList.add('hidden'); termsModal.classList.remove('flex');
-          if (testId) launchMockTest(testId, true);
+          if (testId) {
+            try {
+              launchMockTest(testId, true);
+            } catch (startError) {
+              console.error('Gyan Manch accepted test launch failed:', startError);
+              showToast('Test could not start: ' + (startError && startError.message ? startError.message : 'Unexpected error. Refresh and try again.'), 'error');
+            }
+          }
         });
         if (termsCancel && termsModal) termsCancel.addEventListener('click', function(){ termsModal.classList.add('hidden'); termsModal.classList.remove('flex'); });
         const reportBtn = document.getElementById('btnReportQuestion');
