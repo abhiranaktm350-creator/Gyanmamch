@@ -67,11 +67,44 @@ replaceExamObject("ex_ssc_chsl_t2", [
 "          }"
 ]);
 
+replaceExamObject("ex_ssc_mts", [
+"          {",
+"            id: 'ex_ssc_mts', categoryId: 'cat_ssc', code: 'SSC-MTS', name: 'SSC MTS & Havaldar (2026 two-session CBT)',",
+"            syllabus: 'Session-I: Numerical & Mathematical Ability + Reasoning (40 Qs, 45m, +3/0). Session-II: General Awareness + English (50 Qs, 45m, +3/-1).',",
+"            duration: 90, totalMarks: 270, posMarks: 3.0, negMarks: 1.00, officialQs: 90, isSample: false,",
+"            allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_ga', 'sub_english'],",
+"            hasSectionalTiming: true, timingProfileVersion: 'ssc-mts-2026-session-v2',",
+"            timingVerificationNote: 'SSC MTS two separately timed 45-minute sessions; each session contains two subject modules.',",
+"            sessionConfig: [",
+"              { id: 'sess_mts_1', name: 'Session-I: Numerical Ability + Reasoning (45m)', name_hi: 'सत्र-I: संख्यात्मक योग्यता एवं तर्कशक्ति (45 मिनट)', subjectIds: ['sub_quant', 'sub_reasoning'], durationMinutes: 45, posMarks: 3.0, negMarks: 0.00 },",
+"              { id: 'sess_mts_2', name: 'Session-II: General Awareness + English (45m)', name_hi: 'सत्र-II: सामान्य जागरूकता एवं अंग्रेजी (45 मिनट)', subjectIds: ['sub_ga', 'sub_english'], durationMinutes: 45, posMarks: 3.0, negMarks: 1.00 }",
+"            ]",
+"          }"
+]);
+
+replaceExamObject("ex_ibps_rrb_po", [
+"          {",
+"            id: 'ex_ibps_rrb_po', categoryId: 'cat_banking', code: 'IBPS-RRB-OS1', name: 'IBPS RRB Officer Scale I Prelims (45-minute overall timer)',",
+"            syllabus: 'Reasoning (40 Qs) + Quantitative Aptitude (40 Qs) • 80 questions in 45 minutes (+1 / -0.25). No sectional countdown.',",
+"            duration: 45, totalMarks: 80, posMarks: 1.0, negMarks: 0.25, officialQs: 80, isSample: false,",
+"            allowedSubjects: ['sub_reasoning', 'sub_quant'], hasSectionalTiming: false, timingProfileVersion: 'ibps-rrb-po-xv-2026-overall-v1'",
+"          }"
+]);
+
+replaceExamObject("ex_ibps_rrb_oa", [
+"          {",
+"            id: 'ex_ibps_rrb_oa', categoryId: 'cat_banking', code: 'IBPS-RRB-OA', name: 'IBPS RRB Office Assistant Prelims (45-minute overall timer)',",
+"            syllabus: 'Reasoning (40 Qs) + Numerical Ability (40 Qs) • 80 questions in 45 minutes (+1 / -0.25). No sectional countdown.',",
+"            duration: 45, totalMarks: 80, posMarks: 1.0, negMarks: 0.25, officialQs: 80, isSample: false,",
+"            allowedSubjects: ['sub_reasoning', 'sub_quant'], hasSectionalTiming: false, timingProfileVersion: 'ibps-rrb-oa-xv-2026-overall-v1'",
+"          }"
+]);
+
 replaceExamObject("ex_ssc_cgl_t2", [
 "          {",
 "            id: 'ex_ssc_cgl_t2', categoryId: 'cat_ssc', code: 'SSC-CGL-T2', name: 'SSC CGL Tier-II Paper-I (Official 2026 CBT sections)',",
 "            syllabus: 'Session-I: Section-I Maths + Reasoning (60m); Section-II English + General Awareness (60m); Section-III Computer Knowledge (15m). Session-II: DEST (15m, separate skill test). (+3 / -1)',",
-"            duration: 135, totalMarks: 390, posMarks: 3.0, negMarks: 1.00, officialQs: 135, isSample: false,",
+"            duration: 135, totalMarks: 450, posMarks: 3.0, negMarks: 1.00, officialQs: 150, isSample: false,",
 "            allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_english', 'sub_ga', 'sub_computer'],",
 "            hasSectionalTiming: true, timingProfileVersion: 'ssc-cgl-2026-tier2-v2',",
 "            timingVerificationNote: 'SSC CGL 2026 notification: Section-I 60m (Maths + Reasoning), Section-II 60m (English + GA), Section-III Computer 15m; Session-II DEST is separate.',",
