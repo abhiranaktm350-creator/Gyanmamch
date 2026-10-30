@@ -157,3 +157,88 @@ body.exam-active #cbtOverlay #modalConfirmSubmit > div { border-radius:12px !imp
   body.exam-active #cbtOverlay #cbtLangHi,
   body.exam-active #cbtOverlay #cbtLangBoth { padding:4px 7px !important; }
 }
+
+
+/* CBT refinement pass: make sectional timing unmistakable and keep controls usable on phones. */
+body.exam-active #cbtOverlay #cbtTimerBox {
+  flex:0 0 auto;
+  min-width:126px;
+  gap:8px !important;
+}
+body.exam-active #cbtOverlay #cbtTimerLabel {
+  display:inline-block !important;
+  color:#526a83 !important;
+  font-size:11px !important;
+  font-weight:700 !important;
+  white-space:nowrap;
+}
+body.exam-active #cbtOverlay #cbtTimerText {
+  color:#124b87 !important;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+body.exam-active #cbtOverlay #cbtSectionTimerPill {
+  display:flex;
+  align-items:center;
+  min-width:0;
+  max-width:100%;
+  padding:7px 10px !important;
+  line-height:1.35;
+  white-space:normal;
+}
+body.exam-active #cbtOverlay #cbtSectionTimerPill.hidden { display:none !important; }
+body.exam-active #cbtOverlay #cbtSectionTimerLabel {
+  min-width:0;
+  overflow-wrap:anywhere;
+  color:#754b08 !important;
+}
+body.exam-active #cbtOverlay #cbtSectionTimerValue {
+  flex:0 0 auto;
+  font-size:14px !important;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+body.exam-active #cbtOverlay #cbtSectionTabs {
+  min-width:0;
+  max-width:100%;
+  overflow-x:auto !important;
+  overscroll-behavior-x:contain;
+  scrollbar-width:thin;
+}
+body.exam-active #cbtOverlay #cbtSectionTabs button { flex:0 0 auto; }
+body.exam-active #cbtOverlay #cbtSectionTabs button:focus-visible,
+body.exam-active #cbtOverlay #cbtPaletteGrid button:focus-visible {
+  outline:3px solid #2563eb !important;
+  outline-offset:2px;
+}
+@media (max-width:760px) {
+  body.exam-active #cbtOverlay > .bg-slate-900:first-child {
+    align-items:flex-start;
+    gap:8px !important;
+  }
+  body.exam-active #cbtOverlay > .bg-slate-900:first-child > div:last-child {
+    width:100%;
+    justify-content:space-between;
+    gap:7px !important;
+  }
+  body.exam-active #cbtOverlay #cbtTimerBox {
+    min-width:118px;
+    padding:6px 8px !important;
+  }
+  body.exam-active #cbtOverlay #cbtTimerLabel {
+    display:inline-block !important;
+    font-size:10px !important;
+  }
+  body.exam-active #cbtOverlay #cbtTimerText { font-size:15px !important; }
+  body.exam-active #cbtOverlay > .bg-white.border-b.border-slate-200 {
+    align-items:flex-start;
+    gap:6px !important;
+  }
+  body.exam-active #cbtOverlay #cbtSectionTimerPill {
+    width:100%;
+    justify-content:space-between;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  body.exam-active #cbtOverlay #cbtTimerText.animate-pulse { animation:none !important; }
+}
