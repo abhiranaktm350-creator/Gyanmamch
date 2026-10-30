@@ -238,6 +238,12 @@ replaceOnce(
   "refresh selected exam timing from current built-in catalogue"
 );
 
+replaceOnce("          } else {\n            openSubmitConfirmationModal();\n          }\n        });", "          } else if (cbt.hasSectionalTiming) {\n            showToast(\"You have reached the end of this section. The next section will open when its timer expires.\", \"info\");\n          } else {\n            openSubmitConfirmationModal();\n          }\n        });", "do not offer full-test submission at the end of an active section");
+
+replaceOnce("<div class=\"text-[11px] text-slate-400 hidden sm:inline\">Time:</div>", "<div id=\"cbtTimerLabel\" class=\"text-[11px] text-slate-400 hidden sm:inline\">Time:</div>", "give total timer a distinct label");
+
+replaceOnce("        const timerText = document.getElementById('cbtTimerText');\n        if (timerText) {", "        const timerLabel = document.getElementById('cbtTimerLabel');\n        if (timerLabel) timerLabel.textContent = cbt.hasSectionalTiming ? 'Total:' : 'Time:';\n        const nextSectionButton = document.getElementById('btnCbtNextSectionLock');\n        if (nextSectionButton) nextSectionButton.classList.add('hidden');\n        const timerText = document.getElementById('cbtTimerText');\n        if (timerText) {", "show overall and section clocks distinctly and prevent manual section skipping");
+
 const longQuestionCss = `
 <style id="gm-cbt-long-question-fix">
   /* Long stems/options must expand the exam card; the question column owns scrolling. */
