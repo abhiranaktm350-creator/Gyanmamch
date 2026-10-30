@@ -862,6 +862,23 @@ table{max-width:100%;border-collapse:collapse}
     </div>
   </div>
 
+  <!-- MODAL: CONFIRM TEST SUBMISSION -->
+  <div id="modalConfirmSubmit" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <h3 class="text-lg font-bold text-slate-900 mb-1">Confirm Mock Test Submission</h3>
+      <p class="text-xs text-slate-500 mb-4">Please verify your attempt summary before locking your final submission. Once submitted, this attempt cannot be overwritten.</p>
+      <div id="submitSummaryStats" class="grid grid-cols-2 gap-3 mb-5"></div>
+      <div class="flex items-center justify-end gap-2">
+        <button id="btnCancelSubmitModal" type="button" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-sm font-semibold">
+          Return to Test
+        </button>
+        <button id="btnFinalConfirmSubmit" type="button" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow">
+          Confirm & View Result
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: PROTECTED ADMIN PASSWORD GATE -->
   <div id="modalAdminPassGate" class="hidden fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
@@ -893,23 +910,6 @@ table{max-width:100%;border-collapse:collapse}
           </button>
         </div>
       </form>
-    </div>
-  </div>
-
-  <!-- MODAL: CONFIRM TEST SUBMISSION -->
-  <div id="modalConfirmSubmit" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
-      <h3 class="text-lg font-bold text-slate-900 mb-1">Confirm Mock Test Submission</h3>
-      <p class="text-xs text-slate-500 mb-4">Please verify your attempt summary before locking your final submission. Once submitted, this attempt cannot be overwritten.</p>
-      <div id="submitSummaryStats" class="grid grid-cols-2 gap-3 mb-5"></div>
-      <div class="flex items-center justify-end gap-2">
-        <button id="btnCancelSubmitModal" type="button" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 text-sm font-semibold">
-          Return to Test
-        </button>
-        <button id="btnFinalConfirmSubmit" type="button" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow">
-          Confirm & View Result
-        </button>
-      </div>
     </div>
   </div>
 
@@ -4099,6 +4099,13 @@ table{max-width:100%;border-collapse:collapse}
 
         db.attempts.push(completedAttempt);
         saveDatabase(db);
+        // Leave fullscreen before showing the scorecard. The confirmation dialog
+        // is inside the fullscreen CBT overlay, so it remains visible while testing.
+        const examOverlay = document.getElementById('cbtOverlay');
+        if (document.fullscreenElement === examOverlay && document.exitFullscreen) {
+          try { await document.exitFullscreen(); }
+          catch (fullscreenExitError) { console.warn('Could not exit exam fullscreen:', fullscreenExitError); }
+        }
         state.activeCbt = null;
         document.getElementById('cbtOverlay').classList.add('hidden');
         const preStartGateOnClose = document.getElementById('cbtPreStartGate'); if (preStartGateOnClose) { preStartGateOnClose.classList.add('hidden'); preStartGateOnClose.classList.remove('flex'); }
@@ -8111,8 +8118,13 @@ Answer Key:
             clearInterval(state.activeCbt.timerInterval);
           }
           state.activeCbt = null;
+          const examOverlay = document.getElementById('cbtOverlay');
+          if (document.fullscreenElement === examOverlay && document.exitFullscreen) {
+            const exitPromise = document.exitFullscreen();
+            if (exitPromise && typeof exitPromise.catch === 'function') exitPromise.catch(function() {});
+          }
           document.getElementById('cbtOverlay').classList.add('hidden');
-        document.body.classList.remove('exam-active');
+          document.body.classList.remove('exam-active');
           showToast('Attempt closed without saving. Reopening the test will start a fresh Attempt ID.', 'info');
         });
       }
