@@ -3590,14 +3590,17 @@ function syncCbtSideDrawerUI() {
           cbt.sectionDeadlineAt = Date.now() + Math.max(0, Number(cbt.sectionRemainingSeconds) || 0) * 1000;
         }
         if (heading) heading.textContent = 'Exam in Progress';
-        if (btn) btn.textContent = 'Resume Exam';
-        if (gate) { gate.classList.add('hidden'); gate.classList.remove('flex'); }
+        if (btn) btn.textContent = 'Starting…';
+        // Paint the first question while the gate is still present. Only uncover the exam
+        // after the CBT question/header have rendered successfully.
         // Paint Question 1 after the pre-start overlay is removed; repeat on the next frame
         // to avoid a blank first question on slower mobile browsers.
         if (cbt.currentIndex < 0 || cbt.currentIndex >= cbt.questions.length) cbt.currentIndex = 0;
         renderCbtHeaderAndTabs();
         renderCbtCurrentQuestion();
         renderCbtPalette();
+        if (gate) { gate.classList.add('hidden'); gate.classList.remove('flex'); }
+        if (btn) btn.textContent = 'Resume Exam';
         window.requestAnimationFrame(function() {
           if (state.activeCbt !== cbt) return;
           if (!Number.isInteger(cbt.currentIndex) || cbt.currentIndex < 0 || cbt.currentIndex >= cbt.questions.length) cbt.currentIndex = 0;
@@ -8118,11 +8121,7 @@ Answer Key:
         // CBT Side Panel Collapse / Expand & Font Size Zoom Controls
 
 
-        const btnStartExamNow = document.getElementById('btnCbtStartExamNow');
-        if (btnStartExamNow && !btnStartExamNow.dataset.bound) {
-          btnStartExamNow.dataset.bound = '1';
-          btnStartExamNow.addEventListener('click', function() { resumeCbtExam(); });
-        }
+        // Start/resume is handled once by the delegated capture listener below.
         const btnPauseExam = document.getElementById('btnCbtPauseExam');
         if (btnPauseExam && !btnPauseExam.dataset.bound) {
           btnPauseExam.dataset.bound = '1';
@@ -8736,8 +8735,38 @@ Answer Key:
         document.addEventListener('click', function(event) {
           const startBtn = event.target && event.target.closest ? event.target.closest('#btnCbtStartExamNow') : null;
           const pauseBtn = event.target && event.target.closest ? event.target.closest('#btnCbtPauseExam') : null;
-          if (startBtn) { event.preventDefault(); resumeCbtExam(); }
-          if (pauseBtn) { event.preventDefault(); pauseCbtExam(); }
+          if (startBtn) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            try {
+              if (!state.activeCbt || !Array.isArray(state.activeCbt.questions) || !state.activeCbt.questions.length) {
+                throw new Error('The selected test has no loaded questions. Close this screen and reopen the mock test.');
+              }
+              resumeCbtExam();
+              if (!state.activeCbt || !state.activeCbt.isStarted || !state.activeCbt.timerInterval) {
+                throw new Error('The exam could not initialize its timer. Please close and reopen the mock test.');
+              }
+            } catch (startError) {
+              console.error('Gyan Manch Start Exam failed:', startError);
+              const gate = document.getElementById('cbtPreStartGate');
+              if (gate) {
+                gate.classList.remove('hidden'); gate.classList.add('flex');
+                let errorBox = document.getElementById('cbtStartError');
+                if (!errorBox) {
+                  errorBox = document.createElement('p');
+                  errorBox.id = 'cbtStartError';
+                  errorBox.setAttribute('role', 'alert');
+                  errorBox.className = 'mt-3 rounded-lg bg-rose-50 border border-rose-200 p-3 text-sm text-rose-700';
+                  gate.querySelector('.bg-white')?.appendChild(errorBox);
+                }
+                errorBox.textContent = 'Could not start the exam: ' + (startError && startError.message ? startError.message : 'Unknown error');
+              }
+              const active = state.activeCbt;
+              if (active && active.timerInterval) { clearInterval(active.timerInterval); active.timerInterval = null; }
+              if (active) { active.isStarted = false; active.isPaused = false; }
+            }
+          }
+          if (pauseBtn) { event.preventDefault(); event.stopImmediatePropagation(); pauseCbtExam(); }
         }, true);
 
         bindGlobalEvents();
