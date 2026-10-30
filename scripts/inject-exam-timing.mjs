@@ -60,9 +60,10 @@ replaceExamObject("ex_ssc_chsl_t2", [
 "            timingVerificationNote: 'SSC CHSL 2026 notification: Section-I 60m, Section-II 60m, Section-III Computer 15m; Session-II skill/typing is separate.',",
 "            separateSkillSession: { id: 'chsl2_skill', name: 'Session-II Skill / Typing Test (post-specific)', durationMinutes: 15, durationOptions: [15, 10], mode: 'typing', note: 'DEO Skill Test: 15 minutes; LDC/JSA Typing Test: 10 minutes.' },",
 "            sessionConfig: [",
-"              { id: 'chsl2_section1', name: 'Section-I: Mathematical Abilities + Reasoning (60m)', name_hi: 'अनुभाग-I: गणितीय क्षमता एवं तर्कशक्ति (60 मिनट)', subjectIds: ['sub_quant', 'sub_reasoning'], durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'chsl2_section2', name: 'Section-II: English + General Awareness (60m)', name_hi: 'अनुभाग-II: अंग्रेजी एवं सामान्य जागरूकता (60 मिनट)', subjectIds: ['sub_english', 'sub_ga'], durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'chsl2_section3', name: 'Section-III: Computer Knowledge (15m)', name_hi: 'अनुभाग-III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 }",
+"              { id: 'chsl2_math', name: 'Section-I A: Mathematical Abilities (30m)', name_hi: 'अनुभाग-I A: गणितीय क्षमता (30 मिनट)', subjectId: 'sub_quant', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'chsl2_reasoning', name: 'Section-I B: Reasoning (30m)', name_hi: 'अनुभाग-I B: तर्कशक्ति (30 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'chsl2_ga', name: 'Section-II B: General Awareness (20m)', name_hi: 'अनुभाग-II B: सामान्य जागरूकता (20 मिनट)', subjectIds: ['sub_ga', 'sub_science'], durationMinutes: 20, posMarks: 3.0, negMarks: 1.00 },
+              { id: 'chsl2_english', name: 'Section-II A: English (40m)', name_hi: 'अनुभाग-II A: अंग्रेजी (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 3.0, negMarks: 1.00 }",
 "            ]",
 "          }"
 ]);
@@ -76,8 +77,8 @@ replaceExamObject("ex_ssc_mts", [
 "            hasSectionalTiming: true, timingProfileVersion: 'ssc-mts-2026-session-v2',",
 "            timingVerificationNote: 'SSC MTS two separately timed 45-minute sessions; each session contains two subject modules.',",
 "            sessionConfig: [",
-"              { id: 'sess_mts_1', name: 'Session-I: Numerical Ability + Reasoning (45m)', name_hi: 'सत्र-I: संख्यात्मक योग्यता एवं तर्कशक्ति (45 मिनट)', subjectIds: ['sub_quant', 'sub_reasoning'], durationMinutes: 45, posMarks: 3.0, negMarks: 0.00 },",
-"              { id: 'sess_mts_2', name: 'Session-II: General Awareness + English (45m)', name_hi: 'सत्र-II: सामान्य जागरूकता एवं अंग्रेजी (45 मिनट)', subjectIds: ['sub_ga', 'sub_english'], durationMinutes: 45, posMarks: 3.0, negMarks: 1.00 }",
+"              { id: 'sess_mts_1', timerMode: 'session', name: 'Session-I: Numerical Ability + Reasoning (45m)', name_hi: 'सत्र-I: संख्यात्मक योग्यता एवं तर्कशक्ति (45 मिनट)', subjectIds: ['sub_quant', 'sub_reasoning'], durationMinutes: 45, posMarks: 3.0, negMarks: 0.00 },",
+"              { id: 'sess_mts_2', timerMode: 'session', name: 'Session-II: General Awareness + English (45m)', name_hi: 'सत्र-II: सामान्य जागरूकता एवं अंग्रेजी (45 मिनट)', subjectIds: ['sub_ga', 'sub_science', 'sub_english'], durationMinutes: 45, posMarks: 3.0, negMarks: 1.00 }",
 "            ]",
 "          }"
 ]);
@@ -110,9 +111,10 @@ replaceExamObject("ex_ssc_cgl_t2", [
 "            timingVerificationNote: 'SSC CGL 2026 notification: Section-I 60m (Maths + Reasoning), Section-II 60m (English + GA), Section-III Computer 15m; Session-II DEST is separate.',",
 "            separateSkillSession: { id: 'cgl2_dest', name: 'Session-II: Data Entry Speed Test (DEST)', durationMinutes: 15, mode: 'typing', note: 'Separate skill test, not part of the 135-minute objective Session-I.' },",
 "            sessionConfig: [",
-"              { id: 'cgl2_section1', name: 'Section-I: Mathematical Abilities + Reasoning (60m)', name_hi: 'अनुभाग-I: गणितीय क्षमता एवं तर्कशक्ति (60 मिनट)', subjectIds: ['sub_quant', 'sub_reasoning'], durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'cgl2_section2', name: 'Section-II: English + General Awareness (60m)', name_hi: 'अनुभाग-II: अंग्रेजी एवं सामान्य जागरूकता (60 मिनट)', subjectIds: ['sub_english', 'sub_ga'], durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'cgl2_section3', name: 'Section-III: Computer Knowledge (15m)', name_hi: 'अनुभाग-III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 }",
+"              { id: 'cgl2_math', name: 'Section-I A: Mathematical Abilities (30m)', name_hi: 'अनुभाग-I A: गणितीय क्षमता (30 मिनट)', subjectId: 'sub_quant', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'cgl2_reasoning', name: 'Section-I B: Reasoning (30m)', name_hi: 'अनुभाग-I B: तर्कशक्ति (30 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'cgl2_ga', name: 'Section-II B: General Awareness (20m)', name_hi: 'अनुभाग-II B: सामान्य जागरूकता (20 मिनट)', subjectIds: ['sub_ga', 'sub_science'], durationMinutes: 20, posMarks: 3.0, negMarks: 1.00 },
+              { id: 'cgl2_english', name: 'Section-II A: English (40m)', name_hi: 'अनुभाग-II A: अंग्रेजी (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 3.0, negMarks: 1.00 }",
 "            ]",
 "          }"
 ]);
@@ -153,26 +155,27 @@ replaceExamObject("ex_ibps_clerk_mains", [
 ]);
 
 const migration = [
-"          const managedOfficialId = 'test_official_' + exam.id;",
-"          const managedOfficialMock = db.tests.find(t => t.id === managedOfficialId && t.testType === 'full_mock');",
 "          const profileVersion = String(exam.timingProfileVersion || 'legacy');",
-"          if (managedOfficialMock && managedOfficialMock.timingProfileVersion !== profileVersion) {",
+"          let timingMigrationChanged = false;",
+"          db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock' && t.isPublished).forEach(function(mock) {",
+"            if (mock.timingProfileVersion === profileVersion) return;",
 "            if (exam.hasSectionalTiming && Array.isArray(exam.sessionConfig) && exam.sessionConfig.length > 1) {",
-"              managedOfficialMock.hasSectionalTiming = true;",
-"              managedOfficialMock.sections = JSON.parse(JSON.stringify(exam.sessionConfig));",
-"              managedOfficialMock.durationMinutes = exam.sessionConfig.reduce((sum, sec) => sum + Math.max(0, Number(sec.durationMinutes) || 0), 0);",
+"              mock.hasSectionalTiming = true;",
+"              mock.sections = JSON.parse(JSON.stringify(exam.sessionConfig));",
+"              mock.durationMinutes = exam.sessionConfig.reduce((sum, sec) => sum + Math.max(0, Number(sec.durationMinutes) || 0), 0);",
 "            } else {",
-"              managedOfficialMock.hasSectionalTiming = false;",
-"              managedOfficialMock.durationMinutes = Number(exam.duration || 60);",
+"              mock.hasSectionalTiming = false;",
+"              mock.durationMinutes = Number(exam.duration || mock.durationMinutes || 60);",
 "            }",
-"            managedOfficialMock.timingProfileVersion = profileVersion;",
-"            managedOfficialMock.timingVerificationNote = exam.timingVerificationNote || '';",
-"            managedOfficialMock.separateSkillSession = exam.separateSkillSession ? JSON.parse(JSON.stringify(exam.separateSkillSession)) : null;",
-"            saveDatabase(db);",
-"          }",
+"            mock.timingProfileVersion = profileVersion;",
+"            mock.timingVerificationNote = exam.timingVerificationNote || '';",
+"            mock.separateSkillSession = exam.separateSkillSession ? JSON.parse(JSON.stringify(exam.separateSkillSession)) : null;",
+"            timingMigrationChanged = true;",
+"          });",
+"          if (timingMigrationChanged) saveDatabase(db);",
 "        let examFullMocks = db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock' && t.isPublished);"
 ].join("\n");
-replaceOnce("        let examFullMocks = db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock' && t.isPublished);", migration, "official mock timing migration");
+replaceOnce("        let examFullMocks = db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock' && t.isPublished);", migration, "all published full mock timing migration");
 
 replaceOnce(
   "            durationMinutes: Number(exam.duration || 60),",
