@@ -7962,24 +7962,7 @@ Answer Key:
         document.getElementById('btnCancelSubmitModal').addEventListener('click', function() {
           document.getElementById('modalConfirmSubmit').classList.add('hidden');
         });
-        document.getElementById('btnFinalConfirmSubmit').addEventListener('click', async function() {
-          const btn = this;
-          if (!state.activeCbt || state.activeCbt.isSubmitting) return;
-          btn.disabled = true;
-          btn.textContent = 'Submitting…';
-          try {
-            await finalizeAndScoreAttempt(false);
-          } catch (error) {
-            if (state.activeCbt) state.activeCbt.isSubmitting = false;
-            btn.disabled = false;
-            btn.textContent = 'Confirm & View Result';
-            const modal = document.getElementById('modalConfirmSubmit');
-            if (modal) modal.classList.remove('hidden');
-            const message = document.getElementById('submitSummaryStats');
-            if (message) message.insertAdjacentHTML('beforeend', '<p class="col-span-2 text-sm text-rose-700" role="alert">Submission failed. Your answers are still on screen. Please try again. ' + escapeHtml(error && error.message ? error.message : '') + '</p>');
-            console.error('Gyan Manch submission failed:', error);
-          }
-        });
+
 
         document.getElementById('btnAbortTest').addEventListener('click', function() {
           if (state.activeCbt && state.activeCbt.timerInterval) {
@@ -8437,19 +8420,23 @@ Answer Key:
           if (startBtn) { event.preventDefault(); resumeCbtExam(); }
           if (pauseBtn) { event.preventDefault(); pauseCbtExam(); }
         }, true);
-        // Reliable delegated submit controls: survive rerenders and prevent click defaults.
+        // Single capture-phase handler for every submit control. This avoids duplicate
+        // listeners racing each other and works for controls revealed after rerenders.
         window.addEventListener('click', async function(event) {
-          const target = event.target && event.target.closest ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnPaletteSubmitTest, #btnCbtLastSubmit, #btnFinalConfirmSubmit') : null;
+          const target = event.target && event.target.closest
+            ? event.target.closest('#btnOpenSubmitModal, #btnPaletteSubmitTest, #btnCbtLastSubmit, #btnFinalConfirmSubmit')
+            : null;
           if (!target) return;
           event.preventDefault();
           event.stopImmediatePropagation();
 
-          if (target.id === 'btnOpenSubmitModal' || target.id === 'btnSidebarSubmitTest' || target.id === 'btnPaletteSubmitTest' || target.id === 'btnCbtLastSubmit') {
-            if (state.activeCbt) openSubmitConfirmationModal();
+          if (!state.activeCbt) return;
+          if (target.id !== 'btnFinalConfirmSubmit') {
+            if (!state.activeCbt.isSubmitting) openSubmitConfirmationModal();
             return;
           }
 
-          if (!state.activeCbt || state.activeCbt.isSubmitting) return;
+          if (state.activeCbt.isSubmitting) return;
           target.disabled = true;
           target.textContent = 'Submitting…';
           try {
@@ -8465,13 +8452,13 @@ Answer Key:
               const oldError = message.querySelector('[data-submit-error]');
               if (oldError) oldError.remove();
               const errorBox = document.createElement('p');
-              errorBox.setAttribute('data-submit-error', 'true');
+              errorBox.dataset.submitError = 'true';
               errorBox.className = 'col-span-2 text-sm text-rose-700';
               errorBox.setAttribute('role', 'alert');
               errorBox.textContent = 'Submission failed. Your answers are still on screen. Please try again. ' + (error && error.message ? error.message : '');
               message.appendChild(errorBox);
             }
-            console.error('Gyan Manch delegated submission failed:', error);
+            console.error('Gyan Manch submission failed:', error);
           }
         }, true);
 
