@@ -231,6 +231,13 @@ replaceOnce(
   "migrate existing localStorage exam and mock timing profiles"
 );
 
+
+replaceOnce(
+  "        const exam = db.exams.find(e => e.id === state.selectedExamId) || db.exams[0];",
+  "        const exam = db.exams.find(e => e.id === state.selectedExamId) || db.exams[0];\n        const latestExamTiming = createDefaultDatabase().exams.find(e => e.id === exam.id);\n        if (latestExamTiming && latestExamTiming.hasSectionalTiming !== undefined) Object.assign(exam, { hasSectionalTiming: latestExamTiming.hasSectionalTiming, duration: latestExamTiming.duration, sessionConfig: latestExamTiming.sessionConfig, timingProfileVersion: latestExamTiming.timingProfileVersion, timingVerificationNote: latestExamTiming.timingVerificationNote, separateSkillSession: latestExamTiming.separateSkillSession });",
+  "refresh selected exam timing from current built-in catalogue"
+);
+
 const longQuestionCss = `
 <style id="gm-cbt-long-question-fix">
   /* Long stems/options must expand the exam card; the question column owns scrolling. */
