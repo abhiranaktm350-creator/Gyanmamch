@@ -3483,18 +3483,28 @@ function syncCbtSideDrawerUI() {
             cbt.isStarted = true;
             cbt.startedAtIso = cbt.startedAtIso || new Date().toISOString();
             cbt.deadlineAt = Date.now() + Math.max(1, Number(cbt.remainingSeconds) || 3600) * 1000;
+            if (cbt.hasSectionalTiming) cbt.sectionDeadlineAt = Date.now() + Math.max(1, Number(cbt.sectionRemainingSeconds) || 60) * 1000;
             cbt.timerInterval = window.setInterval(function() {
               const active = state.activeCbt;
               if (!active || active.isPaused || !active.isStarted) return;
-              active.remainingSeconds = Math.max(0, Math.ceil((active.deadlineAt - Date.now()) / 1000));
+              const now = Date.now();
+              active.remainingSeconds = Math.max(0, Math.ceil((active.deadlineAt - now) / 1000));
+              if (active.hasSectionalTiming) {
+                active.sectionRemainingSeconds = Math.max(0, Math.ceil((Number(active.sectionDeadlineAt) - now) / 1000));
+                if (active.sectionRemainingSeconds <= 0) {
+                  window.clearInterval(active.timerInterval); active.timerInterval = null;
+                  advanceToNextTimedSection(true);
+                  return;
+                }
+              }
               const timer = document.getElementById('cbtTimerText');
-              if (timer) timer.textContent = formatSeconds(active.remainingSeconds);
+              if (timer) timer.textContent = formatSeconds(active.hasSectionalTiming ? active.sectionRemainingSeconds : active.remainingSeconds);
               const q = active.questions && active.questions[active.currentIndex];
               const ans = q && active.answers && active.answers[q.id];
               if (ans) ans.timeSpent = Number(ans.timeSpent || 0) + 1;
               const qTimer = document.getElementById('cbtQuestionTimeBadge');
               if (qTimer && ans) qTimer.textContent = 'Q Timer: ' + formatSeconds(ans.timeSpent);
-              if (active.remainingSeconds <= 0) { clearInterval(active.timerInterval); active.timerInterval = null; finalizeAndScoreAttempt(true); }
+              if (active.remainingSeconds <= 0) { window.clearInterval(active.timerInterval); active.timerInterval = null; finalizeAndScoreAttempt(true); }
             }, 1000);
           }
         }
