@@ -346,8 +346,8 @@ const longQuestionCss = `
     #cbtOverlay > .flex-1.flex.flex-row.overflow-hidden > .flex-1.flex.flex-col.overflow-y-auto > .max-w-5xl { padding:14px !important; }
   }
 </style>`;
-if ((html.match(/<\\/head>/g) || []).length !== 1) throw new Error("Expected one closing head tag for long-question styles");
-html = html.replace("</head>", longQuestionCss + "\\n</head>");
+if (html.split("</head>").length !== 2) throw new Error("Expected one closing head tag for long-question styles");
+html = html.replace("</head>", longQuestionCss + "\n</head>");
 
 fs.writeFileSync(file, html);
 console.log("Applied exam-specific timing profiles, sectional navigation guards and section deadline reset.");
