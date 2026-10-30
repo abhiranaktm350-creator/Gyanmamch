@@ -63,8 +63,8 @@ replaceExamObject("ex_ssc_chsl_t2", [
 "              { id: 'chsl2_math', name: 'Section-I A: Mathematical Abilities (30m)', name_hi: 'अनुभाग-I A: गणितीय क्षमता (30 मिनट)', subjectId: 'sub_quant', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
 "              { id: 'chsl2_reasoning', name: 'Section-I B: Reasoning (30m)', name_hi: 'अनुभाग-I B: तर्कशक्ति (30 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
 "              { id: 'chsl2_ga', name: 'Section-II B: General Awareness (20m)', name_hi: 'अनुभाग-II B: सामान्य जागरूकता (20 मिनट)', subjectIds: ['sub_ga', 'sub_science'], durationMinutes: 20, posMarks: 3.0, negMarks: 1.00 },
-              { id: 'chsl2_computer', name: 'Section-III: Computer Knowledge (15m)', name_hi: 'अनुभाग-III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 },
               { id: 'chsl2_english', name: 'Section-II A: English (40m)', name_hi: 'अनुभाग-II A: अंग्रेजी (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 3.0, negMarks: 1.00 }",
+"{ id: 'chsl2_computer', name: 'Section-III: Computer Knowledge (15m)', name_hi: 'अनुभाग-III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 },",
 "            ]",
 "          }"
 ]);
@@ -115,8 +115,8 @@ replaceExamObject("ex_ssc_cgl_t2", [
 "              { id: 'cgl2_math', name: 'Section-I A: Mathematical Abilities (30m)', name_hi: 'अनुभाग-I A: गणितीय क्षमता (30 मिनट)', subjectId: 'sub_quant', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
 "              { id: 'cgl2_reasoning', name: 'Section-I B: Reasoning (30m)', name_hi: 'अनुभाग-I B: तर्कशक्ति (30 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
 "              { id: 'cgl2_ga', name: 'Section-II B: General Awareness (20m)', name_hi: 'अनुभाग-II B: सामान्य जागरूकता (20 मिनट)', subjectIds: ['sub_ga', 'sub_science'], durationMinutes: 20, posMarks: 3.0, negMarks: 1.00 },
-              { id: 'cgl2_computer', name: 'Section-III: Computer Knowledge (15m)', name_hi: 'अनुभाग-III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 },
               { id: 'cgl2_english', name: 'Section-II A: English (40m)', name_hi: 'अनुभाग-II A: अंग्रेजी (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 3.0, negMarks: 1.00 }",
+"{ id: 'cgl2_computer', name: 'Section-III: Computer Knowledge (15m)', name_hi: 'अनुभाग-III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 },",
 "            ]",
 "          }"
 ]);
