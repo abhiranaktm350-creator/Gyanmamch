@@ -1824,6 +1824,91 @@ table{max-width:100%;border-collapse:collapse}
         chartInstances: {}
       };
 
+      // Register the exam submit handler during application boot, before any
+      // optional initialization can fail. This is deliberately independent
+      // of bindGlobalEvents() so an unrelated setup error cannot disable submit.
+      if (!window.__GYAN_MANCH_SUBMIT_HANDLER_BOUND__) {
+        window.__GYAN_MANCH_SUBMIT_HANDLER_BOUND__ = true;
+        document.addEventListener('click', async function(event) {
+          const submitIds = ['btnOpenSubmitModal', 'btnPaletteSubmitTest', 'btnCbtLastSubmit', 'btnFinalConfirmSubmit'];
+          const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
+          let target = event.target && event.target.closest
+            ? event.target.closest('#' + submitIds.join(', #'))
+            : null;
+          if (!target) target = path.find(function(node) {
+            return node && node.id && submitIds.includes(node.id);
+          });
+          if (!target) return;
+
+          event.preventDefault();
+          event.stopImmediatePropagation();
+
+          const activeAttempt = state.activeCbt;
+          if (!activeAttempt) {
+            showToast('No active exam was found. Please reopen the test and try again.', 'error');
+            return;
+          }
+
+          if (target.id !== 'btnFinalConfirmSubmit') {
+            if (activeAttempt.isSubmitting) {
+              showToast('Your submission is already being processed. Please wait.', 'info');
+              return;
+            }
+            try {
+              openSubmitConfirmationModal();
+            } catch (error) {
+              console.error('Could not open submit confirmation:', error);
+              showToast('Could not open the submission confirmation. ' + (error && error.message ? error.message : 'Please refresh the exam and try again.'), 'error');
+            }
+            return;
+          }
+
+          if (activeAttempt.isSubmitting) {
+            showToast('Your submission is already being processed. Please wait.', 'info');
+            return;
+          }
+
+          const originalText = target.textContent;
+          target.disabled = true;
+          target.textContent = 'Submitting…';
+          try {
+            await finalizeAndScoreAttempt(false);
+            if (state.activeCbt === activeAttempt) {
+              throw new Error('The submission process ended without opening the result screen.');
+            }
+          } catch (error) {
+            if (state.activeCbt === activeAttempt) {
+              activeAttempt.isSubmitting = false;
+              if (activeAttempt.timerInterval) {
+                clearInterval(activeAttempt.timerInterval);
+                activeAttempt.timerInterval = null;
+              }
+              if (activeAttempt.isStarted && !activeAttempt.isPaused && activeAttempt.remainingSeconds > 0) {
+                resumeCbtExam();
+              }
+            }
+            target.disabled = false;
+            target.textContent = originalText || 'Confirm & View Result';
+            const modal = document.getElementById('modalConfirmSubmit');
+            if (modal) modal.classList.remove('hidden');
+            const message = document.getElementById('submitSummaryStats');
+            if (message) {
+              const oldError = message.querySelector('[data-submit-error]');
+              if (oldError) oldError.remove();
+              const errorBox = document.createElement('p');
+              errorBox.dataset.submitError = 'true';
+              errorBox.className = 'col-span-2 text-sm text-rose-700';
+              errorBox.setAttribute('role', 'alert');
+              errorBox.textContent = 'Submission failed. Your answers are still on screen. Please try again. ' + (error && error.message ? error.message : 'Unknown error');
+              message.appendChild(errorBox);
+            }
+            console.error('Gyan Manch submission failed:', error);
+            showToast('Submission failed. Your answers have not been cleared. Please try again.', 'error');
+          }
+        }, true);
+      }
+
+
       // Homepage appearance and announcement helpers (local browser storage unless LAN DB sync is configured).
       function applyGmTheme() {
         document.body.classList.remove('gm-dark-theme');
@@ -7709,77 +7794,6 @@ Answer Key:
       // GLOBAL STATIC EVENT LISTENERS
       // =========================================================================
       function bindGlobalEvents() {
-        // One resilient delegated submit handler. Always provide visible feedback;
-        // never let a click silently disappear because the CBT state is unavailable.
-        document.addEventListener('click', async function(event) {
-          const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
-          let target = event.target && event.target.closest
-            ? event.target.closest('#btnOpenSubmitModal, #btnPaletteSubmitTest, #btnCbtLastSubmit, #btnFinalConfirmSubmit')
-            : null;
-          if (!target) target = path.find(function(node) {
-            return node && node.id && ['btnOpenSubmitModal','btnPaletteSubmitTest','btnCbtLastSubmit','btnFinalConfirmSubmit'].includes(node.id);
-          });
-          if (!target) return;
-
-          event.preventDefault();
-          event.stopImmediatePropagation();
-
-          if (!state.activeCbt) {
-            showToast('No active exam was found. Please reopen the test and try again.', 'error');
-            return;
-          }
-
-          if (target.id !== 'btnFinalConfirmSubmit') {
-            if (state.activeCbt.isSubmitting) {
-              showToast('Your submission is already being processed. Please wait.', 'info');
-              return;
-            }
-            try {
-              openSubmitConfirmationModal();
-            } catch (error) {
-              console.error('Could not open submit confirmation:', error);
-              showToast('Could not open the submission confirmation. Please refresh the exam and try again.', 'error');
-            }
-            return;
-          }
-
-          if (state.activeCbt.isSubmitting) {
-            showToast('Your submission is already being processed. Please wait.', 'info');
-            return;
-          }
-
-          const originalText = target.textContent;
-          target.disabled = true;
-          target.textContent = 'Submitting…';
-          try {
-            await finalizeAndScoreAttempt(false);
-          } catch (error) {
-            if (state.activeCbt) {
-              state.activeCbt.isSubmitting = false;
-              if (state.activeCbt.timerInterval) {
-                clearInterval(state.activeCbt.timerInterval);
-                state.activeCbt.timerInterval = null;
-              }
-            }
-            target.disabled = false;
-            target.textContent = originalText || 'Confirm & View Result';
-            const modal = document.getElementById('modalConfirmSubmit');
-            if (modal) modal.classList.remove('hidden');
-            const message = document.getElementById('submitSummaryStats');
-            if (message) {
-              const oldError = message.querySelector('[data-submit-error]');
-              if (oldError) oldError.remove();
-              const errorBox = document.createElement('p');
-              errorBox.dataset.submitError = 'true';
-              errorBox.className = 'col-span-2 text-sm text-rose-700';
-              errorBox.setAttribute('role', 'alert');
-              errorBox.textContent = 'Submission failed. Your answers are still on screen. Please try again. ' + (error && error.message ? error.message : 'Unknown error');
-              message.appendChild(errorBox);
-            }
-            console.error('Gyan Manch submission failed:', error);
-            showToast('Submission failed. Your answers have not been cleared. Please try again.', 'error');
-          }
-        }, true);
 
         window.gyanManchGoBack = goBackView;
         window.gyanManchNav = navigateTo;
