@@ -732,7 +732,7 @@ table{max-width:100%;border-collapse:collapse}
         <!-- Countdown Timer -->
         <div id="cbtTimerBox" class="flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-3 py-1 rounded-lg">
           <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <div class="text-[11px] text-slate-400 hidden sm:inline">Time:</div>
+          <div id="cbtTimerLabel" class="text-[11px] text-slate-400 hidden sm:inline">Time:</div>
           <div id="cbtTimerText" class="font-mono font-bold text-sm sm:text-base text-emerald-400 tracking-wider">60:00</div>
         </div>
 
@@ -3359,6 +3359,11 @@ function syncCbtSideDrawerUI() {
           showToast('This test has no published questions yet.', 'warning');
           return;
         }
+        if (test.hasSectionalTiming && Array.isArray(test.sections)) {
+          const belongs = function(sec, q) { const ids = Array.isArray(sec.subjectIds) && sec.subjectIds.length ? sec.subjectIds : (sec.subjectId ? [sec.subjectId] : []); return !ids.length || ids.indexOf(q.subjectId) >= 0; };
+          const rank = function(q) { const idx = test.sections.findIndex(function(sec){ return belongs(sec, q); }); return idx < 0 ? 999 : idx; };
+          questionsList.sort(function(a,b){ return rank(a)-rank(b); });
+        }
 
         // Always create a NEW, separate attempt with a unique Attempt ID and fresh timer
         const uniqueAttemptId = 'ATT-' + Date.now().toString().slice(-6) + '-' + Math.floor(100 + Math.random() * 899);
@@ -3376,10 +3381,22 @@ function syncCbtSideDrawerUI() {
         }
 
         // Bring older saved full mocks up to date with the current official exam timing profile.
-        const examPattern = db.exams.find(function(ex){ return ex.id === test.examId; });
+        const storedExamPattern = db.exams.find(function(ex){ return ex.id === test.examId; });
+        const latestExamPattern = createDefaultDatabase().exams.find(function(ex){ return ex.id === test.examId; });
+        const examPattern = latestExamPattern && latestExamPattern.timingProfileVersion ? latestExamPattern : storedExamPattern;
+        if (storedExamPattern && examPattern && examPattern !== storedExamPattern) Object.assign(storedExamPattern, {
+          duration: examPattern.duration, hasSectionalTiming: examPattern.hasSectionalTiming,
+          sessionConfig: examPattern.sessionConfig, timingProfileVersion: examPattern.timingProfileVersion,
+          timingVerificationNote: examPattern.timingVerificationNote, separateSkillSession: examPattern.separateSkillSession
+        });
         if (examPattern && examPattern.hasSectionalTiming && Array.isArray(examPattern.sessionConfig) && examPattern.sessionConfig.length > 1) {
           test.sections = JSON.parse(JSON.stringify(examPattern.sessionConfig));
           test.hasSectionalTiming = true;
+          test.timingProfileVersion = examPattern.timingProfileVersion || 'official-profile';
+          test.durationMinutes = test.sections.reduce(function(total, sec){ return total + Math.max(0, Number(sec.durationMinutes) || 0); }, 0);
+        } else if (examPattern && examPattern.hasSectionalTiming === false) {
+          test.hasSectionalTiming = false;
+          test.durationMinutes = Number(examPattern.duration || 60);
         }
         const normalizedSections = Array.isArray(test.sections) ? test.sections : [];
         const hasSecTiming = Boolean(test.hasSectionalTiming && normalizedSections.length > 1 && normalizedSections[0].durationMinutes);
@@ -3503,6 +3520,12 @@ function syncCbtSideDrawerUI() {
         updateCbtTimerDisplay();
       }
 
+      function cbtSectionContainsQuestion(section, question) {
+        if (!section || !question) return false;
+        const ids = Array.isArray(section.subjectIds) && section.subjectIds.length ? section.subjectIds : (section.subjectId ? [section.subjectId] : []);
+        return !ids.length || ids.indexOf(question.subjectId) >= 0;
+      }
+
       function pauseCbtExam() {
         const cbt = state.activeCbt;
         if (!cbt || !cbt.isStarted || cbt.isPaused) return;
@@ -3624,7 +3647,7 @@ function syncCbtSideDrawerUI() {
         const pos = indices.indexOf(cbt.currentIndex);
         if (direction > 0 && pos >= 0 && pos < indices.length - 1) cbt.currentIndex = indices[pos + 1];
         else if (direction < 0 && pos > 0) cbt.currentIndex = indices[pos - 1];
-        else if (direction > 0 && cbt.hasSectionalTiming && pos === indices.length - 1) advanceToNextTimedSection(false);
+        else if (direction > 0 && cbt.hasSectionalTiming && pos === indices.length - 1) showToast('The next section opens automatically when this section timer reaches zero.', 'info');
         else if (direction > 0 && !cbt.hasSectionalTiming && cbt.currentIndex >= cbt.questions.length - 1) openSubmitConfirmationModal();
         renderCbtHeaderAndTabs();
         renderCbtCurrentQuestion();
@@ -3635,37 +3658,33 @@ function syncCbtSideDrawerUI() {
         const cbt = state.activeCbt;
         if (!cbt || !cbt.hasSectionalTiming) return;
         const sections = cbt.test.sections || [];
-        if (cbt.activeSectionIndex < sections.length - 1) {
-          cbt.activeSectionIndex += 1;
-          const nextSec = sections[cbt.activeSectionIndex];
-          cbt.sectionRemainingSeconds = Number(nextSec.durationMinutes || 20) * 60;
-          cbt.sectionDeadlineAt = Date.now() + cbt.sectionRemainingSeconds * 1000;
-          // Jump to first question of this new section
-          const nextIds = Array.isArray(nextSec.subjectIds) && nextSec.subjectIds.length ? nextSec.subjectIds : (nextSec.subjectId ? [nextSec.subjectId] : []);
-          const nextIdx = cbt.questions.findIndex(q => !nextIds.length || nextIds.indexOf(q.subjectId) >= 0);
-          if (nextIdx !== -1) cbt.currentIndex = nextIdx;
-          showToast(
-            (isAutoExpiry ? 'Section time expired! ' : 'Section submitted! ') +
-            'Moved to ' + nextSec.name + ' (' + (nextSec.durationMinutes || 20) + ' Mins).',
-            'info'
-          );
-          renderCbtHeaderAndTabs();
-          renderCbtCurrentQuestion();
-          renderCbtPalette();
-        } else {
-          // Last section finished -> submit entire test
-          finalizeAndScoreAttempt(isAutoExpiry);
-        }
+        if (cbt.timerInterval) { window.clearInterval(cbt.timerInterval); cbt.timerInterval = null; }
+        let nextIndex = cbt.activeSectionIndex + 1;
+        while (nextIndex < sections.length && !cbt.questions.some(q => cbtSectionContainsQuestion(sections[nextIndex], q))) nextIndex += 1;
+        if (nextIndex >= sections.length) { finalizeAndScoreAttempt(Boolean(isAutoExpiry)); return; }
+        cbt.activeSectionIndex = nextIndex;
+        const nextSec = sections[nextIndex];
+        cbt.sectionRemainingSeconds = Math.max(1, Number(nextSec.durationMinutes || 20) * 60);
+        cbt.sectionDeadlineAt = Date.now() + cbt.sectionRemainingSeconds * 1000;
+        const nextIdx = cbt.questions.findIndex(q => cbtSectionContainsQuestion(nextSec, q));
+        if (nextIdx !== -1) cbt.currentIndex = nextIdx;
+        showToast((isAutoExpiry ? 'Section time expired. ' : 'Section ended. ') + 'Now starting ' + nextSec.name + '.', 'info');
+        renderCbtHeaderAndTabs();
+        renderCbtCurrentQuestion();
+        renderCbtPalette();
+        if (cbt.isStarted && !cbt.isPaused) resumeCbtExam();
       }
 
       function updateCbtTimerDisplay() {
         if (!state.activeCbt) return;
         const cbt = state.activeCbt;
+        const timerLabel = document.getElementById('cbtTimerLabel');
+        if (timerLabel) timerLabel.textContent = cbt.hasSectionalTiming ? 'Section Time:' : 'Time:';
+        const nextSectionButton = document.getElementById('btnCbtNextSectionLock');
+        if (nextSectionButton) nextSectionButton.classList.add('hidden');
         const timerText = document.getElementById('cbtTimerText');
         if (timerText) {
           const rem = cbt.hasSectionalTiming ? cbt.sectionRemainingSeconds : cbt.remainingSeconds;
-          const timerLabel = document.querySelector('#cbtTimerBox > div.text-\\[11px\\]');
-          if (timerLabel) timerLabel.textContent = cbt.hasSectionalTiming ? 'Section Time:' : 'Time:';
           timerText.textContent = formatSeconds(rem);
           if (rem <= 120) {
             timerText.className = 'font-mono font-bold text-base text-rose-400 animate-pulse tracking-wider';
@@ -3684,7 +3703,7 @@ function syncCbtSideDrawerUI() {
           if (cbt.hasSectionalTiming && cbt.test.sections && cbt.test.sections[cbt.activeSectionIndex]) {
             const currSec = cbt.test.sections[cbt.activeSectionIndex];
             secPill.classList.remove('hidden');
-            secLbl.textContent = currSec.name + ' Timer:';
+            secLbl.textContent = 'Section ' + (cbt.activeSectionIndex + 1) + ' of ' + cbt.test.sections.length + ' — ' + currSec.name;
             secVal.textContent = formatSeconds(cbt.sectionRemainingSeconds);
           } else {
             secPill.classList.add('hidden');
@@ -3769,6 +3788,10 @@ function syncCbtSideDrawerUI() {
         if (!cbt || !Array.isArray(cbt.questions) || !cbt.questions.length) return;
         // Clamp the index and safely recover if a first paint happens before question data is ready.
         if (!Number.isInteger(cbt.currentIndex) || cbt.currentIndex < 0 || cbt.currentIndex >= cbt.questions.length) cbt.currentIndex = 0;
+        if (cbt.hasSectionalTiming && cbt.test.sections && cbt.test.sections[cbt.activeSectionIndex] && !cbtSectionContainsQuestion(cbt.test.sections[cbt.activeSectionIndex], cbt.questions[cbt.currentIndex])) {
+          const firstActive = cbt.questions.findIndex(item => cbtSectionContainsQuestion(cbt.test.sections[cbt.activeSectionIndex], item));
+          if (firstActive !== -1) cbt.currentIndex = firstActive;
+        }
         const q = cbt.questions[cbt.currentIndex];
         if (!q || q.id === undefined || q.id === null) {
           console.warn('Gyan Manch: question data not ready; retrying render');
