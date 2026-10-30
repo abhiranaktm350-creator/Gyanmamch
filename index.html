@@ -3407,6 +3407,10 @@ function syncCbtSideDrawerUI() {
           answers: answersMap,
           timerInterval: null
         };
+        if (hasSecTiming) {
+          const firstSectionQuestions = getCbtSectionQuestionIndices(state.activeCbt, 0);
+          if (firstSectionQuestions.length) state.activeCbt.currentIndex = firstSectionQuestions[0];
+        }
 
         // Start the clock immediately after the attempt exists, before any UI rendering.
         // This prevents a rendering error from leaving the exam clock stopped.
@@ -3660,6 +3664,8 @@ function syncCbtSideDrawerUI() {
         const timerText = document.getElementById('cbtTimerText');
         if (timerText) {
           const rem = cbt.hasSectionalTiming ? cbt.sectionRemainingSeconds : cbt.remainingSeconds;
+          const timerLabel = document.querySelector('#cbtTimerBox > div.text-\\[11px\\]');
+          if (timerLabel) timerLabel.textContent = cbt.hasSectionalTiming ? 'Section Time:' : 'Time:';
           timerText.textContent = formatSeconds(rem);
           if (rem <= 120) {
             timerText.className = 'font-mono font-bold text-base text-rose-400 animate-pulse tracking-wider';
@@ -3713,12 +3719,15 @@ function syncCbtSideDrawerUI() {
           : [{ id: 'sec_all', name: 'All Questions', subjectId: null }];
 
         const currentQ = cbt.questions[cbt.currentIndex];
-        tabsContainer.innerHTML = sections.map(function(sec) {
-          const isCurrentSec = !sec.subjectId || (currentQ && currentQ.subjectId === sec.subjectId);
+        tabsContainer.innerHTML = sections.map(function(sec, secIdx) {
+          const isCurrentSec = cbt.hasSectionalTiming
+            ? secIdx === cbt.activeSectionIndex
+            : (!sec.subjectId || (currentQ && currentQ.subjectId === sec.subjectId));
           return `
             <button
               type="button"
               data-sec-sub="${sec.subjectId || 'ALL'}"
+              data-sec-index="${secIdx}"
               class="cbt-sec-tab px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap ${
                 isCurrentSec
                   ? 'bg-indigo-600 text-white shadow-sm'
@@ -3736,12 +3745,17 @@ function syncCbtSideDrawerUI() {
               showToast('Official Sectional Timing Active: You can only attempt the currently active section (' + cbt.test.sections[cbt.activeSectionIndex].name + '). Click "Submit Section →" to move to the next section.', 'warning');
               return;
             }
-            const subId = btn.getAttribute('data-sec-sub');
-            if (subId === 'ALL') {
-              cbt.currentIndex = 0;
+            const targetSectionIndex = Number(btn.getAttribute('data-sec-index'));
+            if (cbt.hasSectionalTiming) {
+              const sectionIndices = getCbtSectionQuestionIndices(cbt, cbt.activeSectionIndex);
+              if (sectionIndices.length) cbt.currentIndex = sectionIndices[0];
             } else {
-              const idx = cbt.questions.findIndex(q => q.subjectId === subId);
-              if (idx !== -1) cbt.currentIndex = idx;
+              const subId = btn.getAttribute('data-sec-sub');
+              if (subId === 'ALL') cbt.currentIndex = 0;
+              else {
+                const idx = cbt.questions.findIndex(q => q.subjectId === subId);
+                if (idx !== -1) cbt.currentIndex = idx;
+              }
             }
             renderCbtHeaderAndTabs();
             renderCbtCurrentQuestion();
