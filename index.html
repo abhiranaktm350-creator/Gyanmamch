@@ -3477,41 +3477,8 @@ function syncCbtSideDrawerUI() {
           if (firstSectionQuestions.length) state.activeCbt.currentIndex = firstSectionQuestions[0];
         }
 
-        // Start the clock immediately after the attempt exists, before any UI rendering.
-        // This prevents a rendering error from leaving the exam clock stopped.
-        try { resumeCbtExam(); } catch (timerStartError) {
-          console.error('Gyan Manch timer start error:', timerStartError);
-          const cbt = state.activeCbt;
-          if (cbt) {
-            cbt.isStarted = true;
-            cbt.startedAtIso = cbt.startedAtIso || new Date().toISOString();
-            cbt.deadlineAt = Date.now() + Math.max(1, Number(cbt.remainingSeconds) || 3600) * 1000;
-            if (cbt.hasSectionalTiming) cbt.sectionDeadlineAt = Date.now() + Math.max(1, Number(cbt.sectionRemainingSeconds) || 60) * 1000;
-            cbt.timerInterval = window.setInterval(function() {
-              const active = state.activeCbt;
-              if (!active || active.isPaused || !active.isStarted) return;
-              const now = Date.now();
-              active.remainingSeconds = Math.max(0, Math.ceil((active.deadlineAt - now) / 1000));
-              if (active.hasSectionalTiming) {
-                active.sectionRemainingSeconds = Math.max(0, Math.ceil((Number(active.sectionDeadlineAt) - now) / 1000));
-                if (active.sectionRemainingSeconds <= 0) {
-                  window.clearInterval(active.timerInterval); active.timerInterval = null;
-                  advanceToNextTimedSection(true);
-                  return;
-                }
-              }
-              const timer = document.getElementById('cbtTimerText');
-              if (timer) timer.textContent = formatSeconds(active.hasSectionalTiming ? active.sectionRemainingSeconds : active.remainingSeconds);
-              const q = active.questions && active.questions[active.currentIndex];
-              const ans = q && active.answers && active.answers[q.id];
-              if (ans) ans.timeSpent = Number(ans.timeSpent || 0) + 1;
-              const qTimer = document.getElementById('cbtQuestionTimeBadge');
-              if (qTimer && ans) qTimer.textContent = 'Q Timer: ' + formatSeconds(ans.timeSpent);
-              if (active.remainingSeconds <= 0) { window.clearInterval(active.timerInterval); active.timerInterval = null; finalizeAndScoreAttempt(true); }
-            }, 1000);
-          }
-        }
-
+        // Do not start the timer while the exam shell is still being mounted.
+        // The student starts/resumes the attempt only from the visible CBT start gate.
         document.body.classList.add('exam-active');
         document.getElementById('cbtOverlay').classList.remove('hidden');
         enterExamFullscreen();
@@ -3573,9 +3540,13 @@ function syncCbtSideDrawerUI() {
         window.requestAnimationFrame(function(){ window.requestAnimationFrame(paintFirstQuestion); });
         [80, 300, 700, 1200].forEach(function(delay){ window.setTimeout(paintFirstQuestion, delay); });
 
-        // Timer already started above; ensure any legacy start gate is hidden.
+        // Keep the start gate visible until the student explicitly starts the exam.
         const preStartGate = document.getElementById('cbtPreStartGate');
-        if (preStartGate) { preStartGate.classList.add('hidden'); preStartGate.classList.remove('flex'); }
+        const preStartHeading = preStartGate ? preStartGate.querySelector('h2') : null;
+        const preStartButton = document.getElementById('btnCbtStartExamNow');
+        if (preStartHeading) preStartHeading.textContent = 'Ready to start your exam?';
+        if (preStartButton) preStartButton.textContent = 'Start Exam';
+        if (preStartGate) { preStartGate.classList.remove('hidden'); preStartGate.classList.add('flex'); }
         updateCbtTimerDisplay();
       }
 
