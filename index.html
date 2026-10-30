@@ -515,6 +515,44 @@ table{max-width:100%;border-collapse:collapse}
     @media (min-width: 768px) { #appMain .student-step-bar { min-width:0; } #appMain .student-step-bar button { white-space:normal; } }
   </style>
 
+
+  <style id="gm-nav-contrast-fix">
+    /* Consistent readable navigation contrast in every view. */
+    #mainHeader nav .nav-btn {
+      color:#24415f !important;
+      background:transparent !important;
+      border:1px solid transparent !important;
+      border-radius:10px !important;
+      font-weight:600 !important;
+      line-height:1.35 !important;
+      min-height:42px;
+      white-space:normal !important;
+      text-align:center;
+    }
+    #mainHeader nav .nav-btn:hover {
+      color:#174ea6 !important;
+      background:#edf5ff !important;
+      border-color:#d7e7fb !important;
+    }
+    #mainHeader nav .nav-btn.bg-slate-800,
+    #mainHeader nav .nav-btn.bg-slate-800:hover {
+      color:#ffffff !important;
+      background:#1d4ed8 !important;
+      border-color:#1d4ed8 !important;
+      box-shadow:0 2px 7px rgba(29,78,216,.22) !important;
+    }
+    #mainHeader #mobileMenuPanel .nav-btn.bg-slate-800,
+    #mainHeader #mobileMenuPanel .nav-btn.bg-slate-800:hover {
+      color:#ffffff !important;
+      background:#1d4ed8 !important;
+      border-color:#1d4ed8 !important;
+    }
+    #mainHeader #mobileMenuPanel .nav-btn { min-height:44px; }
+    @media (max-width: 900px) {
+      #mainHeader nav .nav-btn { padding-left:9px !important; padding-right:9px !important; font-size:13px !important; }
+    }
+  </style>
+
 </head>
 <body class="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
 
@@ -2024,14 +2062,13 @@ table{max-width:100%;border-collapse:collapse}
           }
         }
 
-        // Highlight active nav button
+        // Highlight active nav button with explicit contrast-safe state.
         document.querySelectorAll('.nav-btn').forEach(function(btn) {
-          const target = btn.getAttribute('data-nav');
-          if (target === state.currentView) {
-            btn.classList.add('bg-slate-800', 'ring-1', 'ring-indigo-400');
-          } else {
-            btn.classList.remove('bg-slate-800', 'ring-1', 'ring-indigo-400');
-          }
+          const active = btn.getAttribute('data-nav') === state.currentView;
+          btn.classList.toggle('bg-slate-800', active);
+          btn.classList.toggle('ring-1', active);
+          btn.classList.toggle('ring-indigo-400', active);
+          btn.setAttribute('aria-current', active ? 'page' : 'false');
         });
       }
 
