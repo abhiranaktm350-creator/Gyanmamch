@@ -72,11 +72,11 @@ replaceExamObject("ex_ssc_cgl_t2", [
 replaceExamObject("ex_ssc_chsl_t2", [
 "          {",
 "            id: 'ex_ssc_chsl_t2', categoryId: 'cat_ssc', code: 'SSC-CHSL-T2', name: 'SSC CHSL Tier-II (Official 2026 sectional CBT)',",
-"            syllabus: 'Session-I: Maths 30m + Reasoning 30m + English 45m + General Awareness 25m + Computer Knowledge 15m = 135m. Session-II: post-specific Skill/Typing Test separate. (+3 / -1).',",
+"            syllabus: 'Session-I: Maths 30m + Reasoning 30m + English 40m + General Awareness 20m + Computer Knowledge 15m = 135m. Session-II: post-specific Skill/Typing Test separate. (+3 / -1).',",
 "            duration: 135, totalMarks: 405, posMarks: 3.0, negMarks: 1.00, officialQs: 135, isSample: false,",
 "            allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_english', 'sub_ga', 'sub_computer'],",
 "            hasSectionalTiming: true, timingProfileVersion: 'ssc-chsl-2026-tier2-v3',",
-"            timingVerificationNote: 'SSC CHSL 2026 notification: Maths 30m, Reasoning 30m, English 45m, GA 25m, Computer 15m; skill/typing is separate.',",
+"            timingVerificationNote: 'SSC CHSL 2026 notification: Maths 30m, Reasoning 30m, English 40m, GA 20m, Computer 15m; skill/typing is separate.',",
 "            separateSkillSession: { id: 'chsl2_skill', name: 'Session-II Skill / Typing Test (post-specific)', durationMinutes: 15, durationOptions: [15, 10], mode: 'typing', note: 'DEO Skill Test: 15 minutes; LDC/JSA Typing Test: 10 minutes.' },",
 "            sessionConfig: [",
 "              { id: 'chsl2_math', name: 'Section-I A: Mathematical Abilities (30m)', name_hi: 'अनुभाग-I A: गणितीय क्षमता (30 मिनट)', subjectId: 'sub_quant', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
