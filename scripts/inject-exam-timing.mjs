@@ -50,6 +50,25 @@ replaceExamObject("ex_ssc_chsl", [
 "          }"
 ]);
 
+replaceExamObject("ex_ssc_cgl_t2", [
+"          {",
+"            id: 'ex_ssc_cgl_t2', categoryId: 'cat_ssc', code: 'SSC-CGL-T2', name: 'SSC CGL Tier-II Paper-I (Official 2026 sectional CBT)',",
+"            syllabus: 'Session-I: Maths 30m + Reasoning 30m + English 40m + General Awareness 20m + Computer Knowledge 15m = 135m. Session-II: DEST 15m separate. (+3 / -1).',",
+"            duration: 135, totalMarks: 450, posMarks: 3.0, negMarks: 1.00, officialQs: 150, isSample: false,",
+"            allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_english', 'sub_ga', 'sub_computer'],",
+"            hasSectionalTiming: true, timingProfileVersion: 'ssc-cgl-2026-tier2-v3',",
+"            timingVerificationNote: 'SSC CGL 2026 notification: Maths 30m, Reasoning 30m, English 40m, GA 20m, Computer 15m; DEST is separate.',",
+"            separateSkillSession: { id: 'cgl2_dest', name: 'Session-II: Data Entry Speed Test (DEST)', durationMinutes: 15, mode: 'typing', note: 'Separate skill test, not part of the 135-minute objective Session-I.' },",
+"            sessionConfig: [",
+"              { id: 'cgl2_math', name: 'Section-I A: Mathematical Abilities (30m)', name_hi: 'अनुभाग-I A: गणितीय क्षमता (30 मिनट)', subjectId: 'sub_quant', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'cgl2_reasoning', name: 'Section-I B: Reasoning & General Intelligence (30m)', name_hi: 'अनुभाग-I B: तर्कशक्ति (30 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'cgl2_english', name: 'Section-II A: English Language (40m)', name_hi: 'अनुभाग-II A: अंग्रेजी भाषा (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'cgl2_ga', name: 'Section-II B: General Awareness (20m)', name_hi: 'अनुभाग-II B: सामान्य जागरूकता (20 मिनट)', subjectId: 'sub_ga', durationMinutes: 20, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'cgl2_computer', name: 'Section-III: Computer Knowledge (15m)', name_hi: 'अनुभाग-III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 }",
+"            ]",
+"          }"
+]);
+
 replaceExamObject("ex_ssc_chsl_t2", [
 "          {",
 "            id: 'ex_ssc_chsl_t2', categoryId: 'cat_ssc', code: 'SSC-CHSL-T2', name: 'SSC CHSL Tier-II (Official 2026 sectional CBT)',",
@@ -62,8 +81,8 @@ replaceExamObject("ex_ssc_chsl_t2", [
 "            sessionConfig: [",
 "              { id: 'chsl2_math', name: 'Section-I A: Mathematical Abilities (30m)', name_hi: 'अनुभाग-I A: गणितीय क्षमता (30 मिनट)', subjectId: 'sub_quant', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
 "              { id: 'chsl2_reasoning', name: 'Section-I B: Reasoning & General Intelligence (30m)', name_hi: 'अनुभाग-I B: तर्कशक्ति (30 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'chsl2_english', name: 'Section-II A: English Language (45m)', name_hi: 'अनुभाग-II A: अंग्रेजी भाषा (45 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'chsl2_ga', name: 'Section-II B: General Awareness (25m)', name_hi: 'अनुभाग-II B: सामान्य जागरूकता (25 मिनट)', subjectId: 'sub_ga', durationMinutes: 20, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'chsl2_english', name: 'Section-II A: English Language (40m)', name_hi: 'अनुभाग-II A: अंग्रेजी भाषा (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'chsl2_ga', name: 'Section-II B: General Awareness (20m)', name_hi: 'अनुभाग-II B: सामान्य जागरूकता (20 मिनट)', subjectId: 'sub_ga', durationMinutes: 20, posMarks: 3.0, negMarks: 1.00 },",
 "              { id: 'chsl2_computer', name: 'Section-III: Computer Knowledge (15m)', name_hi: 'अनुभाग-III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 }",
 "            ]",
 "          }"
