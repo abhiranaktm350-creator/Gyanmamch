@@ -208,5 +208,17 @@ replaceOnce(
   "separate skill session duration label"
 );
 
+replaceOnce(
+  "          currentIndex: 0,\n          hasSectionalTiming: hasSecTiming,",
+  "          currentIndex: hasSecTiming ? Math.max(0, questionsList.findIndex(q => cbtSectionContainsQuestion(test.sections[0], q))) : 0,\n          hasSectionalTiming: hasSecTiming,",
+  "start on first question of the first timed section"
+);
+
+replaceOnce(
+  "          if (nextIdx !== -1) cbt.currentIndex = nextIdx;",
+  "          if (nextIdx !== -1) cbt.currentIndex = nextIdx;\n          else {\n            showToast('No questions are configured for ' + nextSec.name + '. Skipping this empty section.', 'warning');\n            advanceToNextTimedSection(true);\n            return;\n          }",
+  "skip empty timed sections safely"
+);
+
 fs.writeFileSync(file, html);
 console.log("Applied exam-specific timing profiles, sectional navigation guards and section deadline reset.");
