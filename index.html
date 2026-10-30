@@ -133,16 +133,8 @@
       animation: scanLaserMove 2.2s ease-in-out infinite;
       pointer-events: none;
     }
-    /* Cleaner mobile/desktop exam mode: retain only timer, palette and submit controls */
-    #cbtOverlay > .bg-slate-900:first-child > div:first-child,
-    #cbtOverlay #cbtSampleTag,
-    #cbtOverlay #cbtAttemptIdDisplay,
-    #cbtOverlay #cbtCandidateDisplay,
-    #cbtOverlay #btnCbtFontDec,
-    #cbtOverlay #btnCbtFontReset,
-    #cbtOverlay #btnCbtFontInc,
-    /* Keep the English / Hindi / Both selector visible during the mock test. */
-    #cbtRightSideDrawer { width: min(250px, 42vw); max-width: 42vw; }
+    /* Keep the bilingual switch, timer and submit controls visible; the palette drawer is independently collapsible. */
+    #cbtOverlay #cbtRightSideDrawer { width: min(250px, 42vw); max-width: 42vw; }
     #cbtPaletteGrid { grid-template-columns: repeat(4, minmax(0,1fr)); gap: 6px; }
     @media (max-width: 640px) {
       #cbtOverlay > .bg-slate-900:first-child { padding: 6px 8px; }
