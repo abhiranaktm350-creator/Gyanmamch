@@ -1110,7 +1110,14 @@ table{max-width:100%;border-collapse:collapse}
             id: 'ex_ssc_cgl', categoryId: 'cat_ssc', code: 'SSC-CGL-T1', name: 'SSC CGL Tier-I',
             syllabus: 'Maths/Quant (25), Reasoning (25), English (25), GK/GA (25) • 100 Qs in 60 Mins (+2.00 / -0.50)',
             duration: 60, totalMarks: 200, posMarks: 2.0, negMarks: 0.50, officialQs: 100, isSample: false,
-            allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_english', 'sub_ga', 'sub_science']
+            allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_english', 'sub_ga', 'sub_science'],
+            hasSectionalTiming: true,
+            sessionConfig: [
+              { id: 'cgl_t1_reasoning', name: 'General Intelligence & Reasoning (15m)', name_hi: 'सामान्य बुद्धिमत्ता एवं तर्कशक्ति (15 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 15 },
+              { id: 'cgl_t1_ga', name: 'General Awareness (15m)', name_hi: 'सामान्य जागरूकता (15 मिनट)', subjectId: 'sub_ga', durationMinutes: 15 },
+              { id: 'cgl_t1_quant', name: 'Quantitative Aptitude (15m)', name_hi: 'मात्रात्मक अभियोग्यता (15 मिनट)', subjectId: 'sub_quant', durationMinutes: 15 },
+              { id: 'cgl_t1_english', name: 'English Comprehension (15m)', name_hi: 'अंग्रेजी बोधगम्यता (15 मिनट)', subjectId: 'sub_english', durationMinutes: 15 }
+            ]
           },
           {
             id: 'ex_ssc_cgl_t2', categoryId: 'cat_ssc', code: 'SSC-CGL-T2', name: 'SSC CGL Tier-II (Mains — Sessional Timed)',
@@ -1119,8 +1126,8 @@ table{max-width:100%;border-collapse:collapse}
             allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_english', 'sub_ga', 'sub_computer', 'sub_science'],
             hasSectionalTiming: true,
             sessionConfig: [
-              { id: 'sec_cgl2_1', name: 'Section I: Maths & Reasoning (60m)', name_hi: 'अनुभाग I: गणित एवं तर्कशक्ति (60 मिनट)', subjectId: 'sub_quant', durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },
-              { id: 'sec_cgl2_2', name: 'Section II: English & GA (60m)', name_hi: 'अनुभाग II: अंग्रेजी एवं सामान्य जागरूकता (60 मिनट)', subjectId: 'sub_english', durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },
+              { id: 'sec_cgl2_1', name: 'Section I: Maths & Reasoning (60m)', name_hi: 'अनुभाग I: गणित एवं तर्कशक्ति (60 मिनट)', subjectIds: ['sub_quant', 'sub_reasoning'], subjectId: 'sub_quant', durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },
+              { id: 'sec_cgl2_2', name: 'Section II: English & GA (60m)', name_hi: 'अनुभाग II: अंग्रेजी एवं सामान्य जागरूकता (60 मिनट)', subjectIds: ['sub_english', 'sub_ga'], subjectId: 'sub_english', durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },
               { id: 'sec_cgl2_3', name: 'Section III: Computer Knowledge (15m)', name_hi: 'अनुभाग III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 }
             ]
           },
@@ -3368,7 +3375,14 @@ function syncCbtSideDrawerUI() {
           clearInterval(state.activeCbt.timerInterval);
         }
 
-        const hasSecTiming = Boolean(test.hasSectionalTiming && Array.isArray(test.sections) && test.sections.length > 1 && test.sections[0].durationMinutes);
+        // Bring older saved full mocks up to date with the current official exam timing profile.
+        const examPattern = db.exams.find(function(ex){ return ex.id === test.examId; });
+        if (examPattern && examPattern.hasSectionalTiming && Array.isArray(examPattern.sessionConfig) && examPattern.sessionConfig.length > 1) {
+          test.sections = JSON.parse(JSON.stringify(examPattern.sessionConfig));
+          test.hasSectionalTiming = true;
+        }
+        const normalizedSections = Array.isArray(test.sections) ? test.sections : [];
+        const hasSecTiming = Boolean(test.hasSectionalTiming && normalizedSections.length > 1 && normalizedSections[0].durationMinutes);
         const firstSecMins = hasSecTiming ? Number(test.sections[0].durationMinutes || 20) : Number(test.durationMinutes || 60);
         const configuredSessionTotalMins = hasSecTiming
           ? test.sections.reduce(function(total, sec){ return total + Math.max(0, Number(sec.durationMinutes) || 0); }, 0)
@@ -3578,6 +3592,41 @@ function syncCbtSideDrawerUI() {
         }, 250);
       }
 
+      function getCbtSectionQuestionIndices(cbt, sectionIndex) {
+        if (!cbt || !cbt.hasSectionalTiming) return (cbt && cbt.questions || []).map(function(_, i){ return i; });
+        const sec = (cbt.test.sections || [])[sectionIndex == null ? cbt.activeSectionIndex : sectionIndex];
+        if (!sec) return [];
+        const ids = Array.isArray(sec.subjectIds) && sec.subjectIds.length ? sec.subjectIds : (sec.subjectId ? [sec.subjectId] : []);
+        if (!ids.length) return (cbt.questions || []).map(function(_, i){ return i; });
+        return (cbt.questions || []).map(function(q, i){ return ids.indexOf(q.subjectId) >= 0 ? i : -1; }).filter(function(i){ return i >= 0; });
+      }
+
+      function getCbtSectionIndexForQuestion(cbt, questionIndex) {
+        if (!cbt || !cbt.hasSectionalTiming) return 0;
+        const q = cbt.questions && cbt.questions[questionIndex];
+        if (!q) return cbt.activeSectionIndex || 0;
+        const sections = cbt.test.sections || [];
+        const found = sections.findIndex(function(sec){
+          const ids = Array.isArray(sec.subjectIds) && sec.subjectIds.length ? sec.subjectIds : (sec.subjectId ? [sec.subjectId] : []);
+          return !ids.length || ids.indexOf(q.subjectId) >= 0;
+        });
+        return found < 0 ? (cbt.activeSectionIndex || 0) : found;
+      }
+
+      function moveCbtQuestion(direction) {
+        const cbt = state.activeCbt;
+        if (!cbt) return;
+        const indices = getCbtSectionQuestionIndices(cbt);
+        const pos = indices.indexOf(cbt.currentIndex);
+        if (direction > 0 && pos >= 0 && pos < indices.length - 1) cbt.currentIndex = indices[pos + 1];
+        else if (direction < 0 && pos > 0) cbt.currentIndex = indices[pos - 1];
+        else if (direction > 0 && cbt.hasSectionalTiming && pos === indices.length - 1) advanceToNextTimedSection(false);
+        else if (direction > 0 && !cbt.hasSectionalTiming && cbt.currentIndex >= cbt.questions.length - 1) openSubmitConfirmationModal();
+        renderCbtHeaderAndTabs();
+        renderCbtCurrentQuestion();
+        renderCbtPalette();
+      }
+
       function advanceToNextTimedSection(isAutoExpiry) {
         const cbt = state.activeCbt;
         if (!cbt || !cbt.hasSectionalTiming) return;
@@ -3586,8 +3635,10 @@ function syncCbtSideDrawerUI() {
           cbt.activeSectionIndex += 1;
           const nextSec = sections[cbt.activeSectionIndex];
           cbt.sectionRemainingSeconds = Number(nextSec.durationMinutes || 20) * 60;
+          cbt.sectionDeadlineAt = Date.now() + cbt.sectionRemainingSeconds * 1000;
           // Jump to first question of this new section
-          const nextIdx = cbt.questions.findIndex(q => !nextSec.subjectId || q.subjectId === nextSec.subjectId);
+          const nextIds = Array.isArray(nextSec.subjectIds) && nextSec.subjectIds.length ? nextSec.subjectIds : (nextSec.subjectId ? [nextSec.subjectId] : []);
+          const nextIdx = cbt.questions.findIndex(q => !nextIds.length || nextIds.indexOf(q.subjectId) >= 0);
           if (nextIdx !== -1) cbt.currentIndex = nextIdx;
           showToast(
             (isAutoExpiry ? 'Section time expired! ' : 'Section submitted! ') +
@@ -3608,7 +3659,7 @@ function syncCbtSideDrawerUI() {
         const cbt = state.activeCbt;
         const timerText = document.getElementById('cbtTimerText');
         if (timerText) {
-          const rem = cbt.remainingSeconds;
+          const rem = cbt.hasSectionalTiming ? cbt.sectionRemainingSeconds : cbt.remainingSeconds;
           timerText.textContent = formatSeconds(rem);
           if (rem <= 120) {
             timerText.className = 'font-mono font-bold text-base text-rose-400 animate-pulse tracking-wider';
@@ -3887,7 +3938,9 @@ function syncCbtSideDrawerUI() {
         let countReview = 0;
         let countAnsReview = 0;
 
-        grid.innerHTML = cbt.questions.map(function(q, idx) {
+        const visibleQuestionIndices = getCbtSectionQuestionIndices(cbt);
+        grid.innerHTML = visibleQuestionIndices.map(function(idx) {
+          const q = cbt.questions[idx];
           const st = cbt.answers[q.id];
           const hasAns = st.selectedOption !== null && st.selectedOption !== undefined;
           const isRev = Boolean(st.markedForReview);
@@ -3934,7 +3987,9 @@ function syncCbtSideDrawerUI() {
 
         grid.querySelectorAll('.cbt-pal-btn').forEach(function(btn) {
           btn.addEventListener('click', function() {
-            cbt.currentIndex = Number(btn.getAttribute('data-pal-idx'));
+            const targetIndex = Number(btn.getAttribute('data-pal-idx'));
+            if (cbt.hasSectionalTiming && getCbtSectionIndexForQuestion(cbt, targetIndex) !== cbt.activeSectionIndex) return;
+            cbt.currentIndex = targetIndex;
             renderCbtHeaderAndTabs();
             renderCbtCurrentQuestion();
             renderCbtPalette();
@@ -8075,26 +8130,14 @@ Answer Key:
         document.getElementById('btnCbtPrev').addEventListener('click', function() {
           const cbt = state.activeCbt;
           if (!cbt) return;
-          if (cbt.currentIndex > 0) {
-            cbt.currentIndex -= 1;
-            renderCbtHeaderAndTabs();
-            renderCbtCurrentQuestion();
-            renderCbtPalette();
-          }
+          moveCbtQuestion(-1);
         });
 
         document.getElementById('btnCbtSaveNext').addEventListener('click', function() {
           const cbt = state.activeCbt;
           if (!cbt) return;
           triggerAutoSaveIndicator();
-          if (cbt.currentIndex < cbt.questions.length - 1) {
-            cbt.currentIndex += 1;
-            renderCbtHeaderAndTabs();
-            renderCbtCurrentQuestion();
-            renderCbtPalette();
-          } else {
-            openSubmitConfirmationModal();
-          }
+          moveCbtQuestion(1);
         });
 
         document.getElementById('btnCbtMarkReview').addEventListener('click', function() {
@@ -8103,9 +8146,7 @@ Answer Key:
           const q = cbt.questions[cbt.currentIndex];
           cbt.answers[q.id].markedForReview = !cbt.answers[q.id].markedForReview;
           triggerAutoSaveIndicator();
-          if (cbt.currentIndex < cbt.questions.length - 1) {
-            cbt.currentIndex += 1;
-          }
+          moveCbtQuestion(1);
           renderCbtHeaderAndTabs();
           renderCbtCurrentQuestion();
           renderCbtPalette();
