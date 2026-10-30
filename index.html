@@ -693,7 +693,7 @@ table{max-width:100%;border-collapse:collapse}
 
         <div class="flex items-center gap-2 border-l border-slate-600 pl-2">
         <button id="btnCbtPauseExam" type="button" class="w-9 h-9 inline-flex items-center justify-center rounded-lg bg-amber-600 hover:bg-amber-500 text-white shadow transition" title="Pause exam" aria-label="Pause exam"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg></button>
-        <button id="btnOpenSubmitModal" type="button" class="hidden px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition" aria-hidden="true" tabindex="-1">
+        <button id="btnOpenSubmitModal" type="button" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition" aria-label="Submit test">
           Submit Test
         </button>
         </div>
@@ -811,11 +811,12 @@ table{max-width:100%;border-collapse:collapse}
         <div class="p-2.5 flex-1 overflow-y-auto">
           <div class="text-[11px] font-bold text-slate-500 uppercase mb-2" id="cbtPaletteSectionLabel">Jump to Question</div>
           <div id="cbtPaletteGrid" class="grid grid-cols-5 gap-1.5"></div>
+          <button id="btnPaletteSubmitTest" type="button" class="mt-3 w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs shadow transition focus:outline-none focus:ring-2 focus:ring-emerald-400">Submit Test</button>
         </div>
 
         <!-- Compact Side Submit & Exit Bar -->
         <div class="p-2.5 border-t border-slate-200 bg-slate-50 space-y-1.5">
-          <button id="btnSidebarSubmitTest" type="button" class="hidden w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition" aria-hidden="true" tabindex="-1">
+          <button id="btnSidebarSubmitTest" type="button" class="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition" aria-label="Submit complete test">
             Submit Complete Test
           </button>
           <button id="btnAbortTest" type="button" class="w-full py-1.5 rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-rose-50 hover:text-rose-700 text-[11px] font-semibold transition">
@@ -7957,6 +7958,7 @@ Answer Key:
 
         document.getElementById('btnOpenSubmitModal').addEventListener('click', openSubmitConfirmationModal);
         document.getElementById('btnSidebarSubmitTest').addEventListener('click', openSubmitConfirmationModal);
+        document.getElementById('btnPaletteSubmitTest').addEventListener('click', openSubmitConfirmationModal);
         document.getElementById('btnCancelSubmitModal').addEventListener('click', function() {
           document.getElementById('modalConfirmSubmit').classList.add('hidden');
         });
@@ -8437,12 +8439,12 @@ Answer Key:
         }, true);
         // Reliable delegated submit controls: survive rerenders and prevent click defaults.
         window.addEventListener('click', async function(event) {
-          const target = event.target && event.target.closest ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnFinalConfirmSubmit') : null;
+          const target = event.target && event.target.closest ? event.target.closest('#btnOpenSubmitModal, #btnSidebarSubmitTest, #btnPaletteSubmitTest, #btnCbtLastSubmit, #btnFinalConfirmSubmit') : null;
           if (!target) return;
           event.preventDefault();
           event.stopImmediatePropagation();
 
-          if (target.id === 'btnOpenSubmitModal' || target.id === 'btnSidebarSubmitTest') {
+          if (target.id === 'btnOpenSubmitModal' || target.id === 'btnSidebarSubmitTest' || target.id === 'btnPaletteSubmitTest' || target.id === 'btnCbtLastSubmit') {
             if (state.activeCbt) openSubmitConfirmationModal();
             return;
           }
