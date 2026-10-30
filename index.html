@@ -83,6 +83,15 @@
       font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
       line-height: 1.75;
     }
+    /* Keep the first question readable on small screens; allow the question card to scroll instead of clipping content. */
+    #cbtOverlay #cbtQuestionStemContainer { min-height: 84px; padding: 18px 16px !important; font-size: 17px; line-height: 1.75; overflow-wrap: anywhere; }
+    #cbtOverlay #cbtOptionsContainer { min-height: 120px; gap: 12px; }
+    #cbtOverlay #cbtOptionsContainer .cbt-option-btn { min-height: 54px; padding: 12px 14px; white-space: normal; text-align: left; overflow-wrap: anywhere; }
+    #cbtOverlay .cbt-question-content, #cbtOverlay #cbtQuestionMainPanel { min-height: 0; }
+    @media (max-width: 640px) {
+      #cbtOverlay #cbtQuestionStemContainer { font-size: 16px; line-height: 1.8; padding: 16px 13px !important; }
+      #cbtOverlay #cbtOptionsContainer .cbt-option-btn { min-height: 52px; }
+    }
     /* Custom scrollbars for CBT interface */
     ::-webkit-scrollbar {
       width: 6px;
@@ -684,7 +693,7 @@ table{max-width:100%;border-collapse:collapse}
 
         <div class="flex items-center gap-2 border-l border-slate-600 pl-2">
         <button id="btnCbtPauseExam" type="button" class="w-9 h-9 inline-flex items-center justify-center rounded-lg bg-amber-600 hover:bg-amber-500 text-white shadow transition" title="Pause exam" aria-label="Pause exam"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg></button>
-        <button id="btnOpenSubmitModal" type="button" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition">
+        <button id="btnOpenSubmitModal" type="button" class="hidden px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition" aria-hidden="true" tabindex="-1">
           Submit Test
         </button>
         </div>
@@ -753,6 +762,9 @@ table{max-width:100%;border-collapse:collapse}
               <button id="btnCbtSaveNext" type="button" class="px-6 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm shadow-md transition">
                 Save & Next →
               </button>
+              <button id="btnCbtLastSubmit" type="button" class="hidden px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md transition">
+                Submit Test
+              </button>
             </div>
           </div>
         </div>
@@ -803,7 +815,7 @@ table{max-width:100%;border-collapse:collapse}
 
         <!-- Compact Side Submit & Exit Bar -->
         <div class="p-2.5 border-t border-slate-200 bg-slate-50 space-y-1.5">
-          <button id="btnSidebarSubmitTest" type="button" class="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition">
+          <button id="btnSidebarSubmitTest" type="button" class="hidden w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition" aria-hidden="true" tabindex="-1">
             Submit Complete Test
           </button>
           <button id="btnAbortTest" type="button" class="w-full py-1.5 rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-rose-50 hover:text-rose-700 text-[11px] font-semibold transition">
@@ -3588,11 +3600,10 @@ table{max-width:100%;border-collapse:collapse}
         const saveNextBtn = document.getElementById('btnCbtSaveNext');
         if (saveNextBtn) {
           const isLastQuestion = cbt.currentIndex === cbt.questions.length - 1;
-          saveNextBtn.textContent = isLastQuestion ? 'Submit Test ✓' : 'Save & Next →';
-          saveNextBtn.classList.toggle('bg-emerald-600', isLastQuestion);
-          saveNextBtn.classList.toggle('hover:bg-emerald-500', isLastQuestion);
-          saveNextBtn.classList.toggle('bg-indigo-600', !isLastQuestion);
-          saveNextBtn.classList.toggle('hover:bg-indigo-500', !isLastQuestion);
+          const lastSubmitBtn = document.getElementById('btnCbtLastSubmit');
+          saveNextBtn.classList.toggle('hidden', isLastQuestion);
+          if (lastSubmitBtn) lastSubmitBtn.classList.toggle('hidden', !isLastQuestion);
+          saveNextBtn.textContent = 'Save & Next →';
         }
         document.getElementById('cbtQuestionSubChapBadge').textContent = (sub ? sub.name : 'General') + (chap ? ' • ' + chap.name : '');
 
@@ -7898,6 +7909,11 @@ Answer Key:
             renderCbtCurrentQuestion();
             renderCbtPalette();
           }
+        });
+
+        document.getElementById('btnCbtLastSubmit').addEventListener('click', function() {
+          if (!state.activeCbt || state.activeCbt.isSubmitting) return;
+          openSubmitConfirmationModal();
         });
 
         document.getElementById('btnCbtSaveNext').addEventListener('click', function() {
