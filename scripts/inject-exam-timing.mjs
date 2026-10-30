@@ -105,7 +105,7 @@ const migration = [
 "            managedOfficialMock.separateSkillSession = exam.separateSkillSession ? JSON.parse(JSON.stringify(exam.separateSkillSession)) : null;",
 "            saveDatabase(db);",
 "          }",
-"          let examFullMocks = db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock' && t.isPublished);"
+"        let examFullMocks = db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock' && t.isPublished);"
 ].join("\n");
 replaceOnce("          let examFullMocks = db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock' && t.isPublished);", migration, "official mock timing migration");
 
