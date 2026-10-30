@@ -160,8 +160,14 @@ replaceOnce(
 
 replaceOnce(
   '<div class="text-[11px] text-slate-400 hidden sm:inline">Time:</div>',
-  '<div class="text-[11px] text-slate-400 hidden sm:inline">Section Time:</div>',
-  "label the primary countdown as section time when applicable"
+  '<div id="cbtTimerLabel" class="text-[11px] text-slate-400 hidden sm:inline">Time:</div>',
+  "give the primary CBT timer a dynamic label"
+);
+
+replaceOnce(
+  "        const timerText = document.getElementById('cbtTimerText');",
+  "        const timerLabel = document.getElementById('cbtTimerLabel');\n        if (timerLabel) timerLabel.textContent = cbt.hasSectionalTiming ? 'Section Time:' : 'Time:';\n        const timerText = document.getElementById('cbtTimerText');",
+  "show the correct timer label for each exam"
 );
 const sectionHelpers = [
 "      function cbtSectionContainsQuestion(section, question) {",
