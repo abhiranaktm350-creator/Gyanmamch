@@ -52,19 +52,19 @@ replaceExamObject("ex_ssc_chsl", [
 
 replaceExamObject("ex_ssc_chsl_t2", [
 "          {",
-"            id: 'ex_ssc_chsl_t2', categoryId: 'cat_ssc', code: 'SSC-CHSL-T2', name: 'SSC CHSL Tier-II (Official 2026 CBT sections)',",
-"            syllabus: 'Session-I: Section-I Maths + Reasoning (60m); Section-II English + General Awareness (60m); Section-III Computer Knowledge (15m). Session-II: post-specific Skill / Typing Test (DEO 15m; LDC/JSA 10m). (+3 / -1)',",
+"            id: 'ex_ssc_chsl_t2', categoryId: 'cat_ssc', code: 'SSC-CHSL-T2', name: 'SSC CHSL Tier-II (Official 2026 sectional CBT)',",
+"            syllabus: 'Session-I: Maths 30m + Reasoning 30m + English 40m + General Awareness 20m + Computer Knowledge 15m = 135m. Session-II: post-specific Skill/Typing Test separate. (+3 / -1).',",
 "            duration: 135, totalMarks: 405, posMarks: 3.0, negMarks: 1.00, officialQs: 135, isSample: false,",
 "            allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_english', 'sub_ga', 'sub_computer'],",
-"            hasSectionalTiming: true, timingProfileVersion: 'ssc-chsl-2026-tier2-v2',",
-"            timingVerificationNote: 'SSC CHSL 2026 notification: Section-I 60m, Section-II 60m, Section-III Computer 15m; Session-II skill/typing is separate.',",
+"            hasSectionalTiming: true, timingProfileVersion: 'ssc-chsl-2026-tier2-v3',",
+"            timingVerificationNote: 'SSC CHSL 2026 notification: Maths 30m, Reasoning 30m, English 40m, GA 20m, Computer 15m; skill/typing is separate.',",
 "            separateSkillSession: { id: 'chsl2_skill', name: 'Session-II Skill / Typing Test (post-specific)', durationMinutes: 15, durationOptions: [15, 10], mode: 'typing', note: 'DEO Skill Test: 15 minutes; LDC/JSA Typing Test: 10 minutes.' },",
 "            sessionConfig: [",
 "              { id: 'chsl2_math', name: 'Section-I A: Mathematical Abilities (30m)', name_hi: 'अनुभाग-I A: गणितीय क्षमता (30 मिनट)', subjectId: 'sub_quant', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'chsl2_reasoning', name: 'Section-I B: Reasoning (30m)', name_hi: 'अनुभाग-I B: तर्कशक्ति (30 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'chsl2_ga', name: 'Section-II B: General Awareness (20m)', name_hi: 'अनुभाग-II B: सामान्य जागरूकता (20 मिनट)', subjectIds: ['sub_ga', 'sub_science'], durationMinutes: 20, posMarks: 3.0, negMarks: 1.00 },
-              { id: 'chsl2_english', name: 'Section-II A: English (40m)', name_hi: 'अनुभाग-II A: अंग्रेजी (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 3.0, negMarks: 1.00 }",
-"{ id: 'chsl2_computer', name: 'Section-III: Computer Knowledge (15m)', name_hi: 'अनुभाग-III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'chsl2_reasoning', name: 'Section-I B: Reasoning & General Intelligence (30m)', name_hi: 'अनुभाग-I B: तर्कशक्ति (30 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'chsl2_english', name: 'Section-II A: English Language (40m)', name_hi: 'अनुभाग-II A: अंग्रेजी भाषा (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'chsl2_ga', name: 'Section-II B: General Awareness (20m)', name_hi: 'अनुभाग-II B: सामान्य जागरूकता (20 मिनट)', subjectId: 'sub_ga', durationMinutes: 20, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'chsl2_computer', name: 'Section-III: Computer Knowledge (15m)', name_hi: 'अनुभाग-III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 }",
 "            ]",
 "          }"
 ]);
@@ -104,19 +104,19 @@ replaceExamObject("ex_ibps_rrb_oa", [
 
 replaceExamObject("ex_ssc_cgl_t2", [
 "          {",
-"            id: 'ex_ssc_cgl_t2', categoryId: 'cat_ssc', code: 'SSC-CGL-T2', name: 'SSC CGL Tier-II Paper-I (Official 2026 CBT sections)',",
-"            syllabus: 'Session-I: Section-I Maths + Reasoning (60m); Section-II English + General Awareness (60m); Section-III Computer Knowledge (15m). Session-II: DEST (15m, separate skill test). (+3 / -1)',",
+"            id: 'ex_ssc_cgl_t2', categoryId: 'cat_ssc', code: 'SSC-CGL-T2', name: 'SSC CGL Tier-II Paper-I (Official 2026 sectional CBT)',",
+"            syllabus: 'Session-I: Maths 30m + Reasoning 30m + English 40m + General Awareness 20m + Computer Knowledge 15m = 135m. Session-II: DEST 15m separate. (+3 / -1).',",
 "            duration: 135, totalMarks: 450, posMarks: 3.0, negMarks: 1.00, officialQs: 150, isSample: false,",
 "            allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_english', 'sub_ga', 'sub_computer'],",
-"            hasSectionalTiming: true, timingProfileVersion: 'ssc-cgl-2026-tier2-v2',",
-"            timingVerificationNote: 'SSC CGL 2026 notification: Section-I 60m (Maths + Reasoning), Section-II 60m (English + GA), Section-III Computer 15m; Session-II DEST is separate.',",
+"            hasSectionalTiming: true, timingProfileVersion: 'ssc-cgl-2026-tier2-v3',",
+"            timingVerificationNote: 'SSC CGL 2026 notification: Maths 30m, Reasoning 30m, English 40m, GA 20m, Computer 15m; DEST is separate.',",
 "            separateSkillSession: { id: 'cgl2_dest', name: 'Session-II: Data Entry Speed Test (DEST)', durationMinutes: 15, mode: 'typing', note: 'Separate skill test, not part of the 135-minute objective Session-I.' },",
 "            sessionConfig: [",
 "              { id: 'cgl2_math', name: 'Section-I A: Mathematical Abilities (30m)', name_hi: 'अनुभाग-I A: गणितीय क्षमता (30 मिनट)', subjectId: 'sub_quant', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'cgl2_reasoning', name: 'Section-I B: Reasoning (30m)', name_hi: 'अनुभाग-I B: तर्कशक्ति (30 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
-"              { id: 'cgl2_ga', name: 'Section-II B: General Awareness (20m)', name_hi: 'अनुभाग-II B: सामान्य जागरूकता (20 मिनट)', subjectIds: ['sub_ga', 'sub_science'], durationMinutes: 20, posMarks: 3.0, negMarks: 1.00 },
-              { id: 'cgl2_english', name: 'Section-II A: English (40m)', name_hi: 'अनुभाग-II A: अंग्रेजी (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 3.0, negMarks: 1.00 }",
-"{ id: 'cgl2_computer', name: 'Section-III: Computer Knowledge (15m)', name_hi: 'अनुभाग-III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'cgl2_reasoning', name: 'Section-I B: Reasoning & General Intelligence (30m)', name_hi: 'अनुभाग-I B: तर्कशक्ति (30 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 30, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'cgl2_english', name: 'Section-II A: English Language (40m)', name_hi: 'अनुभाग-II A: अंग्रेजी भाषा (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'cgl2_ga', name: 'Section-II B: General Awareness (20m)', name_hi: 'अनुभाग-II B: सामान्य जागरूकता (20 मिनट)', subjectId: 'sub_ga', durationMinutes: 20, posMarks: 3.0, negMarks: 1.00 },",
+"              { id: 'cgl2_computer', name: 'Section-III: Computer Knowledge (15m)', name_hi: 'अनुभाग-III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 }",
 "            ]",
 "          }"
 ]);
@@ -158,23 +158,22 @@ replaceExamObject("ex_ibps_clerk_mains", [
 
 const migration = [
 "          const profileVersion = String(exam.timingProfileVersion || 'legacy');",
-"          let timingMigrationChanged = false;",
-"          db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock' && t.isPublished).forEach(function(mock) {",
+"          let timingChanged = false;",
+"          db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock').forEach(function(mock) {",
 "            if (mock.timingProfileVersion === profileVersion) return;",
-"            if (exam.hasSectionalTiming && Array.isArray(exam.sessionConfig) && exam.sessionConfig.length > 1) {",
-"              mock.hasSectionalTiming = true;",
+"            mock.hasSectionalTiming = Boolean(exam.hasSectionalTiming && Array.isArray(exam.sessionConfig) && exam.sessionConfig.length > 1);",
+"            if (mock.hasSectionalTiming) {",
 "              mock.sections = JSON.parse(JSON.stringify(exam.sessionConfig));",
 "              mock.durationMinutes = exam.sessionConfig.reduce((sum, sec) => sum + Math.max(0, Number(sec.durationMinutes) || 0), 0);",
 "            } else {",
-"              mock.hasSectionalTiming = false;",
-"              mock.durationMinutes = Number(exam.duration || mock.durationMinutes || 60);",
+"              mock.durationMinutes = Number(exam.duration || 60);",
 "            }",
 "            mock.timingProfileVersion = profileVersion;",
 "            mock.timingVerificationNote = exam.timingVerificationNote || '';",
 "            mock.separateSkillSession = exam.separateSkillSession ? JSON.parse(JSON.stringify(exam.separateSkillSession)) : null;",
-"            timingMigrationChanged = true;",
+"            timingChanged = true;",
 "          });",
-"          if (timingMigrationChanged) saveDatabase(db);",
+"          if (timingChanged) saveDatabase(db);",
 "        let examFullMocks = db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock' && t.isPublished);"
 ].join("\n");
 replaceOnce("        let examFullMocks = db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock' && t.isPublished);", migration, "all published full mock timing migration");
@@ -189,6 +188,32 @@ replaceOnce(
   "            sections: autoSections,\n            separateSkillSession: exam.separateSkillSession ? JSON.parse(JSON.stringify(exam.separateSkillSession)) : null,\n            timingProfileVersion: String(exam.timingProfileVersion || 'legacy'),\n            timingVerificationNote: exam.timingVerificationNote || '',",
   "official mock timing metadata"
 );
+
+replaceOnce("        const test = db.tests.find(t => t.id === testId);\n        if (!test) {\n          showToast('Selected mock test could not be found.', 'error');\n          return;\n        }", "        const test = db.tests.find(t => t.id === testId);\n        if (!test) {\n          showToast('Selected mock test could not be found.', 'error');\n          return;\n        }\n        const examTimingProfile = test.testType === 'full_mock' && test.examId ? db.exams.find(e => e.id === test.examId) : null;\n        if (examTimingProfile && examTimingProfile.hasSectionalTiming && Array.isArray(examTimingProfile.sessionConfig) && examTimingProfile.sessionConfig.length > 1) {\n          test.hasSectionalTiming = true;\n          test.sections = JSON.parse(JSON.stringify(examTimingProfile.sessionConfig));\n          test.durationMinutes = test.sections.reduce((sum, sec) => sum + Math.max(0, Number(sec.durationMinutes) || 0), 0);\n          test.timingProfileVersion = String(examTimingProfile.timingProfileVersion || 'official');\n          test.timingVerificationNote = examTimingProfile.timingVerificationNote || '';\n        }", "apply exam sectional profile to every full mock at launch");
+
+replaceOnce("        const questionsList = test.questionIds\n          .map(qId => db.questions.find(q => q.id === qId))\n          .filter(Boolean)\n          .map(q => Object.assign({}, q));", "        const questionsList = test.questionIds\n          .map(qId => db.questions.find(q => q.id === qId))\n          .filter(Boolean)\n          .map(q => Object.assign({}, q));\n        if (test.hasSectionalTiming && Array.isArray(test.sections)) {\n          const sectionRank = function(q) { const idx = test.sections.findIndex(sec => cbtSectionContainsQuestion(sec, q)); return idx < 0 ? 999 : idx; };\n          questionsList.sort((a, b) => sectionRank(a) - sectionRank(b));\n        }", "order questions by official timed section");
+
+replaceOnce("      function pauseCbtExam() {", "      function cbtSectionContainsQuestion(section, question) {\n        if (!section || !question) return false;\n        const subjectIds = Array.isArray(section.subjectIds) ? section.subjectIds : (section.subjectId ? [section.subjectId] : []);\n        return subjectIds.length ? subjectIds.includes(question.subjectId) : true;\n      }\n\n      function pauseCbtExam() {", "support subject groups inside timed sections");
+
+replaceOnce("          currentIndex: 0,\n          hasSectionalTiming: hasSecTiming,", "          currentIndex: hasSecTiming ? Math.max(0, questionsList.findIndex(q => cbtSectionContainsQuestion(test.sections[0], q))) : 0,\n          hasSectionalTiming: hasSecTiming,", "start at first question in first timed section");
+
+replaceOnce("      function advanceToNextTimedSection(isAutoExpiry) {\n        const cbt = state.activeCbt;\n        if (!cbt || !cbt.hasSectionalTiming) return;\n        const sections = cbt.test.sections || [];\n        if (cbt.activeSectionIndex < sections.length - 1) {\n          cbt.activeSectionIndex += 1;\n          const nextSec = sections[cbt.activeSectionIndex];\n          cbt.sectionRemainingSeconds = Number(nextSec.durationMinutes || 20) * 60;\n          // Jump to first question of this new section\n          const nextIdx = cbt.questions.findIndex(q => !nextSec.subjectId || q.subjectId === nextSec.subjectId);\n          if (nextIdx !== -1) cbt.currentIndex = nextIdx;\n          showToast(\n            (isAutoExpiry ? 'Section time expired! ' : 'Section submitted! ') +\n            'Moved to ' + nextSec.name + ' (' + (nextSec.durationMinutes || 20) + ' Mins).',\n            'info'\n          );\n          renderCbtHeaderAndTabs();\n          renderCbtCurrentQuestion();\n          renderCbtPalette();\n        } else {\n          // Last section finished -> submit entire test\n          finalizeAndScoreAttempt(isAutoExpiry);\n        }\n      }", "      function advanceToNextTimedSection(isAutoExpiry) {\n        const cbt = state.activeCbt;\n        if (!cbt || !cbt.hasSectionalTiming) return;\n        if (cbt.timerInterval) { window.clearInterval(cbt.timerInterval); cbt.timerInterval = null; }\n        const sections = cbt.test.sections || [];\n        let nextSectionIndex = cbt.activeSectionIndex + 1;\n        while (nextSectionIndex < sections.length && !cbt.questions.some(q => cbtSectionContainsQuestion(sections[nextSectionIndex], q))) nextSectionIndex += 1;\n        if (nextSectionIndex >= sections.length) {\n          showToast(isAutoExpiry ? 'Last section time expired. Submitting your test...' : 'All timed sections completed. Submitting your test...', 'warning');\n          finalizeAndScoreAttempt(Boolean(isAutoExpiry));\n          return;\n        }\n        cbt.activeSectionIndex = nextSectionIndex;\n        const nextSec = sections[nextSectionIndex];\n        cbt.sectionRemainingSeconds = Math.max(1, Number(nextSec.durationMinutes || 20) * 60);\n        cbt.sectionDeadlineAt = Date.now() + cbt.sectionRemainingSeconds * 1000;\n        const nextIdx = cbt.questions.findIndex(q => cbtSectionContainsQuestion(nextSec, q));\n        if (nextIdx !== -1) cbt.currentIndex = nextIdx;\n        showToast((isAutoExpiry ? 'Section time expired. ' : 'Section ended. ') + 'Now starting ' + nextSec.name + ' (' + nextSec.durationMinutes + ' minutes).', 'info');\n        renderCbtHeaderAndTabs();\n        renderCbtCurrentQuestion();\n        renderCbtPalette();\n        if (cbt.isStarted && !cbt.isPaused) resumeCbtExam();\n      }", "restart timer with fresh deadline on every section transition");
+
+replaceOnce("            secLbl.textContent = currSec.name + ' Timer:';\n            secVal.textContent = formatSeconds(cbt.sectionRemainingSeconds);", "            secLbl.textContent = 'Section ' + (cbt.activeSectionIndex + 1) + '/' + cbt.test.sections.length + ': ' + currSec.name;\n            secVal.textContent = formatSeconds(cbt.sectionRemainingSeconds);", "show section counter and countdown");
+
+replaceOnce("          const isCurrentSec = !sec.subjectId || (currentQ && currentQ.subjectId === sec.subjectId);", "          const isCurrentSec = cbt.hasSectionalTiming ? secIdx === cbt.activeSectionIndex : (!sec.subjectId || cbtSectionContainsQuestion(sec, currentQ));", "highlight active section");
+
+replaceOnce("              data-sec-sub=\"${sec.subjectId || 'ALL'}\"", "              data-sec-index=\"${secIdx}\"", "use section index for section navigation");
+
+replaceOnce("            const subId = btn.getAttribute('data-sec-sub');\n            if (subId === 'ALL') {\n              cbt.currentIndex = 0;\n            } else {\n              const idx = cbt.questions.findIndex(q => q.subjectId === subId);\n              if (idx !== -1) cbt.currentIndex = idx;\n            }", "            const selectedSectionIndex = Number(btn.getAttribute('data-sec-index'));\n            const selectedSection = cbt.test.sections && cbt.test.sections[selectedSectionIndex];\n            const idx = selectedSection ? cbt.questions.findIndex(q => cbtSectionContainsQuestion(selectedSection, q)) : 0;\n            if (idx !== -1) cbt.currentIndex = idx;", "navigate by grouped section subject ids");
+
+replaceOnce("        if (!Number.isInteger(cbt.currentIndex) || cbt.currentIndex < 0 || cbt.currentIndex >= cbt.questions.length) cbt.currentIndex = 0;\n        const q = cbt.questions[cbt.currentIndex];", "        if (!Number.isInteger(cbt.currentIndex) || cbt.currentIndex < 0 || cbt.currentIndex >= cbt.questions.length) cbt.currentIndex = 0;\n        if (cbt.hasSectionalTiming && cbt.test.sections && cbt.test.sections[cbt.activeSectionIndex]) {\n          const activeSection = cbt.test.sections[cbt.activeSectionIndex];\n          if (!cbtSectionContainsQuestion(activeSection, cbt.questions[cbt.currentIndex])) {\n            const firstActiveQuestion = cbt.questions.findIndex(item => cbtSectionContainsQuestion(activeSection, item));\n            if (firstActiveQuestion !== -1) cbt.currentIndex = firstActiveQuestion;\n          }\n        }\n        const q = cbt.questions[cbt.currentIndex];", "keep current question within active timed section");
+
+replaceOnce("            cbt.currentIndex = Number(btn.getAttribute('data-pal-idx'));\n            renderCbtHeaderAndTabs();", "            const requestedIndex = Number(btn.getAttribute('data-pal-idx'));\n            if (cbt.hasSectionalTiming && !cbtSectionContainsQuestion(cbt.test.sections[cbt.activeSectionIndex], cbt.questions[requestedIndex])) {\n              showToast('This section is locked. You can only open questions in the active section.', 'warning');\n              return;\n            }\n            cbt.currentIndex = requestedIndex;\n            renderCbtHeaderAndTabs();", "lock question palette to active section");
+
+replaceOnce("          if (cbt.currentIndex > 0) {\n            cbt.currentIndex -= 1;", "          const activeSectionStart = cbt.hasSectionalTiming ? cbt.questions.findIndex(q => cbtSectionContainsQuestion(cbt.test.sections[cbt.activeSectionIndex], q)) : 0;\n          if (cbt.currentIndex > Math.max(0, activeSectionStart)) {\n            cbt.currentIndex -= 1;", "prevent previous navigation crossing section boundary");
+
+replaceOnce("          if (cbt.currentIndex < cbt.questions.length - 1) {\n            cbt.currentIndex += 1;\n            renderCbtHeaderAndTabs();", "          const activeSectionQuestions = cbt.hasSectionalTiming ? cbt.questions.map((q, idx) => cbtSectionContainsQuestion(cbt.test.sections[cbt.activeSectionIndex], q) ? idx : -1).filter(idx => idx >= 0) : cbt.questions.map((q, idx) => idx);\n          const activeSectionEnd = activeSectionQuestions.length ? activeSectionQuestions[activeSectionQuestions.length - 1] : cbt.questions.length - 1;\n          if (cbt.currentIndex < activeSectionEnd) {\n            cbt.currentIndex += 1;\n            renderCbtHeaderAndTabs();", "prevent next navigation crossing section boundary");
 
 const longQuestionCss = `
 <style id="gm-cbt-long-question-fix">
