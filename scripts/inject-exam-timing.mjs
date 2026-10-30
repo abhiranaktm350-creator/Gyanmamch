@@ -302,5 +302,52 @@ replaceOnce(
   "skip empty timed sections safely"
 );
 
+
+replaceOnce(
+  "              const timer = document.getElementById('cbtTimerText');\\n              if (timer) timer.textContent = formatSeconds(active.remainingSeconds);",
+  "              if (active.hasSectionalTiming) {\\n                active.sectionRemainingSeconds = Math.max(0, Math.ceil((Number(active.sectionDeadlineAt || Date.now()) - Date.now()) / 1000));\\n                if (active.sectionRemainingSeconds <= 0) {\\n                  window.clearInterval(active.timerInterval); active.timerInterval = null;\\n                  advanceToNextTimedSection(true);\\n                  if (state.activeCbt === active && !active.timerInterval) { try { resumeCbtExam(); } catch (resumeError) { console.error('CBT section timer recovery failed:', resumeError); } }\\n                  return;\\n                }\\n              }\\n              const timer = document.getElementById('cbtTimerText');\\n              if (timer) timer.textContent = formatSeconds(active.hasSectionalTiming ? active.sectionRemainingSeconds : active.remainingSeconds);",
+  "sectional timer recovery when exam rendering falls back"
+);
+replaceOnce(
+  "          const rem = cbt.remainingSeconds;",
+  "          const rem = cbt.hasSectionalTiming ? (cbt.sectionDeadlineAt ? Math.max(0, Math.ceil((Number(cbt.sectionDeadlineAt) - Date.now()) / 1000)) : cbt.sectionRemainingSeconds) : (cbt.deadlineAt ? Math.max(0, Math.ceil((Number(cbt.deadlineAt) - Date.now()) / 1000)) : cbt.remainingSeconds);",
+  "derive displayed timer from its active deadline"
+);
+const longQuestionCss = `
+<style id="gm-cbt-long-question-fix">
+  /* Long stems/options must expand the exam card; the question column owns scrolling. */
+  #cbtOverlay > .flex-1.flex.flex-row.overflow-hidden { min-height:0; }
+  #cbtOverlay > .flex-1.flex.flex-row.overflow-hidden > .flex-1.flex.flex-col.overflow-y-auto {
+    min-height:0; height:100%; overflow-y:auto !important; overscroll-behavior:contain;
+    align-items:stretch;
+  }
+  #cbtOverlay > .flex-1.flex.flex-row.overflow-hidden > .flex-1.flex.flex-col.overflow-y-auto > .max-w-5xl {
+    box-sizing:border-box; flex:0 0 auto !important; min-height:100%; height:max-content !important;
+    overflow:visible !important;
+  }
+  #cbtOverlay #cbtQuestionStemContainer {
+    display:block !important; height:auto !important; max-height:none !important; min-height:84px;
+    overflow:visible !important; white-space:normal !important; overflow-wrap:anywhere;
+    word-break:normal; contain:none;
+  }
+  #cbtOverlay #cbtOptionsContainer {
+    display:grid !important; height:auto !important; max-height:none !important;
+    overflow:visible !important; grid-auto-rows:minmax(54px,auto); align-items:stretch;
+  }
+  #cbtOverlay #cbtOptionsContainer .cbt-option-btn {
+    height:auto !important; max-height:none !important; min-height:54px;
+    white-space:normal !important; overflow:visible !important; text-overflow:clip !important;
+    overflow-wrap:anywhere; word-break:normal; align-items:flex-start;
+  }
+  #cbtOverlay #cbtQuestionStemContainer img,
+  #cbtOverlay #cbtOptionsContainer img { max-width:100%; height:auto; }
+  @media(max-width:640px) {
+    #cbtOverlay > .flex-1.flex.flex-row.overflow-hidden > .flex-1.flex.flex-col.overflow-y-auto { padding:8px !important; }
+    #cbtOverlay > .flex-1.flex.flex-row.overflow-hidden > .flex-1.flex.flex-col.overflow-y-auto > .max-w-5xl { padding:14px !important; }
+  }
+</style>`;
+if ((html.match(/<\\/head>/g) || []).length !== 1) throw new Error("Expected one closing head tag for long-question styles");
+html = html.replace("</head>", longQuestionCss + "\\n</head>");
+
 fs.writeFileSync(file, html);
 console.log("Applied exam-specific timing profiles, sectional navigation guards and section deadline reset.");
