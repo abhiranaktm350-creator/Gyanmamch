@@ -3805,6 +3805,8 @@ table{max-width:100%;border-collapse:collapse}
         });
 
         const statsBox = document.getElementById('submitSummaryStats');
+        const submitModal = document.getElementById('modalConfirmSubmit');
+        if (!statsBox || !submitModal) throw new Error('Submission confirmation UI is missing.');
         statsBox.innerHTML = `
           <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
             <div class="text-xs text-emerald-700">Answered</div>
@@ -3823,7 +3825,7 @@ table{max-width:100%;border-collapse:collapse}
             <div class="text-xl font-extrabold text-slate-900 font-mono">${formatSeconds(cbt.remainingSeconds)}</div>
           </div>
         `;
-        document.getElementById('modalConfirmSubmit').classList.remove('hidden');
+        submitModal.classList.remove('hidden');
       }
 
       function withSubmitRequestTimeout(requestPromise, label) {
@@ -8411,31 +8413,60 @@ Answer Key:
           if (startBtn) { event.preventDefault(); resumeCbtExam(); }
           if (pauseBtn) { event.preventDefault(); pauseCbtExam(); }
         }, true);
-        // Single capture-phase handler for every submit control. This avoids duplicate
-        // listeners racing each other and works for controls revealed after rerenders.
-        window.addEventListener('click', async function(event) {
-          const target = event.target && event.target.closest
+        // One resilient delegated submit handler. Always provide visible feedback;
+        // never let a click silently disappear because the CBT state is unavailable.
+        document.addEventListener('click', async function(event) {
+          const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
+          let target = event.target && event.target.closest
             ? event.target.closest('#btnOpenSubmitModal, #btnPaletteSubmitTest, #btnCbtLastSubmit, #btnFinalConfirmSubmit')
             : null;
+          if (!target) target = path.find(function(node) {
+            return node && node.id && ['btnOpenSubmitModal','btnPaletteSubmitTest','btnCbtLastSubmit','btnFinalConfirmSubmit'].includes(node.id);
+          });
           if (!target) return;
+
           event.preventDefault();
           event.stopImmediatePropagation();
 
-          if (!state.activeCbt) return;
-          if (target.id !== 'btnFinalConfirmSubmit') {
-            if (!state.activeCbt.isSubmitting) openSubmitConfirmationModal();
+          if (!state.activeCbt) {
+            showToast('No active exam was found. Please reopen the test and try again.', 'error');
             return;
           }
 
-          if (state.activeCbt.isSubmitting) return;
+          if (target.id !== 'btnFinalConfirmSubmit') {
+            if (state.activeCbt.isSubmitting) {
+              showToast('Your submission is already being processed. Please wait.', 'info');
+              return;
+            }
+            try {
+              openSubmitConfirmationModal();
+            } catch (error) {
+              console.error('Could not open submit confirmation:', error);
+              showToast('Could not open the submission confirmation. Please refresh the exam and try again.', 'error');
+            }
+            return;
+          }
+
+          if (state.activeCbt.isSubmitting) {
+            showToast('Your submission is already being processed. Please wait.', 'info');
+            return;
+          }
+
+          const originalText = target.textContent;
           target.disabled = true;
           target.textContent = 'Submitting…';
           try {
             await finalizeAndScoreAttempt(false);
           } catch (error) {
-            if (state.activeCbt) state.activeCbt.isSubmitting = false;
+            if (state.activeCbt) {
+              state.activeCbt.isSubmitting = false;
+              if (state.activeCbt.timerInterval) {
+                clearInterval(state.activeCbt.timerInterval);
+                state.activeCbt.timerInterval = null;
+              }
+            }
             target.disabled = false;
-            target.textContent = 'Confirm & View Result';
+            target.textContent = originalText || 'Confirm & View Result';
             const modal = document.getElementById('modalConfirmSubmit');
             if (modal) modal.classList.remove('hidden');
             const message = document.getElementById('submitSummaryStats');
@@ -8446,10 +8477,11 @@ Answer Key:
               errorBox.dataset.submitError = 'true';
               errorBox.className = 'col-span-2 text-sm text-rose-700';
               errorBox.setAttribute('role', 'alert');
-              errorBox.textContent = 'Submission failed. Your answers are still on screen. Please try again. ' + (error && error.message ? error.message : '');
+              errorBox.textContent = 'Submission failed. Your answers are still on screen. Please try again. ' + (error && error.message ? error.message : 'Unknown error');
               message.appendChild(errorBox);
             }
             console.error('Gyan Manch submission failed:', error);
+            showToast('Submission failed. Your answers have not been cleared. Please try again.', 'error');
           }
         }, true);
 
