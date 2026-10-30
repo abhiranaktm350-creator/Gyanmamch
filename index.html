@@ -1739,6 +1739,32 @@ table{max-width:100%;border-collapse:collapse}
           if (raw) {
             const parsed = JSON.parse(raw);
             if (parsed && Array.isArray(parsed.exams) && Array.isArray(parsed.questions)) {
+              // Migrate existing saved exam/mock records to the current built-in timing profiles.
+              const latestSeededExams = createDefaultDatabase().exams;
+              parsed.exams.forEach(function(existingExam) {
+                const latest = latestSeededExams.find(function(ex){ return ex.id === existingExam.id && ex.timingProfileVersion; });
+                if (!latest || existingExam.timingProfileVersion === latest.timingProfileVersion) return;
+                Object.assign(existingExam, {
+                  duration: latest.duration, hasSectionalTiming: latest.hasSectionalTiming,
+                  sessionConfig: latest.sessionConfig ? JSON.parse(JSON.stringify(latest.sessionConfig)) : [],
+                  timingProfileVersion: latest.timingProfileVersion,
+                  timingVerificationNote: latest.timingVerificationNote || '',
+                  separateSkillSession: latest.separateSkillSession ? JSON.parse(JSON.stringify(latest.separateSkillSession)) : null
+                });
+              });
+              parsed.tests = Array.isArray(parsed.tests) ? parsed.tests : [];
+              parsed.tests.filter(function(test){ return test.testType === 'full_mock' && test.examId; }).forEach(function(test) {
+                const exam = parsed.exams.find(function(item){ return item.id === test.examId; });
+                if (!exam || !exam.timingProfileVersion || test.timingProfileVersion === exam.timingProfileVersion) return;
+                test.hasSectionalTiming = Boolean(exam.hasSectionalTiming && Array.isArray(exam.sessionConfig) && exam.sessionConfig.length > 1);
+                test.sections = test.hasSectionalTiming ? JSON.parse(JSON.stringify(exam.sessionConfig)) : [];
+                test.durationMinutes = test.hasSectionalTiming
+                  ? exam.sessionConfig.reduce(function(sum, sec){ return sum + Math.max(0, Number(sec.durationMinutes) || 0); }, 0)
+                  : Number(exam.duration || 60);
+                test.timingProfileVersion = exam.timingProfileVersion;
+                test.timingVerificationNote = exam.timingVerificationNote || '';
+                test.separateSkillSession = exam.separateSkillSession ? JSON.parse(JSON.stringify(exam.separateSkillSession)) : null;
+              });
               // Remove hard-coded sample identities/results from old local demo data.
               const sampleIds = new Set(['usr_admin_1','usr_stu_aarav','usr_stu_priya','usr_stu_rohit','usr_stu_kavita']);
               if (Array.isArray(parsed.users)) parsed.users = parsed.users.filter(u => !sampleIds.has(u.id));
@@ -2633,6 +2659,25 @@ table{max-width:100%;border-collapse:collapse}
       // =========================================================================
       function renderExamDetailView(container) {
         const exam = db.exams.find(e => e.id === state.selectedExamId) || db.exams[0];
+        const latestTimingProfile = createDefaultDatabase().exams.find(e => e.id === exam.id && e.timingProfileVersion);
+        if (latestTimingProfile && exam.timingProfileVersion !== latestTimingProfile.timingProfileVersion) {
+          Object.assign(exam, {
+            duration: latestTimingProfile.duration, hasSectionalTiming: latestTimingProfile.hasSectionalTiming,
+            sessionConfig: latestTimingProfile.sessionConfig ? JSON.parse(JSON.stringify(latestTimingProfile.sessionConfig)) : [],
+            timingProfileVersion: latestTimingProfile.timingProfileVersion,
+            timingVerificationNote: latestTimingProfile.timingVerificationNote || '',
+            separateSkillSession: latestTimingProfile.separateSkillSession ? JSON.parse(JSON.stringify(latestTimingProfile.separateSkillSession)) : null
+          });
+          db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock').forEach(function(mock) {
+            mock.hasSectionalTiming = Boolean(exam.hasSectionalTiming && Array.isArray(exam.sessionConfig) && exam.sessionConfig.length > 1);
+            mock.sections = mock.hasSectionalTiming ? JSON.parse(JSON.stringify(exam.sessionConfig)) : [];
+            mock.durationMinutes = mock.hasSectionalTiming ? exam.sessionConfig.reduce((sum, sec) => sum + Math.max(0, Number(sec.durationMinutes) || 0), 0) : Number(exam.duration || 60);
+            mock.timingProfileVersion = exam.timingProfileVersion;
+            mock.timingVerificationNote = exam.timingVerificationNote || '';
+            mock.separateSkillSession = exam.separateSkillSession ? JSON.parse(JSON.stringify(exam.separateSkillSession)) : null;
+          });
+          saveDatabase(db);
+        }
         const category = db.categories.find(c => c.id === exam.categoryId);
 
         // Ensure every single exam has an Official Pattern Full Mock Test (with exact sectional/session timers if the exam uses sessions!)
