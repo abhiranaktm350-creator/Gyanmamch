@@ -107,7 +107,7 @@ const migration = [
 "          }",
 "        let examFullMocks = db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock' && t.isPublished);"
 ].join("\n");
-replaceOnce("          let examFullMocks = db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock' && t.isPublished);", migration, "official mock timing migration");
+replaceOnce("        let examFullMocks = db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock' && t.isPublished);", migration, "official mock timing migration");
 
 replaceOnce(
   "            durationMinutes: Number(exam.duration || 60),",
