@@ -199,11 +199,6 @@ replaceOnce(
   "          sectionRemainingSeconds: (hasSecTiming && Number.isInteger(test._firstAvailableSectionIndex) ? Number(normalizedSections[test._firstAvailableSectionIndex].durationMinutes || firstSecMins) : firstSecMins) * 60,",
   "load the selected section's official duration"
 );
-replaceOnce(
-  `          <div class="text-[11px] text-slate-400 hidden sm:inline">Time:</div>`,
-  `          <div id="cbtTimerLabel" class="text-[11px] text-slate-400 hidden sm:inline">Time:</div>`,
-  "give the primary CBT clock a dynamic section label"
-);
 
 const longQuestionCss = `
 <style id="gm-cbt-long-question-fix">
