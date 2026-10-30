@@ -2701,7 +2701,7 @@ table{max-width:100%;border-collapse:collapse}
             isSample: false,
             version: 1,
             sections: autoSections,
-            questionIds: db.questions.filter(q => q.isPublished && (!q.questionScope || q.questionScope !== 'chapter_only')).map(q => q.id)
+            questionIds: db.questions.filter(q => q.isPublished && q.examId === exam.id && (!q.questionScope || q.questionScope !== 'chapter_only')).map(q => q.id)
           };
           db.tests.push(autoOfficialTest);
           saveDatabase(db);
@@ -3387,7 +3387,8 @@ function syncCbtSideDrawerUI() {
           return;
         }
 
-        const questionsList = test.questionIds
+        const linkedQuestionIds = Array.isArray(test.questionIds) ? test.questionIds : [];
+        const questionsList = linkedQuestionIds
           .map(qId => db.questions.find(q => q.id === qId))
           .filter(Boolean)
           .map(q => Object.assign({}, q));
@@ -3396,12 +3397,6 @@ function syncCbtSideDrawerUI() {
           showToast('This test has no published questions yet.', 'warning');
           return;
         }
-        if (test.hasSectionalTiming && Array.isArray(test.sections)) {
-          const belongs = function(sec, q) { const ids = Array.isArray(sec.subjectIds) && sec.subjectIds.length ? sec.subjectIds : (sec.subjectId ? [sec.subjectId] : []); return !ids.length || ids.indexOf(q.subjectId) >= 0; };
-          const rank = function(q) { const idx = test.sections.findIndex(function(sec){ return belongs(sec, q); }); return idx < 0 ? 999 : idx; };
-          questionsList.sort(function(a,b){ return rank(a)-rank(b); });
-        }
-
         // Always create a NEW, separate attempt with a unique Attempt ID and fresh timer
         const uniqueAttemptId = 'ATT-' + Date.now().toString().slice(-6) + '-' + Math.floor(100 + Math.random() * 899);
         const answersMap = {};
@@ -3437,6 +3432,17 @@ function syncCbtSideDrawerUI() {
         }
         const normalizedSections = Array.isArray(test.sections) ? test.sections : [];
         const hasSecTiming = Boolean(test.hasSectionalTiming && normalizedSections.length > 1 && normalizedSections[0].durationMinutes);
+        if (hasSecTiming) {
+          const sectionRank = function(question) {
+            const idx = normalizedSections.findIndex(function(section) { return cbtSectionContainsQuestion(section, question); });
+            return idx < 0 ? 999 : idx;
+          };
+          questionsList.sort(function(a, b) { return sectionRank(a) - sectionRank(b); });
+        }
+        if (!questionsList.length) {
+          showToast('This test has no available questions. Ask the administrator to check its question links and publish status.', 'warning');
+          return;
+        }
         const firstSecMins = hasSecTiming ? Number(test.sections[0].durationMinutes || 20) : Number(test.durationMinutes || 60);
         const configuredSessionTotalMins = hasSecTiming
           ? test.sections.reduce(function(total, sec){ return total + Math.max(0, Number(sec.durationMinutes) || 0); }, 0)
@@ -3517,8 +3523,9 @@ function syncCbtSideDrawerUI() {
         // First-question paint recovery: render only after the overlay is visible, then
         // verify the stem has real content; force a clean repaint if it did not.
         const firstPaintAttempt = state.activeCbt;
+        const firstQuestionIndex = firstPaintAttempt.currentIndex;
         const paintFirstQuestion = function(){
-          if (state.activeCbt !== firstPaintAttempt || firstPaintAttempt.currentIndex !== 0) return;
+          if (state.activeCbt !== firstPaintAttempt || firstPaintAttempt.currentIndex !== firstQuestionIndex) return;
           try {
             renderCbtCurrentQuestion();
             const stem = document.getElementById('cbtQuestionStemContainer');
@@ -3539,7 +3546,7 @@ function syncCbtSideDrawerUI() {
               opts.style.setProperty('display', 'grid', 'important');
               opts.style.setProperty('opacity', '1', 'important');
             }
-            const q = firstPaintAttempt.questions[0];
+            const q = firstPaintAttempt.questions[firstQuestionIndex];
             const raw = q && (q.text_en || q.question_en || q.question_text_en || q.question_text || q.questionText || q.question || q.text || q.statement || q.prompt || q.title);
             if (stem && (!stem.textContent.trim() || stem.textContent.trim() === 'Question text is missing for this item. Please notify the test administrator.')) {
               if (raw != null && String(raw).trim()) {
@@ -3552,7 +3559,7 @@ function syncCbtSideDrawerUI() {
             }
             // Repaint once more on the next frame; fixes the initial Q1 paint that can be skipped on first overlay reveal.
             window.requestAnimationFrame(function(){
-              if (state.activeCbt !== firstPaintAttempt || firstPaintAttempt.currentIndex !== 0) return;
+              if (state.activeCbt !== firstPaintAttempt || firstPaintAttempt.currentIndex !== firstQuestionIndex) return;
               try { renderCbtCurrentQuestion(); } catch (e) { console.error('Q1 repaint failed', e); }
             });
             renderCbtPalette(); updateCbtTimerDisplay();
@@ -4153,7 +4160,7 @@ function syncCbtSideDrawerUI() {
         let unansweredCount = 0;
 
         cbt.questions.forEach(function(q) {
-          const qSecObj = cbt.test.sections && cbt.test.sections.find(s => s.subjectId === q.subjectId);
+          const qSecObj = cbt.test.sections && cbt.test.sections.find(s => cbtSectionContainsQuestion(s, q));
           const qMarks = Number(
             qSecObj && qSecObj.posMarks !== undefined
               ? qSecObj.posMarks
@@ -8646,20 +8653,54 @@ Answer Key:
           try {
             const [examResult, testResult] = await Promise.all([
               client.from('exams').select('id,legacy_id'),
-              client.from('tests').select('legacy_id,exam_id,title_en,title_hi,description,test_type,duration_minutes,positive_marks,negative_marks,status,instructions').eq('status','published')
+              client.from('tests').select('id,legacy_id,exam_id,title_en,title_hi,description,test_type,duration_minutes,positive_marks,negative_marks,status,instructions').eq('status','published')
             ]);
             if (examResult.error || testResult.error) throw examResult.error || testResult.error;
             const examIds = {};
             (examResult.data || []).forEach(e => { examIds[e.id] = e.legacy_id; });
-            const remoteTests = (testResult.data || []).filter(t => t.legacy_id && t.instructions && Array.isArray(t.instructions.questionIds) && t.instructions.questionIds.length).map(t => ({
-              id:t.legacy_id, examId:examIds[t.exam_id] || '', chapterId:null, title:t.title_en, title_hi:t.title_hi || t.title_en,
-              testType:t.test_type === 'practice' ? 'chapter_practice' : (t.test_type === 'sectional' ? 'sectional' : 'full_mock'),
-              durationMinutes:t.duration_minutes, defaultMarks:Number(t.positive_marks), defaultNegative:Number(t.negative_marks),
-              maxAttempts:t.instructions.maxAttempts ?? null, isPracticeMode:t.test_type === 'practice',
-              showResultsImmediately:t.instructions.showResultsImmediately !== false, isPublished:true, isSample:false, version:1,
-              sections:Array.isArray(t.instructions.sections) ? t.instructions.sections : [], questionIds:t.instructions.questionIds,
-              description:t.description || ''
-            }));
+
+            // Older admin-created tests may store question links only in test_questions,
+            // while newer PDF uploads also copy the legacy IDs into instructions.questionIds.
+            const remoteRows = testResult.data || [];
+            const remoteTestIds = remoteRows.map(t => t.id).filter(Boolean);
+            const questionLegacyByUuid = {};
+            let linksByTest = {};
+            if (remoteTestIds.length) {
+              const [linkResult, questionResult] = await Promise.all([
+                client.from('test_questions').select('test_id,question_id,question_order').in('test_id', remoteTestIds).order('question_order', { ascending:true }),
+                client.from('questions').select('id,legacy_id')
+              ]);
+              if (!linkResult.error && !questionResult.error) {
+                (questionResult.data || []).forEach(q => { if (q.legacy_id) questionLegacyByUuid[q.id] = q.legacy_id; });
+                (linkResult.data || []).forEach(link => {
+                  const legacyId = questionLegacyByUuid[link.question_id];
+                  if (!legacyId) return;
+                  if (!linksByTest[link.test_id]) linksByTest[link.test_id] = [];
+                  linksByTest[link.test_id].push({ order:Number(link.question_order || 0), id:legacyId });
+                });
+              } else {
+                console.warn('Gyan Manch test-question mapping lookup:', (linkResult.error || questionResult.error).message || 'mapping unavailable');
+              }
+            }
+
+            const remoteTests = remoteRows.map(t => {
+              const instructionIds = t.instructions && Array.isArray(t.instructions.questionIds) ? t.instructions.questionIds : [];
+              const relationIds = (linksByTest[t.id] || []).sort((a,b) => a.order - b.order).map(item => item.id);
+              const questionIds = instructionIds.length ? instructionIds : relationIds;
+              return {
+                id:t.legacy_id, examId:examIds[t.exam_id] || '', chapterId:null,
+                title:t.title_en || 'Untitled mock test', title_hi:t.title_hi || t.title_en || 'Untitled mock test',
+                testType:t.test_type === 'practice' ? 'chapter_practice' : (t.test_type === 'sectional' ? 'sessional_test' : 'full_mock'),
+                durationMinutes:Number(t.duration_minutes || 60), defaultMarks:Number(t.positive_marks || 1),
+                defaultNegative:Number(t.negative_marks || 0), maxAttempts:t.instructions && t.instructions.maxAttempts != null ? t.instructions.maxAttempts : null,
+                isPracticeMode:t.test_type === 'practice',
+                showResultsImmediately:!t.instructions || t.instructions.showResultsImmediately !== false,
+                isPublished:true, isSample:false, version:1,
+                sections:t.instructions && Array.isArray(t.instructions.sections) ? t.instructions.sections : [],
+                questionIds:questionIds, description:t.description || ''
+              };
+            }).filter(t => t.id && t.questionIds.length);
+
             if (!remoteTests.length) return;
             const remoteById = {};
             remoteTests.forEach(t => { remoteById[t.id] = t; });
