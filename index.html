@@ -7909,11 +7909,6 @@ Answer Key:
           }
         });
 
-        document.getElementById('btnCbtLastSubmit').addEventListener('click', function() {
-          if (!state.activeCbt || state.activeCbt.isSubmitting) return;
-          openSubmitConfirmationModal();
-        });
-
         document.getElementById('btnCbtSaveNext').addEventListener('click', function() {
           const cbt = state.activeCbt;
           if (!cbt) return;
@@ -7953,9 +7948,8 @@ Answer Key:
           renderCbtPalette();
         });
 
-        document.getElementById('btnOpenSubmitModal').addEventListener('click', openSubmitConfirmationModal);
-        document.getElementById('btnSidebarSubmitTest').addEventListener('click', openSubmitConfirmationModal);
-        document.getElementById('btnPaletteSubmitTest').addEventListener('click', openSubmitConfirmationModal);
+        // Submit controls are handled by one window-level capture listener below.
+        // Keep no per-element submit listeners here: some controls are conditional/removed.
         document.getElementById('btnCancelSubmitModal').addEventListener('click', function() {
           document.getElementById('modalConfirmSubmit').classList.add('hidden');
         });
