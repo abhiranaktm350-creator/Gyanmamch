@@ -4092,6 +4092,7 @@ table{max-width:100%;border-collapse:collapse}
           unansweredCount: unansweredCount,
           accuracy: accuracy,
           isSample: false,
+          backendSaved: Boolean(backendAttemptId),
           answers: JSON.parse(JSON.stringify(cbt.answers)),
           review: cbt.backendReview || {}
         };
@@ -4122,19 +4123,42 @@ table{max-width:100%;border-collapse:collapse}
           navigateTo('home');
           return;
         }
-        if (window.gyanManchSupabase && state.currentUser && !attempt.review || (window.gyanManchSupabase && state.currentUser && attempt.review && Object.keys(attempt.review).length === 0)) {
-          if (['submitted','auto_submitted'].includes(attempt.status)) {
-            container.innerHTML = '<div class="p-6 text-center text-sm text-slate-600">Loading your secure answer review…</div>';
-            const reviewResult = await window.gyanManchSupabase.rpc('get_attempt_review', { p_attempt_id: attempt.id });
-            if (!reviewResult.error && Array.isArray(reviewResult.data)) {
-              attempt.review = {};
-              reviewResult.data.forEach(row => { if (row.legacy_id) attempt.review[row.legacy_id] = { correctOption:Number(row.correct_option), explanation_en:row.explanation_en||'', explanation_hi:row.explanation_hi||'', selectedOption:row.selected_option, isCorrect:row.is_correct, marksAwarded:row.marks_awarded }; });
-              reviewResult.data.forEach(row => {
-                if (!row.legacy_id) return;
-                if (!attempt.answers[row.legacy_id]) attempt.answers[row.legacy_id] = { selectedOption:row.selected_option, markedForReview:false, timeSpent:0 };
-              });
-              saveDatabase(db);
-            }
+        const attemptIdIsUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(attempt.id || ''));
+        const isServerBackedAttempt = attempt.backendSaved === true || (attempt.backendSaved !== false && attemptIdIsUuid);
+        if (window.gyanManchSupabase && state.currentUser && isServerBackedAttempt &&
+            (!attempt.review || Object.keys(attempt.review).length === 0) &&
+            ['submitted','auto_submitted'].includes(attempt.status)) {
+          container.innerHTML = '<div class="p-6 text-center text-sm text-slate-600">Loading your secure answer review…</div>';
+          try {
+            const reviewResult = await withSubmitRequestTimeout(
+              window.gyanManchSupabase.rpc('get_attempt_review', { p_attempt_id: attempt.id }),
+              'Answer review'
+            );
+            if (reviewResult.error) throw reviewResult.error;
+            if (!Array.isArray(reviewResult.data)) throw new Error('The server returned an invalid answer review.');
+            attempt.review = {};
+            reviewResult.data.forEach(row => {
+              if (row.legacy_id) attempt.review[row.legacy_id] = {
+                correctOption:Number(row.correct_option),
+                explanation_en:row.explanation_en||'',
+                explanation_hi:row.explanation_hi||'',
+                selectedOption:row.selected_option,
+                isCorrect:row.is_correct,
+                marksAwarded:row.marks_awarded
+              };
+            });
+            reviewResult.data.forEach(row => {
+              if (!row.legacy_id) return;
+              if (!attempt.answers[row.legacy_id]) attempt.answers[row.legacy_id] = {
+                selectedOption:row.selected_option, markedForReview:false, timeSpent:0
+              };
+            });
+            saveDatabase(db);
+          } catch (reviewError) {
+            // Never leave the student on a permanent loading screen. Render the
+            // saved scorecard with locally available answers if the review RPC fails.
+            attempt.reviewLoadError = reviewError && reviewError.message ? reviewError.message : 'Answer review is temporarily unavailable.';
+            console.warn('Gyan Manch answer review unavailable; showing saved scorecard:', reviewError);
           }
         }
         const test = db.tests.find(t => t.id === attempt.testId) || db.tests[0];
@@ -4195,6 +4219,8 @@ table{max-width:100%;border-collapse:collapse}
               </div>
             </div>
           </div>
+          ${attempt.backendSaved === false && window.gyanManchSupabase && state.currentUser ? '<div class="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="status">This result is available on this device, but server saving was not completed. Please check your connection and contact the teacher before relying on cross-device history.</div>' : ''}
+          ${attempt.reviewLoadError ? '<div class="mb-5 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900" role="status">Your scorecard is ready. The detailed answer review could not be loaded just now; the saved score is unchanged.</div>' : ''}
 
           <!-- Detailed Question-by-Question Answer Key & Bilingual Solutions -->
           <div>
