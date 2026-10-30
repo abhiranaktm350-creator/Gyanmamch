@@ -86,19 +86,29 @@ replaceExamObject("ex_ssc_mts", [
 
 replaceExamObject("ex_ibps_rrb_po", [
 "          {",
-"            id: 'ex_ibps_rrb_po', categoryId: 'cat_banking', code: 'IBPS-RRB-OS1', name: 'IBPS RRB Officer Scale I Prelims (45-minute overall timer)',",
-"            syllabus: 'Reasoning (40 Qs) + Quantitative Aptitude (40 Qs) • 80 questions in 45 minutes (+1 / -0.25). No sectional countdown.',",
+"            id: 'ex_ibps_rrb_po', categoryId: 'cat_banking', code: 'IBPS-RRB-OS1', name: 'IBPS RRB Officer Scale-I Prelims (25 + 20 minute sectional timers)',",
+"            syllabus: 'Reasoning (40 Qs, 25m) + Quantitative Aptitude (40 Qs, 20m) • 80 questions in 45 minutes (+1 / -0.25).',",
 "            duration: 45, totalMarks: 80, posMarks: 1.0, negMarks: 0.25, officialQs: 80, isSample: false,",
-"            allowedSubjects: ['sub_reasoning', 'sub_quant'], hasSectionalTiming: false, timingProfileVersion: 'ibps-rrb-po-xv-2026-overall-v1'",
+"            allowedSubjects: ['sub_reasoning', 'sub_quant'], hasSectionalTiming: true, timingProfileVersion: 'ibps-rrb-po-xv-2026-v2',",
+"            timingVerificationNote: 'IBPS RRB XV 2026: Reasoning 25 minutes, Quantitative Aptitude 20 minutes; separately timed tests.',",
+"            sessionConfig: [",
+"              { id: 'rrbpo_reasoning', name: 'Reasoning Ability (25m)', name_hi: 'तर्कशक्ति (25 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 25, posMarks: 1.0, negMarks: 0.25 },",
+"              { id: 'rrbpo_quant', name: 'Quantitative Aptitude (20m)', name_hi: 'मात्रात्मक योग्यता (20 मिनट)', subjectId: 'sub_quant', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 }",
+"            ]",
 "          }"
 ]);
 
 replaceExamObject("ex_ibps_rrb_oa", [
 "          {",
-"            id: 'ex_ibps_rrb_oa', categoryId: 'cat_banking', code: 'IBPS-RRB-OA', name: 'IBPS RRB Office Assistant Prelims (45-minute overall timer)',",
-"            syllabus: 'Reasoning (40 Qs) + Numerical Ability (40 Qs) • 80 questions in 45 minutes (+1 / -0.25). No sectional countdown.',",
+"            id: 'ex_ibps_rrb_oa', categoryId: 'cat_banking', code: 'IBPS-RRB-OA', name: 'IBPS RRB Office Assistant Prelims (25 + 20 minute sectional timers)',",
+"            syllabus: 'Reasoning (40 Qs, 25m) + Numerical Ability (40 Qs, 20m) • 80 questions in 45 minutes (+1 / -0.25).',",
 "            duration: 45, totalMarks: 80, posMarks: 1.0, negMarks: 0.25, officialQs: 80, isSample: false,",
-"            allowedSubjects: ['sub_reasoning', 'sub_quant'], hasSectionalTiming: false, timingProfileVersion: 'ibps-rrb-oa-xv-2026-overall-v1'",
+"            allowedSubjects: ['sub_reasoning', 'sub_quant'], hasSectionalTiming: true, timingProfileVersion: 'ibps-rrb-oa-xv-2026-v2',",
+"            timingVerificationNote: 'IBPS RRB XV 2026: Reasoning 25 minutes, Numerical Ability 20 minutes; separately timed tests.',",
+"            sessionConfig: [",
+"              { id: 'rrboa_reasoning', name: 'Reasoning Ability (25m)', name_hi: 'तर्कशक्ति (25 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 25, posMarks: 1.0, negMarks: 0.25 },",
+"              { id: 'rrboa_numerical', name: 'Numerical Ability (20m)', name_hi: 'संख्यात्मक योग्यता (20 मिनट)', subjectId: 'sub_quant', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 }",
+"            ]",
 "          }"
 ]);
 
@@ -214,6 +224,12 @@ replaceOnce("            cbt.currentIndex = Number(btn.getAttribute('data-pal-id
 replaceOnce("          if (cbt.currentIndex > 0) {\n            cbt.currentIndex -= 1;", "          const activeSectionStart = cbt.hasSectionalTiming ? cbt.questions.findIndex(q => cbtSectionContainsQuestion(cbt.test.sections[cbt.activeSectionIndex], q)) : 0;\n          if (cbt.currentIndex > Math.max(0, activeSectionStart)) {\n            cbt.currentIndex -= 1;", "prevent previous navigation crossing section boundary");
 
 replaceOnce("          if (cbt.currentIndex < cbt.questions.length - 1) {\n            cbt.currentIndex += 1;\n            renderCbtHeaderAndTabs();", "          const activeSectionQuestions = cbt.hasSectionalTiming ? cbt.questions.map((q, idx) => cbtSectionContainsQuestion(cbt.test.sections[cbt.activeSectionIndex], q) ? idx : -1).filter(idx => idx >= 0) : cbt.questions.map((q, idx) => idx);\n          const activeSectionEnd = activeSectionQuestions.length ? activeSectionQuestions[activeSectionQuestions.length - 1] : cbt.questions.length - 1;\n          if (cbt.currentIndex < activeSectionEnd) {\n            cbt.currentIndex += 1;\n            renderCbtHeaderAndTabs();", "prevent next navigation crossing section boundary");
+
+replaceOnce(
+  "            if (parsed && Array.isArray(parsed.exams) && Array.isArray(parsed.questions)) {",
+  "            if (parsed && Array.isArray(parsed.exams) && Array.isArray(parsed.questions)) {\n              // Upgrade existing local exam records to the current built-in official timing profiles.\n              const seededTimingProfiles = createDefaultDatabase().exams;\n              parsed.exams.forEach(function(existingExam) {\n                const officialProfile = seededTimingProfiles.find(e => e.id === existingExam.id && e.timingProfileVersion);\n                if (!officialProfile || existingExam.timingProfileVersion === officialProfile.timingProfileVersion) return;\n                existingExam.duration = officialProfile.duration;\n                existingExam.hasSectionalTiming = Boolean(officialProfile.hasSectionalTiming);\n                existingExam.timingProfileVersion = officialProfile.timingProfileVersion;\n                existingExam.timingVerificationNote = officialProfile.timingVerificationNote || '';\n                existingExam.sessionConfig = Array.isArray(officialProfile.sessionConfig) ? JSON.parse(JSON.stringify(officialProfile.sessionConfig)) : [];\n                existingExam.separateSkillSession = officialProfile.separateSkillSession ? JSON.parse(JSON.stringify(officialProfile.separateSkillSession)) : null;\n              });\n              (parsed.tests || []).filter(t => t.testType === 'full_mock' && t.examId).forEach(function(mock) {\n                const officialExam = parsed.exams.find(e => e.id === mock.examId);\n                if (!officialExam || !officialExam.timingProfileVersion || mock.timingProfileVersion === officialExam.timingProfileVersion) return;\n                mock.hasSectionalTiming = Boolean(officialExam.hasSectionalTiming && Array.isArray(officialExam.sessionConfig) && officialExam.sessionConfig.length > 1);\n                if (mock.hasSectionalTiming) {\n                  mock.sections = JSON.parse(JSON.stringify(officialExam.sessionConfig));\n                  mock.durationMinutes = officialExam.sessionConfig.reduce((sum, sec) => sum + Math.max(0, Number(sec.durationMinutes) || 0), 0);\n                } else { mock.durationMinutes = Number(officialExam.duration || 60); }\n                mock.timingProfileVersion = officialExam.timingProfileVersion;\n                mock.timingVerificationNote = officialExam.timingVerificationNote || '';\n                mock.separateSkillSession = officialExam.separateSkillSession ? JSON.parse(JSON.stringify(officialExam.separateSkillSession)) : null;\n              });",
+  "migrate existing localStorage exam and mock timing profiles"
+);
 
 const longQuestionCss = `
 <style id="gm-cbt-long-question-fix">
