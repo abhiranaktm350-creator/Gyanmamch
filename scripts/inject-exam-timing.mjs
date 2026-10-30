@@ -177,6 +177,28 @@ replaceExamObject("ex_ibps_clerk_mains", [
 "          }"
 ]);
 
+
+replaceOnce(
+  "        const normalizedSections = Array.isArray(test.sections) ? test.sections : [];",
+  "        const normalizedSections = Array.isArray(test.sections) ? test.sections : [];\\n        if (hasSecTiming) {\\n          const sectionRank = function(question) { const idx = normalizedSections.findIndex(function(section) { return cbtSectionContainsQuestion(section, question); }); return idx < 0 ? 999 : idx; };\\n          questionsList.sort(function(a, b) { return sectionRank(a) - sectionRank(b); });\\n          const firstAvailableSection = normalizedSections.findIndex(function(section) { return questionsList.some(function(question) { return cbtSectionContainsQuestion(section, question); }); });\\n          if (firstAvailableSection >= 0) test._firstAvailableSectionIndex = firstAvailableSection;\\n        }",
+  "sort questions by the latest official section profile"
+);
+replaceOnce(
+  "          currentIndex: 0,\\n          hasSectionalTiming: hasSecTiming,\\n          activeSectionIndex: 0,",
+  "          currentIndex: 0,\\n          hasSectionalTiming: hasSecTiming,\\n          activeSectionIndex: hasSecTiming && Number.isInteger(test._firstAvailableSectionIndex) ? test._firstAvailableSectionIndex : 0,",
+  "start the first section that actually contains questions"
+);
+replaceOnce(
+  "          sectionRemainingSeconds: firstSecMins * 60,",
+  "          sectionRemainingSeconds: (hasSecTiming && Number.isInteger(test._firstAvailableSectionIndex) ? Number(normalizedSections[test._firstAvailableSectionIndex].durationMinutes || firstSecMins) : firstSecMins) * 60,",
+  "load the selected section's official duration"
+);
+replaceOnce(
+  "          <div class=\\"text-[11px] text-slate-400 hidden sm:inline\\">Time:</div>",
+  "          <div id=\\"cbtTimerLabel\\" class=\\"text-[11px] text-slate-400 hidden sm:inline\\">Time:</div>",
+  "give the primary CBT clock a dynamic section label"
+);
+
 const longQuestionCss = `
 <style id="gm-cbt-long-question-fix">
   /* Long stems/options must expand the exam card; the question column owns scrolling. */
