@@ -184,8 +184,8 @@ replaceOnce(
   "sort questions by the latest official section profile"
 );
 replaceOnce(
-  "          currentIndex: 0,\\n          hasSectionalTiming: hasSecTiming,\\n          activeSectionIndex: 0,",
-  "          currentIndex: 0,\\n          hasSectionalTiming: hasSecTiming,\\n          activeSectionIndex: hasSecTiming && Number.isInteger(test._firstAvailableSectionIndex) ? test._firstAvailableSectionIndex : 0,",
+  "          activeSectionIndex: 0,",
+  "          activeSectionIndex: hasSecTiming && Number.isInteger(test._firstAvailableSectionIndex) ? test._firstAvailableSectionIndex : 0,",
   "start the first section that actually contains questions"
 );
 replaceOnce(
@@ -194,8 +194,8 @@ replaceOnce(
   "load the selected section's official duration"
 );
 replaceOnce(
-  "          <div class=\\"text-[11px] text-slate-400 hidden sm:inline\\">Time:</div>",
-  "          <div id=\\"cbtTimerLabel\\" class=\\"text-[11px] text-slate-400 hidden sm:inline\\">Time:</div>",
+  `          <div class="text-[11px] text-slate-400 hidden sm:inline">Time:</div>`,
+  `          <div id="cbtTimerLabel" class="text-[11px] text-slate-400 hidden sm:inline">Time:</div>`,
   "give the primary CBT clock a dynamic section label"
 );
 
