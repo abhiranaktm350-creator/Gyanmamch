@@ -3368,8 +3368,8 @@ function syncCbtSideDrawerUI() {
           clearInterval(state.activeCbt.timerInterval);
         }
 
-        const hasSecTiming = Boolean(test.hasSectionalTiming && Array.isArray(test.sections) && test.sections.length > 1 && test.sections[0].durationMinutes);
-        const firstSecMins = hasSecTiming ? Number(test.sections[0].durationMinutes || 20) : Number(test.durationMinutes || 60);
+        const hasSecTiming = Boolean((test.testType === 'sessional_test' || test.hasSectionalTiming) && Array.isArray(test.sections) && test.sections.length > 0 && (Number(test.sections[0].durationMinutes) > 0 || (test.testType === 'sessional_test' && Number(test.durationMinutes) > 0)));
+        const firstSecMins = hasSecTiming ? Number(test.sections[0].durationMinutes || (test.testType === 'sessional_test' ? test.durationMinutes : 20) || 20) : Number(test.durationMinutes || 60);
         const configuredSessionTotalMins = hasSecTiming
           ? test.sections.reduce(function(total, sec){ return total + Math.max(0, Number(sec.durationMinutes) || 0); }, 0)
           : Number(test.durationMinutes || 60);
