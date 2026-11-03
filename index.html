@@ -3330,11 +3330,29 @@ function syncCbtSideDrawerUI() {
           return;
         }
 
-        const test = db.tests.find(t => t.id === testId);
-        if (!test) {
+        const storedTest = db.tests.find(t => t.id === testId);
+        if (!storedTest) {
           showToast('Selected mock test could not be found.', 'error');
           return;
         }
+        // Each exam definition owns its own CBT rules. Admin-created test records
+        // inherit that exam's sectional/session profile unless they override it.
+        const examDefinition = db.exams.find(e => e.id === storedTest.examId) || null;
+        const configuredSections = Array.isArray(storedTest.sections) && storedTest.sections.length
+          ? storedTest.sections
+          : (Array.isArray(storedTest.sessionConfig) && storedTest.sessionConfig.length
+              ? storedTest.sessionConfig
+              : (examDefinition && Array.isArray(examDefinition.sessionConfig) ? examDefinition.sessionConfig : []));
+        const test = Object.assign({}, storedTest, {
+          sections: configuredSections.map(function(sec, index) {
+            const subjectIds = Array.isArray(sec.subjectIds) ? sec.subjectIds.slice() : (sec.subjectId ? [sec.subjectId] : []);
+            return Object.assign({}, sec, {
+              id: sec.id || ('cbt_section_' + index),
+              subjectIds: subjectIds,
+              subjectId: subjectIds[0] || null
+            });
+          })
+        });
 
         // Enforce Admin Attempt Limit if configured
         const pastAttempts = db.attempts.filter(a => a.userId === user.id && a.testId === test.id);
@@ -3368,7 +3386,7 @@ function syncCbtSideDrawerUI() {
           clearInterval(state.activeCbt.timerInterval);
         }
 
-        const hasSecTiming = Boolean((test.testType === 'sessional_test' || test.hasSectionalTiming) && Array.isArray(test.sections) && test.sections.length > 0 && (Number(test.sections[0].durationMinutes) > 0 || (test.testType === 'sessional_test' && Number(test.durationMinutes) > 0)));
+        const hasSecTiming = Boolean((test.testType === 'sessional_test' || test.hasSectionalTiming || test.sections.length > 0) && test.sections.length > 0 && Number(test.sections[0].durationMinutes) > 0);
         const firstSecMins = hasSecTiming ? Number(test.sections[0].durationMinutes || (test.testType === 'sessional_test' ? test.durationMinutes : 20) || 20) : Number(test.durationMinutes || 60);
         const configuredSessionTotalMins = hasSecTiming
           ? test.sections.reduce(function(total, sec){ return total + Math.max(0, Number(sec.durationMinutes) || 0); }, 0)
@@ -3591,7 +3609,8 @@ function syncCbtSideDrawerUI() {
           // so the next section timer actually counts down as well.
           cbt.sectionDeadlineAt = Date.now() + cbt.sectionRemainingSeconds * 1000;
           // Jump to first question of this new section
-          const nextIdx = cbt.questions.findIndex(q => !nextSec.subjectId || q.subjectId === nextSec.subjectId);
+          const nextSubjectIds = Array.isArray(nextSec.subjectIds) && nextSec.subjectIds.length ? nextSec.subjectIds : (nextSec.subjectId ? [nextSec.subjectId] : []);
+          const nextIdx = cbt.questions.findIndex(q => !nextSubjectIds.length || nextSubjectIds.includes(q.subjectId));
           if (nextIdx !== -1) cbt.currentIndex = nextIdx;
           showToast(
             (isAutoExpiry ? 'Section time expired! ' : 'Section submitted! ') +
@@ -3671,7 +3690,10 @@ function syncCbtSideDrawerUI() {
 
         const currentQ = cbt.questions[cbt.currentIndex];
         tabsContainer.innerHTML = sections.map(function(sec) {
-          const isCurrentSec = !sec.subjectId || (currentQ && currentQ.subjectId === sec.subjectId);
+          const secSubjectIds = Array.isArray(sec.subjectIds) && sec.subjectIds.length ? sec.subjectIds : (sec.subjectId ? [sec.subjectId] : []);
+          const isCurrentSec = cbt.hasSectionalTiming
+            ? secIdx === cbt.activeSectionIndex
+            : (!secSubjectIds.length || (currentQ && secSubjectIds.includes(currentQ.subjectId)));
           return `
             <button
               type="button"
@@ -3694,12 +3716,10 @@ function syncCbtSideDrawerUI() {
               return;
             }
             const subId = btn.getAttribute('data-sec-sub');
-            if (subId === 'ALL') {
-              cbt.currentIndex = 0;
-            } else {
-              const idx = cbt.questions.findIndex(q => q.subjectId === subId);
-              if (idx !== -1) cbt.currentIndex = idx;
-            }
+            const targetSec = sections[secIdx];
+            const targetSubjectIds = Array.isArray(targetSec.subjectIds) && targetSec.subjectIds.length ? targetSec.subjectIds : (targetSec.subjectId ? [targetSec.subjectId] : []);
+            const idx = cbt.questions.findIndex(q => !targetSubjectIds.length || targetSubjectIds.includes(q.subjectId));
+            if (idx !== -1) cbt.currentIndex = idx;
             renderCbtHeaderAndTabs();
             renderCbtCurrentQuestion();
             renderCbtPalette();
@@ -3922,12 +3942,16 @@ function syncCbtSideDrawerUI() {
             symbol = '';
           }
 
+          const activeSection = cbt.hasSectionalTiming ? cbt.test.sections[cbt.activeSectionIndex] : null;
+          const activeSubjectIds = activeSection ? (Array.isArray(activeSection.subjectIds) && activeSection.subjectIds.length ? activeSection.subjectIds : (activeSection.subjectId ? [activeSection.subjectId] : [])) : [];
+          const questionLocked = Boolean(activeSection && activeSubjectIds.length && !activeSubjectIds.includes(q.subjectId));
           return `
             <button
               type="button"
               data-pal-idx="${idx}"
-              class="cbt-pal-btn h-10 flex flex-col items-center justify-center text-xs transition ${btnStyle} ${isCurr ? 'q-badge-current' : ''}"
-              title="Question ${idx + 1}"
+              ${questionLocked ? 'disabled aria-disabled="true"' : ''}
+              class="cbt-pal-btn h-10 flex flex-col items-center justify-center text-xs transition ${btnStyle} ${questionLocked ? 'opacity-30 cursor-not-allowed' : ''} ${isCurr ? 'q-badge-current' : ''}"
+              title="Question ${idx + 1}${questionLocked ? ' — locked until its section starts' : ''}"
             >
               <span>${idx + 1}</span>
               ${symbol ? `<span class="text-[9px] leading-none">${symbol}</span>` : ''}
@@ -3942,6 +3966,7 @@ function syncCbtSideDrawerUI() {
 
         grid.querySelectorAll('.cbt-pal-btn').forEach(function(btn) {
           btn.addEventListener('click', function() {
+            if (btn.disabled) return;
             cbt.currentIndex = Number(btn.getAttribute('data-pal-idx'));
             renderCbtHeaderAndTabs();
             renderCbtCurrentQuestion();
