@@ -3574,8 +3574,13 @@ function syncCbtSideDrawerUI() {
         const cbt = state.activeCbt;
         if (!cbt || !cbt.isStarted || cbt.isPaused) return;
         if (cbt.timerInterval) { clearInterval(cbt.timerInterval); cbt.timerInterval = null; }
-        cbt.remainingSeconds = Math.max(0, Math.ceil((Number(cbt.deadlineAt || Date.now()) - Date.now()) / 1000));
-        if (cbt.hasSectionalTiming) cbt.sectionRemainingSeconds = Math.max(0, Math.ceil((Number(cbt.sectionDeadlineAt || Date.now()) - Date.now()) / 1000));
+        if (cbt.timerMode === 'session' && cbt.hasSectionalTiming) {
+          cbt.sectionRemainingSeconds = Math.max(0, Math.ceil((Number(cbt.sectionDeadlineAt || Date.now()) - Date.now()) / 1000));
+          cbt.remainingSeconds = cbt.sectionRemainingSeconds;
+        } else {
+          cbt.remainingSeconds = Math.max(0, Math.ceil((Number(cbt.deadlineAt || Date.now()) - Date.now()) / 1000));
+          if (cbt.hasSectionalTiming) cbt.sectionRemainingSeconds = Math.max(0, Math.ceil((Number(cbt.sectionDeadlineAt || Date.now()) - Date.now()) / 1000));
+        }
         cbt.isPaused = true;
         cbt.lastTickAt = null;
         const gate = document.getElementById('cbtPreStartGate');
@@ -3599,10 +3604,12 @@ function syncCbtSideDrawerUI() {
         }
         cbt.isPaused = false;
         cbt.lastTickAt = Date.now();
-        cbt.deadlineAt = Date.now() + Math.max(0, Number(cbt.remainingSeconds) || 0) * 1000;
         if (cbt.hasSectionalTiming) {
           cbt.sectionDeadlineAt = Date.now() + Math.max(0, Number(cbt.sectionRemainingSeconds) || 0) * 1000;
         }
+        cbt.deadlineAt = cbt.timerMode === 'session' && cbt.hasSectionalTiming
+          ? cbt.sectionDeadlineAt
+          : Date.now() + Math.max(0, Number(cbt.remainingSeconds) || 0) * 1000;
         if (heading) heading.textContent = 'Exam in Progress';
         if (btn) btn.textContent = 'Resume Exam';
         if (gate) { gate.classList.add('hidden'); gate.classList.remove('flex'); }
@@ -3642,9 +3649,10 @@ function syncCbtSideDrawerUI() {
               active.answers[currQ.id].timeSpent = Number(active.answers[currQ.id].timeSpent || 0) + elapsed;
             }
           }
-          active.remainingSeconds = Math.max(0, Math.ceil((Number(active.deadlineAt) - now) / 1000));
           if (active.hasSectionalTiming) {
             active.sectionRemainingSeconds = Math.max(0, Math.ceil((Number(active.sectionDeadlineAt) - now) / 1000));
+            if (active.timerMode === 'session') active.remainingSeconds = active.sectionRemainingSeconds;
+            else active.remainingSeconds = Math.max(0, Math.ceil((Number(active.deadlineAt) - now) / 1000));
             if (active.sectionRemainingSeconds <= 0) {
               window.clearInterval(active.timerInterval);
               active.timerInterval = null;
@@ -3652,9 +3660,11 @@ function syncCbtSideDrawerUI() {
               advanceToNextTimedSection(true);
               return;
             }
+          } else {
+            active.remainingSeconds = Math.max(0, Math.ceil((Number(active.deadlineAt) - now) / 1000));
           }
           updateCbtTimerDisplay();
-          if (active.remainingSeconds <= 0) {
+          if (active.timerMode !== 'session' && active.remainingSeconds <= 0) {
             window.clearInterval(active.timerInterval);
             active.timerInterval = null;
             showToast('Time expired! Automatically submitting your mock test attempt...', 'warning');
@@ -3693,11 +3703,14 @@ function syncCbtSideDrawerUI() {
         if (cbt.activeSectionIndex < sections.length - 1) {
           cbt.activeSectionIndex += 1;
           const nextSec = sections[cbt.activeSectionIndex];
-          cbt.sectionRemainingSeconds = Number(nextSec.durationMinutes || 20) * 60;
-          // Give the next section its own fresh deadline. When the previous section
-          // expired automatically, its interval was cleared; restart the CBT clock
-          // so the next section timer actually counts down as well.
+          cbt.sectionRemainingSeconds = Math.max(1, Number(nextSec.durationMinutes || 20)) * 60;
+          // Sessional exams receive a fresh independent clock for every session.
+          // The total paper deadline must never cut short a later session.
           cbt.sectionDeadlineAt = Date.now() + cbt.sectionRemainingSeconds * 1000;
+          if (cbt.timerMode === 'session') {
+            cbt.remainingSeconds = cbt.sectionRemainingSeconds;
+            cbt.deadlineAt = cbt.sectionDeadlineAt;
+          }
           // Jump to first question of this new section
           const nextSubjectIds = Array.isArray(nextSec.subjectIds) && nextSec.subjectIds.length ? nextSec.subjectIds : (nextSec.subjectId ? [nextSec.subjectId] : []);
           const nextIdx = cbt.questions.findIndex(q => !nextSubjectIds.length || nextSubjectIds.includes(q.subjectId));
@@ -3728,7 +3741,7 @@ function syncCbtSideDrawerUI() {
           // Official sectional/session exams show the active section's live clock
           // as the primary CBT timer. Composite exams and admin custom mocks keep
           // their single overall countdown.
-          const hasActiveSectionClock = Boolean(cbt.hasSectionalTiming && cbt.test && Array.isArray(cbt.test.sections) && cbt.test.sections[cbt.activeSectionIndex]);
+          const hasActiveSectionClock = Boolean(cbt.timerMode === 'session' && cbt.hasSectionalTiming && cbt.test && Array.isArray(cbt.test.sections) && cbt.test.sections[cbt.activeSectionIndex]);
           const rem = hasActiveSectionClock ? cbt.sectionRemainingSeconds : cbt.remainingSeconds;
           timerText.textContent = formatSeconds(rem);
           if (rem <= 120) {
