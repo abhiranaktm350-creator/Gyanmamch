@@ -1113,10 +1113,10 @@ table{max-width:100%;border-collapse:collapse}
             allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_english', 'sub_ga', 'sub_science'],
             hasSectionalTiming: true,
             sessionConfig: [
-              { id: 'sec_cgl1_q', name: 'Section 1: Quantitative Aptitude (15m)', name_hi: 'मात्रात्मक अभियोग्यता (15 मिनट)', subjectId: 'sub_quant', durationMinutes: 15, posMarks: 2.0, negMarks: 0.50 },
-              { id: 'sec_cgl1_r', name: 'Section 2: General Intelligence & Reasoning (15m)', name_hi: 'सामान्य बुद्धिमत्ता एवं तर्कशक्ति (15 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 15, posMarks: 2.0, negMarks: 0.50 },
-              { id: 'sec_cgl1_e', name: 'Section 3: English Comprehension (15m)', name_hi: 'अंग्रेजी समझ (15 मिनट)', subjectId: 'sub_english', durationMinutes: 15, posMarks: 2.0, negMarks: 0.50 },
-              { id: 'sec_cgl1_g', name: 'Section 4: General Awareness (15m)', name_hi: 'सामान्य जागरूकता (15 मिनट)', subjectIds: ['sub_ga', 'sub_science'], durationMinutes: 15, posMarks: 2.0, negMarks: 0.50 }
+              { id: 'sec_cgl1_r', name: 'Section 1: General Intelligence & Reasoning (15m)', name_hi: 'सामान्य बुद्धिमत्ता एवं तर्कशक्ति (15 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 15, posMarks: 2.0, negMarks: 0.50 },
+              { id: 'sec_cgl1_g', name: 'Section 2: General Awareness (15m)', name_hi: 'सामान्य जागरूकता (15 मिनट)', subjectIds: ['sub_ga', 'sub_science'], durationMinutes: 15, posMarks: 2.0, negMarks: 0.50 },
+              { id: 'sec_cgl1_q', name: 'Section 3: Quantitative Aptitude (15m)', name_hi: 'मात्रात्मक अभियोग्यता (15 मिनट)', subjectId: 'sub_quant', durationMinutes: 15, posMarks: 2.0, negMarks: 0.50 },
+              { id: 'sec_cgl1_e', name: 'Section 4: English Comprehension (15m)', name_hi: 'अंग्रेजी समझ (15 मिनट)', subjectId: 'sub_english', durationMinutes: 15, posMarks: 2.0, negMarks: 0.50 }
             ]
           },
           {
@@ -1207,14 +1207,14 @@ table{max-width:100%;border-collapse:collapse}
             ]
           },
           {
-            id: 'ex_ibps_po_mains', categoryId: 'cat_banking', code: 'IBPS-PO-MAINS', name: 'IBPS PO Mains (60+35+40+45m Sessional Timer)',
-            syllabus: 'Reasoning & Computer (60m) + Economy/Banking GA (35m) + English (40m) + Data Analysis & Interpretation (45m) • 180 Mins (+1.00 / -0.25)',
-            duration: 180, totalMarks: 200, posMarks: 1.0, negMarks: 0.25, officialQs: 155, isSample: false,
+            id: 'ex_ibps_po_mains', categoryId: 'cat_banking', code: 'IBPS-PO-MAINS', name: 'IBPS PO Mains Objective (50+25+40+45m Sectional Timer)',
+            syllabus: 'Reasoning (50m) + Banking/Economy GA (25m) + English (40m) + Data Analysis & Interpretation (45m) • 145 Objective Qs in 160 Mins (+1.00 / -0.25); descriptive paper separate',
+            duration: 160, totalMarks: 200, posMarks: 1.0, negMarks: 0.25, officialQs: 145, isSample: false,
             allowedSubjects: ['sub_reasoning', 'sub_computer', 'sub_ga', 'sub_english', 'sub_quant'],
             hasSectionalTiming: true,
             sessionConfig: [
-              { id: 'sec_ipm_1', name: 'Sec 1: Reasoning & Computer (60m)', name_hi: 'तर्कशक्ति एवं कंप्यूटर (60 मिनट)', subjectIds: ['sub_reasoning', 'sub_computer'], durationMinutes: 60, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_ipm_2', name: 'Sec 2: Banking & Economy GA (35m)', name_hi: 'बैंकिंग एवं अर्थव्यवस्था (35 मिनट)', subjectId: 'sub_ga', durationMinutes: 35, posMarks: 1.0, negMarks: 0.25 },
+              { id: 'sec_ipm_1', name: 'Sec 1: Reasoning & Computer (50m)', name_hi: 'तर्कशक्ति एवं कंप्यूटर (50 मिनट)', subjectIds: ['sub_reasoning', 'sub_computer'], durationMinutes: 50, posMarks: 1.0, negMarks: 0.25 },
+              { id: 'sec_ipm_2', name: 'Sec 2: Banking & Economy GA (25m)', name_hi: 'बैंकिंग एवं अर्थव्यवस्था (25 मिनट)', subjectId: 'sub_ga', durationMinutes: 25, posMarks: 1.0, negMarks: 0.25 },
               { id: 'sec_ipm_3', name: 'Sec 3: English Language (40m)', name_hi: 'अंग्रेजी भाषा (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 1.0, negMarks: 0.25 },
               { id: 'sec_ipm_4', name: 'Sec 4: Data Analysis & Quant (45m)', name_hi: 'डेटा विश्लेषण एवं गणित (45 मिनट)', subjectIds: ['sub_quant'], durationMinutes: 45, posMarks: 1.0, negMarks: 0.25 }
             ]
@@ -1232,16 +1232,16 @@ table{max-width:100%;border-collapse:collapse}
             ]
           },
           {
-            id: 'ex_ibps_clerk_mains', categoryId: 'cat_banking', code: 'IBPS-CLERK-MAINS', name: 'IBPS Clerk Mains (35+35+45+45m Sessional Timer)',
-            syllabus: 'General/Financial Awareness (35m) + General English (35m) + Reasoning & Computer (45m) + Quantitative Aptitude (45m) • 160 Mins',
-            duration: 160, totalMarks: 200, posMarks: 1.0, negMarks: 0.25, officialQs: 190, isSample: false,
+            id: 'ex_ibps_clerk_mains', categoryId: 'cat_banking', code: 'IBPS-CLERK-MAINS', name: 'IBPS Clerk Mains (20+35+35+30m Sectional Timer)',
+            syllabus: 'General/Financial Awareness (20m) + General English (35m) + Reasoning (35m) + Quantitative Aptitude (30m) • 155 Qs in 120 Mins',
+            duration: 120, totalMarks: 200, posMarks: 1.0, negMarks: 0.25, officialQs: 155, isSample: false,
             allowedSubjects: ['sub_ga', 'sub_english', 'sub_reasoning', 'sub_computer', 'sub_quant'],
             hasSectionalTiming: true,
             sessionConfig: [
-              { id: 'sec_icm_1', name: 'Sec 1: Financial Awareness (35m)', name_hi: 'वित्तीय जागरूकता (35 मिनट)', subjectId: 'sub_ga', durationMinutes: 35, posMarks: 1.0, negMarks: 0.25 },
+              { id: 'sec_icm_1', name: 'Sec 1: General / Financial Awareness (20m)', name_hi: 'सामान्य / वित्तीय जागरूकता (20 मिनट)', subjectId: 'sub_ga', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 },
               { id: 'sec_icm_2', name: 'Sec 2: General English (35m)', name_hi: 'अंग्रेजी भाषा (35 मिनट)', subjectId: 'sub_english', durationMinutes: 35, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_icm_3', name: 'Sec 3: Reasoning & Computer (45m)', name_hi: 'तर्कशक्ति एवं कंप्यूटर (45 मिनट)', subjectIds: ['sub_reasoning', 'sub_computer'], durationMinutes: 45, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_icm_4', name: 'Sec 4: Quantitative Aptitude (45m)', name_hi: 'मात्रात्मक अभियोग्यता (45 मिनट)', subjectId: 'sub_quant', durationMinutes: 45, posMarks: 1.0, negMarks: 0.25 }
+              { id: 'sec_icm_3', name: 'Sec 3: Reasoning Ability (35m)', name_hi: 'तर्कशक्ति क्षमता (35 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 35, posMarks: 1.0, negMarks: 0.25 },
+              { id: 'sec_icm_4', name: 'Sec 4: Quantitative Aptitude (30m)', name_hi: 'मात्रात्मक अभियोग्यता (30 मिनट)', subjectId: 'sub_quant', durationMinutes: 30, posMarks: 1.0, negMarks: 0.25 }
             ]
           },
           {
@@ -1291,9 +1291,9 @@ table{max-width:100%;border-collapse:collapse}
             ]
           },
           {
-            id: 'ex_sbi_po_mains', categoryId: 'cat_banking', code: 'SBI-PO-MAINS', name: 'SBI PO Mains (50+45+45+40m Sessional Timer)',
-            syllabus: 'Reasoning & Computer (50m) + Data Analysis & Interpretation (45m) + Economy/Banking GA (45m) + English (40m) • 180 Mins',
-            duration: 180, totalMarks: 200, posMarks: 1.0, negMarks: 0.25, officialQs: 155, isSample: false,
+            id: 'ex_sbi_po_mains', categoryId: 'cat_banking', code: 'SBI-PO-MAINS', name: 'SBI PO Mains Objective (50+45+45+40m Sectional Timer)',
+            syllabus: 'Reasoning & Computer (50m) + Data Analysis & Interpretation (45m) + Economy/Banking GA (45m) + English (40m) • 170 Objective Qs in 180 Mins; descriptive paper separate',
+            duration: 180, totalMarks: 200, posMarks: 1.0, negMarks: 0.25, officialQs: 170, isSample: false,
             allowedSubjects: ['sub_reasoning', 'sub_computer', 'sub_quant', 'sub_ga', 'sub_english'],
             hasSectionalTiming: true,
             sessionConfig: [
