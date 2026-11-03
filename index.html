@@ -3410,6 +3410,8 @@ function syncCbtSideDrawerUI() {
           questions: questionsList,
           currentIndex: 0,
           hasSectionalTiming: hasSecTiming,
+          timerMode: (examDefinition && examDefinition.id === 'ex_ssc_mts') || test.testType === 'sessional_test' ? 'session' : 'section',
+          engineProfileId: (examDefinition && examDefinition.id) || test.examId || 'generic',
           activeSectionIndex: 0,
           sectionRemainingSeconds: firstSecMins * 60,
           viewLang: state.defaultLang, // 'en', 'hi', or 'both'
@@ -3695,7 +3697,7 @@ function syncCbtSideDrawerUI() {
           if (cbt.hasSectionalTiming && cbt.test.sections && cbt.test.sections[cbt.activeSectionIndex]) {
             const currSec = cbt.test.sections[cbt.activeSectionIndex];
             secPill.classList.remove('hidden');
-            secLbl.textContent = currSec.name + ' Timer:';
+            secLbl.textContent = currSec.name + ' ' + (cbt.timerMode === 'session' ? 'Timer:' : 'Timer:');
             secVal.textContent = formatSeconds(cbt.sectionRemainingSeconds);
           } else {
             secPill.classList.add('hidden');
