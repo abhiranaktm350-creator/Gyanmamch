@@ -8,6 +8,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "rm -rf dist && mkdir -p dist && cp index.html _headers manifest.webmanifest dist/"
+    "build": "npm run check && rm -rf dist && mkdir -p dist && cp index.html _headers manifest.webmanifest dist/",
+    "check": "node scripts/check-inline-js.mjs"
   }
 }
