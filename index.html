@@ -3697,7 +3697,7 @@ function syncCbtSideDrawerUI() {
           if (cbt.hasSectionalTiming && cbt.test.sections && cbt.test.sections[cbt.activeSectionIndex]) {
             const currSec = cbt.test.sections[cbt.activeSectionIndex];
             secPill.classList.remove('hidden');
-            secLbl.textContent = currSec.name + ' ' + (cbt.timerMode === 'session' ? 'Timer:' : 'Timer:');
+            secLbl.textContent = (cbt.timerMode === 'session' ? 'Session Timer: ' : 'Section Timer: ') + currSec.name;
             secVal.textContent = formatSeconds(cbt.sectionRemainingSeconds);
           } else {
             secPill.classList.add('hidden');
