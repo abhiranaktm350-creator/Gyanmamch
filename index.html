@@ -3310,7 +3310,10 @@ function syncCbtSideDrawerUI() {
             const posEl = document.getElementById('termsPositiveMarks');
             const negEl = document.getElementById('termsNegativeMarks');
             if (countEl) countEl.textContent = String(linkedQuestions.length || (selectedTest && selectedTest.totalQuestions) || 0);
-            const sections = selectedTest && Array.isArray(selectedTest.sections) ? selectedTest.sections : [];
+            const selectedExam = selectedTest && db.exams.find(e => e.id === selectedTest.examId);
+            const sections = selectedTest && Array.isArray(selectedTest.sections) && selectedTest.sections.length
+              ? selectedTest.sections
+              : (selectedExam && Array.isArray(selectedExam.sessionConfig) ? selectedExam.sessionConfig : []);
             const sessionTotal = sections.length > 1 && selectedTest.hasSectionalTiming
               ? sections.reduce((sum, sec) => sum + Math.max(0, Number(sec.durationMinutes) || 0), 0) : 0;
             if (durationEl) durationEl.textContent = (sessionTotal > 0 ? sessionTotal : Number(selectedTest && selectedTest.durationMinutes) || 0) > 0
@@ -3601,6 +3604,29 @@ function syncCbtSideDrawerUI() {
             finalizeAndScoreAttempt(true);
           }
         }, 250);
+      }
+
+      function getCbtSectionSubjectIds(section) {
+        if (!section) return [];
+        if (Array.isArray(section.subjectIds) && section.subjectIds.length) return section.subjectIds;
+        return section.subjectId ? [section.subjectId] : [];
+      }
+
+      function getCbtQuestionSectionIndex(cbt, question) {
+        if (!cbt || !cbt.hasSectionalTiming || !question) return -1;
+        const sections = cbt.test.sections || [];
+        return sections.findIndex(function(section) {
+          const ids = getCbtSectionSubjectIds(section);
+          return !ids.length || ids.includes(question.subjectId);
+        });
+      }
+
+      function getCbtNextAllowedQuestionIndex(cbt, fromIndex, direction) {
+        if (!cbt || !Array.isArray(cbt.questions)) return -1;
+        for (let i = fromIndex + direction; i >= 0 && i < cbt.questions.length; i += direction) {
+          if (!cbt.hasSectionalTiming || getCbtQuestionSectionIndex(cbt, cbt.questions[i]) === cbt.activeSectionIndex) return i;
+        }
+        return -1;
       }
 
       function advanceToNextTimedSection(isAutoExpiry) {
@@ -7933,7 +7959,14 @@ Answer Key:
         const secNextBtn = document.getElementById('btnCbtNextSectionLock');
         if (secNextBtn) {
           secNextBtn.addEventListener('click', function() {
-            advanceToNextTimedSection(false);
+            const cbt = state.activeCbt;
+            if (!cbt || !cbt.hasSectionalTiming) return;
+            const currentSection = cbt.test.sections[cbt.activeSectionIndex];
+            const isLastSection = cbt.activeSectionIndex >= cbt.test.sections.length - 1;
+            const prompt = isLastSection
+              ? 'This is the last section. Submit the complete test now?'
+              : 'Submit and lock ' + currentSection.name + '? You cannot return to this section.';
+            if (window.confirm(prompt)) advanceToNextTimedSection(false);
           });
         }
 
@@ -8115,8 +8148,9 @@ Answer Key:
         document.getElementById('btnCbtPrev').addEventListener('click', function() {
           const cbt = state.activeCbt;
           if (!cbt) return;
-          if (cbt.currentIndex > 0) {
-            cbt.currentIndex -= 1;
+          const prevIndex = getCbtNextAllowedQuestionIndex(cbt, cbt.currentIndex, -1);
+          if (prevIndex !== -1) {
+            cbt.currentIndex = prevIndex;
             renderCbtHeaderAndTabs();
             renderCbtCurrentQuestion();
             renderCbtPalette();
@@ -8127,11 +8161,14 @@ Answer Key:
           const cbt = state.activeCbt;
           if (!cbt) return;
           triggerAutoSaveIndicator();
-          if (cbt.currentIndex < cbt.questions.length - 1) {
-            cbt.currentIndex += 1;
+          const nextIndex = getCbtNextAllowedQuestionIndex(cbt, cbt.currentIndex, 1);
+          if (nextIndex !== -1) {
+            cbt.currentIndex = nextIndex;
             renderCbtHeaderAndTabs();
             renderCbtCurrentQuestion();
             renderCbtPalette();
+          } else if (cbt.hasSectionalTiming) {
+            showToast('You have reached the end of this section. Use Submit Section to continue.', 'info');
           } else {
             openSubmitConfirmationModal();
           }
@@ -8143,9 +8180,8 @@ Answer Key:
           const q = cbt.questions[cbt.currentIndex];
           cbt.answers[q.id].markedForReview = !cbt.answers[q.id].markedForReview;
           triggerAutoSaveIndicator();
-          if (cbt.currentIndex < cbt.questions.length - 1) {
-            cbt.currentIndex += 1;
-          }
+          const nextIndex = getCbtNextAllowedQuestionIndex(cbt, cbt.currentIndex, 1);
+          if (nextIndex !== -1) cbt.currentIndex = nextIndex;
           renderCbtHeaderAndTabs();
           renderCbtCurrentQuestion();
           renderCbtPalette();
