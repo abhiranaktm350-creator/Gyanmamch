@@ -1267,28 +1267,22 @@ table{max-width:100%;border-collapse:collapse}
             ]
           },
           {
-            id: 'ex_ibps_so', categoryId: 'cat_banking', code: 'IBPS-SO-PRE', name: 'IBPS SO Prelims (40+40+40m Sessional Timer)',
-            syllabus: 'Sec 1: English (50 Qs, 40m) + Sec 2: Reasoning (50 Qs, 40m) + Sec 3: Quant / GA (50 Qs, 40m) • 150 Qs in 120 Mins (+1.00 / -0.25)',
-            duration: 120, totalMarks: 125, posMarks: 1.0, negMarks: 0.25, officialQs: 150, isSample: false,
+            id: 'ex_ibps_so', categoryId: 'cat_banking', code: 'IBPS-SO-PRE', name: 'IBPS SO Prelims (25+50+50m Sectional Timer)',
+            syllabus: 'English (50 Qs, 25m) + Reasoning (50 Qs, 50m) + Quantitative Aptitude / General Awareness (50 Qs, 50m) • 150 Qs in 125 Mins (+1.00 / -0.25)',
+            duration: 125, totalMarks: 125, posMarks: 1.0, negMarks: 0.25, officialQs: 150, isSample: false,
             allowedSubjects: ['sub_english', 'sub_reasoning', 'sub_quant', 'sub_ga', 'sub_computer'],
             hasSectionalTiming: true,
             sessionConfig: [
-              { id: 'sec_so_1', name: 'Section 1: English Language (40m)', name_hi: 'अंग्रेजी भाषा (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 0.5, negMarks: 0.125 },
-              { id: 'sec_so_2', name: 'Section 2: Reasoning (40m)', name_hi: 'तर्कशक्ति (40 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 40, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_so_3', name: 'Section 3: Quant / GA (40m)', name_hi: 'गणित / सामान्य जागरूकता (40 मिनट)', subjectId: 'sub_quant', durationMinutes: 40, posMarks: 1.0, negMarks: 0.25 }
+              { id: 'sec_so_1', name: 'Section 1: English Language (25m)', name_hi: 'अंग्रेजी भाषा (25 मिनट)', subjectId: 'sub_english', durationMinutes: 25, posMarks: 0.5, negMarks: 0.125 },
+              { id: 'sec_so_2', name: 'Section 2: Reasoning (50m)', name_hi: 'तर्कशक्ति (50 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 50, posMarks: 1.0, negMarks: 0.25 },
+              { id: 'sec_so_3', name: 'Section 3: Quant / General Awareness (50m)', name_hi: 'गणित / सामान्य जागरूकता (50 मिनट)', subjectIds: ['sub_quant', 'sub_ga'], durationMinutes: 50, posMarks: 1.0, negMarks: 0.25 }
             ]
           },
           {
-            id: 'ex_sbi_po', categoryId: 'cat_banking', code: 'SBI-PO-PRE', name: 'SBI PO Prelims (20+20+20m Sessional Timer)',
-            syllabus: 'Sec 1: English (30 Qs, 20m) + Sec 2: Quant (35 Qs, 20m) + Sec 3: Reasoning (35 Qs, 20m) • 100 Qs in 60 Mins (+1.00 / -0.25)',
+            id: 'ex_sbi_po', categoryId: 'cat_banking', code: 'SBI-PO-PRE', name: 'SBI PO Prelims (Composite Timer)',
+            syllabus: 'English (30), Quant (35), Reasoning (35) • 100 Qs in 60 Mins • Composite time; no sectional timer (+1.00 / -0.25)',
             duration: 60, totalMarks: 100, posMarks: 1.0, negMarks: 0.25, officialQs: 100, isSample: false,
-            allowedSubjects: ['sub_english', 'sub_quant', 'sub_reasoning'],
-            hasSectionalTiming: true,
-            sessionConfig: [
-              { id: 'sec_b_eng', name: 'Section 1: English Language (20m)', name_hi: 'अंग्रेजी भाषा (20 मिनट)', subjectId: 'sub_english', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_b_quant', name: 'Section 2: Quantitative Aptitude (20m)', name_hi: 'मात्रात्मक अभियोग्यता (20 मिनट)', subjectId: 'sub_quant', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_b_reas', name: 'Section 3: Reasoning Ability (20m)', name_hi: 'तर्कशक्ति क्षमता (20 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 }
-            ]
+            allowedSubjects: ['sub_english', 'sub_quant', 'sub_reasoning']
           },
           {
             id: 'ex_sbi_po_mains', categoryId: 'cat_banking', code: 'SBI-PO-MAINS', name: 'SBI PO Mains Objective (50+45+45+40m Sectional Timer)',
@@ -1304,16 +1298,10 @@ table{max-width:100%;border-collapse:collapse}
             ]
           },
           {
-            id: 'ex_sbi_clerk', categoryId: 'cat_banking', code: 'SBI-CLERK-PRE', name: 'SBI Clerk (Junior Associate) Prelims (20+20+20m Sessional Timer)',
-            syllabus: 'Sec 1: English (30 Qs, 20m) + Sec 2: Numerical Ability (35 Qs, 20m) + Sec 3: Reasoning (35 Qs, 20m) • 100 Qs (+1.00 / -0.25)',
+            id: 'ex_sbi_clerk', categoryId: 'cat_banking', code: 'SBI-CLERK-PRE', name: 'SBI Clerk (Junior Associate) Prelims (Composite Timer)',
+            syllabus: 'English (30), Numerical Ability (35), Reasoning (35) • 100 Qs in 60 Mins • Composite time; no sectional timer (+1.00 / -0.25)',
             duration: 60, totalMarks: 100, posMarks: 1.0, negMarks: 0.25, officialQs: 100, isSample: false,
-            allowedSubjects: ['sub_english', 'sub_quant', 'sub_reasoning'],
-            hasSectionalTiming: true,
-            sessionConfig: [
-              { id: 'sec_b_eng', name: 'Section 1: English Language (20m)', name_hi: 'अंग्रेजी भाषा (20 मिनट)', subjectId: 'sub_english', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_b_quant', name: 'Section 2: Numerical Ability (20m)', name_hi: 'संख्यात्मक अभियोग्यता (20 मिनट)', subjectId: 'sub_quant', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_b_reas', name: 'Section 3: Reasoning Ability (20m)', name_hi: 'तर्कशक्ति क्षमता (20 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 }
-            ]
+            allowedSubjects: ['sub_english', 'sub_quant', 'sub_reasoning']
           },
           {
             id: 'ex_sbi_so', categoryId: 'cat_banking', code: 'SBI-SO', name: 'SBI SO (Specialist Cadre Officer)',
@@ -1322,17 +1310,10 @@ table{max-width:100%;border-collapse:collapse}
             allowedSubjects: ['sub_reasoning', 'sub_quant', 'sub_english', 'sub_computer']
           },
           {
-            id: 'ex_rbi_grade_b', categoryId: 'cat_banking', code: 'RBI-GRADE-B', name: 'RBI Grade B Officer Phase-I (25+45+25+25m Sessional Timer)',
-            syllabus: 'GA (80 Qs, 25m) + Reasoning (60 Qs, 45m) + English (30 Qs, 25m) + Quant (30 Qs, 25m) • 200 Qs in 120 Mins (+1.00 / -0.25)',
+            id: 'ex_rbi_grade_b', categoryId: 'cat_banking', code: 'RBI-GRADE-B', name: 'RBI Grade B Officer Phase-I (Composite Timer)',
+            syllabus: 'GA, Reasoning, English & Quant • 200 Qs in 120 Mins • One composite paper timer; no fixed sectional countdown (+1.00 / -0.25)',
             duration: 120, totalMarks: 200, posMarks: 1.0, negMarks: 0.25, officialQs: 200, isSample: false,
-            allowedSubjects: ['sub_ga', 'sub_reasoning', 'sub_english', 'sub_quant'],
-            hasSectionalTiming: true,
-            sessionConfig: [
-              { id: 'sec_rbi_ga', name: 'Sec 1: General Awareness (25m)', name_hi: 'सामान्य जागरूकता (25 मिनट)', subjectId: 'sub_ga', durationMinutes: 25, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_rbi_re', name: 'Sec 2: Reasoning (45m)', name_hi: 'तर्कशक्ति (45 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 45, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_rbi_en', name: 'Sec 3: English Language (25m)', name_hi: 'अंग्रेजी भाषा (25 मिनट)', subjectId: 'sub_english', durationMinutes: 25, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_rbi_qa', name: 'Sec 4: Quantitative Aptitude (25m)', name_hi: 'गणित (25 मिनट)', subjectId: 'sub_quant', durationMinutes: 25, posMarks: 1.0, negMarks: 0.25 }
-            ]
+            allowedSubjects: ['sub_ga', 'sub_reasoning', 'sub_english', 'sub_quant']
           },
           {
             id: 'ex_rbi_asst', categoryId: 'cat_banking', code: 'RBI-ASST', name: 'RBI Assistant Prelims (20+20+20m Sessional Timer)',
