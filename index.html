@@ -3422,6 +3422,14 @@ function syncCbtSideDrawerUI() {
           timerInterval: null
         };
 
+        // Start at the first question belonging to the first configured section,
+        // even when the admin uploaded questions in a different subject order.
+        if (state.activeCbt.hasSectionalTiming) {
+          const firstSectionIds = getCbtSectionSubjectIds(state.activeCbt.test.sections[0]);
+          const firstSectionQuestion = questionsList.findIndex(q => !firstSectionIds.length || firstSectionIds.includes(q.subjectId));
+          if (firstSectionQuestion >= 0) state.activeCbt.currentIndex = firstSectionQuestion;
+        }
+
         // Start the clock immediately after the attempt exists, before any UI rendering.
         // This prevents a rendering error from leaving the exam clock stopped.
         try { resumeCbtExam(); } catch (timerStartError) {
@@ -4080,7 +4088,8 @@ function syncCbtSideDrawerUI() {
         let unansweredCount = 0;
 
         cbt.questions.forEach(function(q) {
-          const qSecObj = cbt.test.sections && cbt.test.sections.find(s => s.subjectId === q.subjectId);
+          const qSectionIndex = getCbtQuestionSectionIndex(cbt, q);
+          const qSecObj = qSectionIndex >= 0 ? cbt.test.sections[qSectionIndex] : null;
           const qMarks = Number(
             qSecObj && qSecObj.posMarks !== undefined
               ? qSecObj.posMarks
