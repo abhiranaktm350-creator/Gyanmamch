@@ -3586,6 +3586,10 @@ function syncCbtSideDrawerUI() {
           cbt.activeSectionIndex += 1;
           const nextSec = sections[cbt.activeSectionIndex];
           cbt.sectionRemainingSeconds = Number(nextSec.durationMinutes || 20) * 60;
+          // Give the next section its own fresh deadline. When the previous section
+          // expired automatically, its interval was cleared; restart the CBT clock
+          // so the next section timer actually counts down as well.
+          cbt.sectionDeadlineAt = Date.now() + cbt.sectionRemainingSeconds * 1000;
           // Jump to first question of this new section
           const nextIdx = cbt.questions.findIndex(q => !nextSec.subjectId || q.subjectId === nextSec.subjectId);
           if (nextIdx !== -1) cbt.currentIndex = nextIdx;
