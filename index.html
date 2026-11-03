@@ -1314,10 +1314,16 @@ table{max-width:100%;border-collapse:collapse}
             ]
           },
           {
-            id: 'ex_sbi_clerk', categoryId: 'cat_banking', code: 'SBI-CLERK-PRE', name: 'SBI Clerk (Junior Associate) Prelims (Composite Timer)',
-            syllabus: 'English (30), Numerical Ability (35), Reasoning (35) • 100 Qs in 60 Mins • Composite time; no sectional timer (+1.00 / -0.25)',
+            id: 'ex_sbi_clerk', categoryId: 'cat_banking', code: 'SBI-CLERK-PRE', name: 'SBI Clerk (Junior Associate) Prelims (20+20+20m Sectional Timer)',
+            syllabus: 'English (30 Qs, 20m) + Numerical Ability (35 Qs, 20m) + Reasoning Ability (35 Qs, 20m) • 100 Qs in 60 Mins • Separately timed tests (+1.00 / -0.25)',
             duration: 60, totalMarks: 100, posMarks: 1.0, negMarks: 0.25, officialQs: 100, isSample: false,
-            allowedSubjects: ['sub_english', 'sub_quant', 'sub_reasoning']
+            allowedSubjects: ['sub_english', 'sub_quant', 'sub_reasoning'],
+            hasSectionalTiming: true,
+            sessionConfig: [
+              { id: 'sec_scp_eng', name: 'Test 1: English Language (20m)', name_hi: 'अंग्रेजी भाषा (20 मिनट)', subjectId: 'sub_english', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 },
+              { id: 'sec_scp_quant', name: 'Test 2: Numerical Ability (20m)', name_hi: 'संख्यात्मक क्षमता (20 मिनट)', subjectId: 'sub_quant', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 },
+              { id: 'sec_scp_reason', name: 'Test 3: Reasoning Ability (20m)', name_hi: 'तर्कशक्ति क्षमता (20 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 20, posMarks: 1.0, negMarks: 0.25 }
+            ]
           },
           {
             id: 'ex_sbi_clerk_mains', categoryId: 'cat_banking', code: 'SBI-CLERK-MAINS', name: 'SBI Clerk / Junior Associate Mains (35+35+45+45m Sectional Timer)',
