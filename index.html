@@ -1108,9 +1108,16 @@ table{max-width:100%;border-collapse:collapse}
           // ===================================================================
           {
             id: 'ex_ssc_cgl', categoryId: 'cat_ssc', code: 'SSC-CGL-T1', name: 'SSC CGL Tier-I',
-            syllabus: 'Maths/Quant (25), Reasoning (25), English (25), GK/GA (25) • 100 Qs in 60 Mins (+2.00 / -0.50)',
+            syllabus: 'Maths, Reasoning, English & GA • 100 Qs in 60 Mins • 15m per section (+2.00 / -0.50)',
             duration: 60, totalMarks: 200, posMarks: 2.0, negMarks: 0.50, officialQs: 100, isSample: false,
-            allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_english', 'sub_ga', 'sub_science']
+            allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_english', 'sub_ga', 'sub_science'],
+            hasSectionalTiming: true,
+            sessionConfig: [
+              { id: 'sec_cgl1_q', name: 'Section 1: Quantitative Aptitude (15m)', name_hi: 'मात्रात्मक अभियोग्यता (15 मिनट)', subjectId: 'sub_quant', durationMinutes: 15, posMarks: 2.0, negMarks: 0.50 },
+              { id: 'sec_cgl1_r', name: 'Section 2: General Intelligence & Reasoning (15m)', name_hi: 'सामान्य बुद्धिमत्ता एवं तर्कशक्ति (15 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 15, posMarks: 2.0, negMarks: 0.50 },
+              { id: 'sec_cgl1_e', name: 'Section 3: English Comprehension (15m)', name_hi: 'अंग्रेजी समझ (15 मिनट)', subjectId: 'sub_english', durationMinutes: 15, posMarks: 2.0, negMarks: 0.50 },
+              { id: 'sec_cgl1_g', name: 'Section 4: General Awareness (15m)', name_hi: 'सामान्य जागरूकता (15 मिनट)', subjectIds: ['sub_ga', 'sub_science'], durationMinutes: 15, posMarks: 2.0, negMarks: 0.50 }
+            ]
           },
           {
             id: 'ex_ssc_cgl_t2', categoryId: 'cat_ssc', code: 'SSC-CGL-T2', name: 'SSC CGL Tier-II (Mains — Sessional Timed)',
@@ -1119,8 +1126,8 @@ table{max-width:100%;border-collapse:collapse}
             allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_english', 'sub_ga', 'sub_computer', 'sub_science'],
             hasSectionalTiming: true,
             sessionConfig: [
-              { id: 'sec_cgl2_1', name: 'Section I: Maths & Reasoning (60m)', name_hi: 'अनुभाग I: गणित एवं तर्कशक्ति (60 मिनट)', subjectId: 'sub_quant', durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },
-              { id: 'sec_cgl2_2', name: 'Section II: English & GA (60m)', name_hi: 'अनुभाग II: अंग्रेजी एवं सामान्य जागरूकता (60 मिनट)', subjectId: 'sub_english', durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },
+              { id: 'sec_cgl2_1', name: 'Section I: Maths & Reasoning (60m)', name_hi: 'अनुभाग I: गणित एवं तर्कशक्ति (60 मिनट)', subjectIds: ['sub_quant', 'sub_reasoning'], durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },
+              { id: 'sec_cgl2_2', name: 'Section II: English & GA (60m)', name_hi: 'अनुभाग II: अंग्रेजी एवं सामान्य जागरूकता (60 मिनट)', subjectIds: ['sub_english', 'sub_ga', 'sub_science'], durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },
               { id: 'sec_cgl2_3', name: 'Section III: Computer Knowledge (15m)', name_hi: 'अनुभाग III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 }
             ]
           },
@@ -1137,8 +1144,8 @@ table{max-width:100%;border-collapse:collapse}
             allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_english', 'sub_ga', 'sub_computer'],
             hasSectionalTiming: true,
             sessionConfig: [
-              { id: 'sec_chsl2_1', name: 'Section I: Maths & Reasoning (60m)', name_hi: 'अनुभाग I: गणित एवं तर्कशक्ति (60 मिनट)', subjectId: 'sub_quant', durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },
-              { id: 'sec_chsl2_2', name: 'Section II: English & GA (60m)', name_hi: 'अनुभाग II: अंग्रेजी एवं सामान्य जागरूकता (60 मिनट)', subjectId: 'sub_english', durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },
+              { id: 'sec_chsl2_1', name: 'Section I: Maths & Reasoning (60m)', name_hi: 'अनुभाग I: गणित एवं तर्कशक्ति (60 मिनट)', subjectIds: ['sub_quant', 'sub_reasoning'], durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },
+              { id: 'sec_chsl2_2', name: 'Section II: English & GA (60m)', name_hi: 'अनुभाग II: अंग्रेजी एवं सामान्य जागरूकता (60 मिनट)', subjectIds: ['sub_english', 'sub_ga', 'sub_science'], durationMinutes: 60, posMarks: 3.0, negMarks: 1.00 },
               { id: 'sec_chsl2_3', name: 'Section III: Computer Knowledge (15m)', name_hi: 'अनुभाग III: कंप्यूटर ज्ञान (15 मिनट)', subjectId: 'sub_computer', durationMinutes: 15, posMarks: 3.0, negMarks: 1.00 }
             ]
           },
@@ -1149,8 +1156,8 @@ table{max-width:100%;border-collapse:collapse}
             allowedSubjects: ['sub_quant', 'sub_reasoning', 'sub_ga', 'sub_english', 'sub_science'],
             hasSectionalTiming: true,
             sessionConfig: [
-              { id: 'sess_mts_1', name: 'Session I: Numerical & Reasoning (45m • No Neg)', name_hi: 'सत्र I: गणित एवं तर्कशक्ति (45 मिनट • नेगेटिव नहीं)', subjectId: 'sub_quant', durationMinutes: 45, posMarks: 3.0, negMarks: 0.00 },
-              { id: 'sess_mts_2', name: 'Session II: GA & English (45m • +3/-1)', name_hi: 'सत्र II: सामान्य जागरूकता एवं अंग्रेजी (45 मिनट • +3/-1)', subjectId: 'sub_ga', durationMinutes: 45, posMarks: 3.0, negMarks: 1.00 }
+              { id: 'sess_mts_1', name: 'Session I: Numerical & Reasoning (45m • No Neg)', name_hi: 'सत्र I: गणित एवं तर्कशक्ति (45 मिनट • नेगेटिव नहीं)', subjectIds: ['sub_quant', 'sub_reasoning'], durationMinutes: 45, posMarks: 3.0, negMarks: 0.00 },
+              { id: 'sess_mts_2', name: 'Session II: GA & English (45m • +3/-1)', name_hi: 'सत्र II: सामान्य जागरूकता एवं अंग्रेजी (45 मिनट • +3/-1)', subjectIds: ['sub_ga', 'sub_science', 'sub_english'], durationMinutes: 45, posMarks: 3.0, negMarks: 1.00 }
             ]
           },
           {
@@ -1206,10 +1213,10 @@ table{max-width:100%;border-collapse:collapse}
             allowedSubjects: ['sub_reasoning', 'sub_computer', 'sub_ga', 'sub_english', 'sub_quant'],
             hasSectionalTiming: true,
             sessionConfig: [
-              { id: 'sec_ipm_1', name: 'Sec 1: Reasoning & Computer (60m)', name_hi: 'तर्कशक्ति एवं कंप्यूटर (60 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 60, posMarks: 1.0, negMarks: 0.25 },
+              { id: 'sec_ipm_1', name: 'Sec 1: Reasoning & Computer (60m)', name_hi: 'तर्कशक्ति एवं कंप्यूटर (60 मिनट)', subjectIds: ['sub_reasoning', 'sub_computer'], durationMinutes: 60, posMarks: 1.0, negMarks: 0.25 },
               { id: 'sec_ipm_2', name: 'Sec 2: Banking & Economy GA (35m)', name_hi: 'बैंकिंग एवं अर्थव्यवस्था (35 मिनट)', subjectId: 'sub_ga', durationMinutes: 35, posMarks: 1.0, negMarks: 0.25 },
               { id: 'sec_ipm_3', name: 'Sec 3: English Language (40m)', name_hi: 'अंग्रेजी भाषा (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_ipm_4', name: 'Sec 4: Data Analysis & Quant (45m)', name_hi: 'डेटा विश्लेषण एवं गणित (45 मिनट)', subjectId: 'sub_quant', durationMinutes: 45, posMarks: 1.0, negMarks: 0.25 }
+              { id: 'sec_ipm_4', name: 'Sec 4: Data Analysis & Quant (45m)', name_hi: 'डेटा विश्लेषण एवं गणित (45 मिनट)', subjectIds: ['sub_quant'], durationMinutes: 45, posMarks: 1.0, negMarks: 0.25 }
             ]
           },
           {
@@ -1233,7 +1240,7 @@ table{max-width:100%;border-collapse:collapse}
             sessionConfig: [
               { id: 'sec_icm_1', name: 'Sec 1: Financial Awareness (35m)', name_hi: 'वित्तीय जागरूकता (35 मिनट)', subjectId: 'sub_ga', durationMinutes: 35, posMarks: 1.0, negMarks: 0.25 },
               { id: 'sec_icm_2', name: 'Sec 2: General English (35m)', name_hi: 'अंग्रेजी भाषा (35 मिनट)', subjectId: 'sub_english', durationMinutes: 35, posMarks: 1.0, negMarks: 0.25 },
-              { id: 'sec_icm_3', name: 'Sec 3: Reasoning & Computer (45m)', name_hi: 'तर्कशक्ति एवं कंप्यूटर (45 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 45, posMarks: 1.0, negMarks: 0.25 },
+              { id: 'sec_icm_3', name: 'Sec 3: Reasoning & Computer (45m)', name_hi: 'तर्कशक्ति एवं कंप्यूटर (45 मिनट)', subjectIds: ['sub_reasoning', 'sub_computer'], durationMinutes: 45, posMarks: 1.0, negMarks: 0.25 },
               { id: 'sec_icm_4', name: 'Sec 4: Quantitative Aptitude (45m)', name_hi: 'मात्रात्मक अभियोग्यता (45 मिनट)', subjectId: 'sub_quant', durationMinutes: 45, posMarks: 1.0, negMarks: 0.25 }
             ]
           },
@@ -1290,7 +1297,7 @@ table{max-width:100%;border-collapse:collapse}
             allowedSubjects: ['sub_reasoning', 'sub_computer', 'sub_quant', 'sub_ga', 'sub_english'],
             hasSectionalTiming: true,
             sessionConfig: [
-              { id: 'sec_spm_1', name: 'Sec 1: Reasoning & Computer (50m)', name_hi: 'तर्कशक्ति एवं कंप्यूटर (50 मिनट)', subjectId: 'sub_reasoning', durationMinutes: 50, posMarks: 1.0, negMarks: 0.25 },
+              { id: 'sec_spm_1', name: 'Sec 1: Reasoning & Computer (50m)', name_hi: 'तर्कशक्ति एवं कंप्यूटर (50 मिनट)', subjectIds: ['sub_reasoning', 'sub_computer'], durationMinutes: 50, posMarks: 1.0, negMarks: 0.25 },
               { id: 'sec_spm_2', name: 'Sec 2: Data Analysis & Quant (45m)', name_hi: 'डेटा विश्लेषण एवं गणित (45 मिनट)', subjectId: 'sub_quant', durationMinutes: 45, posMarks: 1.0, negMarks: 0.25 },
               { id: 'sec_spm_3', name: 'Sec 3: Economy & Banking GA (45m)', name_hi: 'बैंकिंग एवं अर्थव्यवस्था (45 मिनट)', subjectId: 'sub_ga', durationMinutes: 45, posMarks: 1.0, negMarks: 0.25 },
               { id: 'sec_spm_4', name: 'Sec 4: English Language (40m)', name_hi: 'अंग्रेजी भाषा (40 मिनट)', subjectId: 'sub_english', durationMinutes: 40, posMarks: 1.0, negMarks: 0.25 }
