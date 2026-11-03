@@ -3742,7 +3742,7 @@ function syncCbtSideDrawerUI() {
           : [{ id: 'sec_all', name: 'All Questions', subjectId: null }];
 
         const currentQ = cbt.questions[cbt.currentIndex];
-        tabsContainer.innerHTML = sections.map(function(sec) {
+        tabsContainer.innerHTML = sections.map(function(sec, secIdx) {
           const secSubjectIds = Array.isArray(sec.subjectIds) && sec.subjectIds.length ? sec.subjectIds : (sec.subjectId ? [sec.subjectId] : []);
           const isCurrentSec = cbt.hasSectionalTiming
             ? secIdx === cbt.activeSectionIndex
