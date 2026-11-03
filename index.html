@@ -3380,6 +3380,16 @@ function syncCbtSideDrawerUI() {
           showToast('This test has no published questions yet.', 'warning');
           return;
         }
+        // Never lock a student into an empty section. A sectional engine is enabled
+        // only when this particular mock contains questions for every configured section.
+        const sectionCoverageComplete = test.sections.length > 0 && test.sections.every(function(sec) {
+          const ids = Array.isArray(sec.subjectIds) && sec.subjectIds.length ? sec.subjectIds : (sec.subjectId ? [sec.subjectId] : []);
+          return !ids.length || questionsList.some(q => ids.includes(q.subjectId));
+        });
+        if (test.sections.length && !sectionCoverageComplete && examDefinition && test.sections.length === configuredSections.length) {
+          test.sections = [];
+          showToast('This mock has incomplete subject coverage. Using its overall timer instead of locking missing sections.', 'warning');
+        }
 
         // Always create a NEW, separate attempt with a unique Attempt ID and fresh timer
         const uniqueAttemptId = 'ATT-' + Date.now().toString().slice(-6) + '-' + Math.floor(100 + Math.random() * 899);
