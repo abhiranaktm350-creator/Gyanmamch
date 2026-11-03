@@ -3601,6 +3601,10 @@ function syncCbtSideDrawerUI() {
           renderCbtHeaderAndTabs();
           renderCbtCurrentQuestion();
           renderCbtPalette();
+          // Auto-expiry clears the old interval before advancing. Start a fresh
+          // interval for the next section; manual section submit keeps its interval.
+          if (!cbt.timerInterval && cbt.isStarted && !cbt.isPaused) resumeCbtExam();
+          else updateCbtTimerDisplay();
         } else {
           // Last section finished -> submit entire test
           finalizeAndScoreAttempt(isAutoExpiry);
