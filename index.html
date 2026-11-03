@@ -3725,13 +3725,18 @@ function syncCbtSideDrawerUI() {
         const cbt = state.activeCbt;
         const timerText = document.getElementById('cbtTimerText');
         if (timerText) {
-          const rem = cbt.remainingSeconds;
+          // Official sectional/session exams show the active section's live clock
+          // as the primary CBT timer. Composite exams and admin custom mocks keep
+          // their single overall countdown.
+          const hasActiveSectionClock = Boolean(cbt.hasSectionalTiming && cbt.test && Array.isArray(cbt.test.sections) && cbt.test.sections[cbt.activeSectionIndex]);
+          const rem = hasActiveSectionClock ? cbt.sectionRemainingSeconds : cbt.remainingSeconds;
           timerText.textContent = formatSeconds(rem);
           if (rem <= 120) {
             timerText.className = 'font-mono font-bold text-base text-rose-400 animate-pulse tracking-wider';
           } else {
             timerText.className = 'font-mono font-bold text-base text-emerald-400 tracking-wider';
           }
+          timerText.setAttribute('aria-label', hasActiveSectionClock ? 'Current section time remaining' : 'Total exam time remaining');
         }
         const questionTimeBadge = document.getElementById('cbtQuestionTimeBadge');
         const currentQuestion = cbt.questions && cbt.questions[cbt.currentIndex];
