@@ -1,8 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-<rect width="512" height="512" rx="112" fill="#465b73"/>
-<path d="M112 145c52-22 101-17 144 12v208c-43-29-92-34-144-12z" fill="#fff"/>
-<path d="M400 145c-52-22-101-17-144 12v208c43-29 92-34 144-12z" fill="#e8f1f8"/>
-<path d="M256 157v208" stroke="#9fb7ca" stroke-width="12" stroke-linecap="round"/>
-<path d="M151 195c31-8 57-4 79 8M151 235c31-8 57-4 79 8M361 195c-31-8-57-4-79 8M361 235c-31-8-57-4-79 8" fill="none" stroke="#465b73" stroke-width="11" stroke-linecap="round"/>
-<path d="M256 76l15 31 34 5-25 24 6 34-30-16-30 16 6-34-25-24 34-5z" fill="#dbeafe"/>
-</svg>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b3d91"/><stop offset="1" stop-color="#1677e8"/></linearGradient><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffe08a"/><stop offset="1" stop-color="#e9a900"/></linearGradient></defs>
+<rect width="512" height="512" rx="112" fill="url(#bg)"/>
+<circle cx="256" cy="220" r="146" fill="#fff" opacity=".08"/>
+<path d="M92 300q80-56 164 8 84-64 164-8v90q-82-49-164 13-82-62-164-13z" fill="#fff"/>
+<path d="M108 310q72-44 148 16v62q-76-58-148-19zm296 0q-72-44-148 16v62q76-58 148-19z" fill="#dcecff"/>
+<path d="M256 307c-27-47-56-70-89-73 22 28 35 53 39 76-22-23-47-34-76-33 39 29 76 68 126 108 50-40 87-79 126-108-29-1-54 10-76 33 4-23 17-48 39-76-33 3-62 26-89 73z" fill="#1677e8"/>
+<path d="M256 86 104 145l152 61 152-61z" fill="#fff"/><path d="M373 151v76" stroke="url(#gold)" stroke-width="12" stroke-linecap="round"/><circle cx="373" cy="235" r="12" fill="#f6bd31"/>
+<path d="M391 104l13 27 30 4-22 21 5 30-26-14-27 14 6-30-22-21 30-4z" fill="url(#gold)"/>
+<path d="M111 423h290" stroke="#fff" stroke-opacity=".28" stroke-width="8" stroke-linecap="round"/>
+<text x="256" y="470" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#fff">GYAN MANCH</text></svg>
