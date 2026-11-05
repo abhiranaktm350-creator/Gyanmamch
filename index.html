@@ -657,7 +657,34 @@ table{max-width:100%;border-collapse:collapse}
       body:not(.exam-active) #appMain :is(.bg-white,.bg-slate-50,.bg-gray-50,.bg-blue-50,.bg-indigo-50).rounded-3xl { border-radius:20px !important; }
     }
   </style>
-</head>
+
+  <style id="gm-home-header-cleanup-and-auth-tab-state">
+    /* Keep the public homepage uncluttered; restore these controls on every other view. */
+    body.gm-home-view #hdrBtnMenu,
+    body.gm-home-view #btnMobileMenu,
+    body.gm-home-view #hdrBtnStuLogin,
+    body.gm-home-view #hdrBtnAdmLogin,
+    body.gm-home-view #navStudentDashBtn,
+    body.gm-home-view #navAdminDashBtn,
+    body.gm-home-view #quickSwitchRegisterNew,
+    body.gm-home-view #quickSwitchAdmin,
+    body.gm-home-view #mobileMenuPanel [data-nav="student-login"],
+    body.gm-home-view #mobileMenuPanel [data-nav="student-dashboard"],
+    body.gm-home-view #mobileMenuPanel [data-nav="admin-dashboard"] { display:none !important; }
+    body.gm-home-view #mobileMenuPanel { display:none !important; }
+    #studentLoginTab[aria-selected="true"],
+    #studentSignupTab[aria-selected="true"] {
+      background:#102b50 !important; color:#fff !important;
+      border:2px solid #071b3a !important; box-shadow:0 0 0 3px rgba(37,99,235,.22),0 5px 12px rgba(15,23,42,.18) !important;
+      transform:translateY(-1px); position:relative;
+    }
+    #studentLoginTab[aria-selected="false"],
+    #studentSignupTab[aria-selected="false"] {
+      background:#e8eef5 !important; color:#334155 !important;
+      border:2px solid #d2dce8 !important; box-shadow:none !important;
+    }
+  </style>
+\n</head>
 <body class="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
 
 
@@ -2260,6 +2287,7 @@ table{max-width:100%;border-collapse:collapse}
         const studentMinimal = !adminScreen && (Boolean(user && user.role === 'student') || state.currentView === 'student-login');
         document.body.classList.toggle('student-clean-mode', studentMinimal);
         document.body.classList.toggle('admin-full-mode', Boolean(user && user.role === 'admin') || state.currentView === 'admin-login');
+        document.body.classList.toggle('gm-home-view', state.currentView === 'home');
 
         const backBtn = document.getElementById('btnGlobalBack');
         if (backBtn) {
@@ -5233,8 +5261,10 @@ function syncCbtSideDrawerUI() {
           signupPanel.hidden = isLogin;
           loginTab.setAttribute('aria-selected', String(isLogin));
           signupTab.setAttribute('aria-selected', String(!isLogin));
-          loginTab.className = 'w-full rounded-xl px-4 py-3 text-sm font-bold tracking-wide text-white shadow-md transition ' + (isLogin ? 'bg-blue-800 hover:bg-blue-900' : 'bg-blue-700 hover:bg-blue-800');
-          signupTab.className = 'w-full rounded-xl px-4 py-3 text-sm font-bold tracking-wide text-white shadow-md transition ' + (!isLogin ? 'bg-blue-800 hover:bg-blue-900' : 'bg-blue-700 hover:bg-blue-800');
+          loginTab.textContent = isLogin ? 'LOGIN ✓' : 'LOGIN';
+          signupTab.textContent = isLogin ? 'SIGN UP' : 'SIGN UP ✓';
+          loginTab.className = 'w-full rounded-xl px-4 py-3 text-sm font-bold tracking-wide transition ' + (isLogin ? 'bg-slate-900 text-white border-2 border-slate-950 shadow-lg ring-2 ring-blue-200' : 'bg-slate-100 text-slate-700 border-2 border-slate-200 shadow-none');
+          signupTab.className = 'w-full rounded-xl px-4 py-3 text-sm font-bold tracking-wide transition ' + (!isLogin ? 'bg-slate-900 text-white border-2 border-slate-950 shadow-lg ring-2 ring-blue-200' : 'bg-slate-100 text-slate-700 border-2 border-slate-200 shadow-none');
         }
         loginTab.addEventListener('click', function() { showStudentAuthTab('login'); });
         signupTab.addEventListener('click', function() { showStudentAuthTab('signup'); });
