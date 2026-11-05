@@ -1,62 +1,147 @@
-const corsHeaders = { "Content-Type": "application/json", "Cache-Control": "no-store" };
+function json(res, status, body) {
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  return res.status(status).json(body);
+}
+
+function cleanText(value, max = 3000) {
+  return typeof value === "string" ? value.trim().slice(0, max) : "";
+}
+
+function validOptions(value) {
+  return Array.isArray(value) && value.length === 4 &&
+    value.every(item => typeof item === "string" && item.trim().length > 0) &&
+    new Set(value.map(item => item.trim().toLocaleLowerCase())).size === 4;
+}
+
+function normalizeQuestion(q, difficulty) {
+  return {
+    question_en: cleanText(q.question_en),
+    question_hi: cleanText(q.question_hi),
+    options_en: Array.isArray(q.options_en) ? q.options_en.slice(0, 4).map(v => cleanText(v, 800)) : [],
+    options_hi: Array.isArray(q.options_hi) ? q.options_hi.slice(0, 4).map(v => cleanText(v, 800)) : [],
+    correct_option: Number(q.correct_option),
+    explanation_en: cleanText(q.explanation_en, 2000),
+    explanation_hi: cleanText(q.explanation_hi, 2000),
+    difficulty: cleanText(q.difficulty, 30) || difficulty
+  };
+}
+
+function isComplete(q, language) {
+  const answerValid = Number.isInteger(q.correct_option) && q.correct_option >= 0 && q.correct_option <= 3;
+  const englishValid = language === "hi" || (q.question_en && validOptions(q.options_en));
+  const hindiValid = language === "en" || (q.question_hi && validOptions(q.options_hi));
+  return answerValid && englishValid && hindiValid && (q.question_en || q.question_hi);
+}
+
+async function generateBatch({ key, model, exam, subject, topic, difficulty, language, count, batchIndex, batchTotal }) {
+  const prompt = [
+    "You are an expert Indian competitive-exam question setter for Gyan Manch.",
+    "Create exactly " + count + " original, high-quality MCQs for " + exam + ", subject " + subject + ", topic " + topic + ", difficulty " + difficulty + ".",
+    "This is batch " + (batchIndex + 1) + " of " + batchTotal + ". Avoid repeating questions or testing the same fact within this batch.",
+    "Match the real exam's reasoning style and difficulty. Do not copy copyrighted past-paper wording. Avoid fabricated current-affairs facts; prefer stable syllabus knowledge.",
+    "Every question must have exactly four distinct, non-empty options and exactly one correct option indexed 0-3. Verify calculations and answer keys before returning.",
+    language === "both" ? "Provide accurate, natural English AND Hindi (Devanagari) for every question, all four options, and explanations." :
+      language === "hi" ? "Provide complete Hindi (Devanagari) questions, all four options, and explanations." :
+      "Provide complete English questions, all four options, and explanations.",
+    "Return ONLY valid JSON in this schema: " + JSON.stringify({questions:[{question_en:"",question_hi:"",options_en:["","","",""],options_hi:["","","",""],correct_option:0,explanation_en:"",explanation_hi:"",difficulty:difficulty}]}),
+    "Return exactly " + count + " questions. No markdown fences or text outside JSON."
+  ].join("\n\n");
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 50000);
+  try {
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(key), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.3, responseMimeType: "application/json" }
+      }),
+      signal: controller.signal
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message = data.error && data.error.message ? data.error.message : "";
+      throw new Error(response.status === 429 ? "Gemini rate limit reached. Wait a moment and retry." :
+        response.status === 401 || response.status === 403 ? "Gemini rejected the configured API key. Check the Preview environment variable." :
+        message || "Gemini could not generate this question batch.");
+    }
+    const raw = data.candidates?.[0]?.content?.parts?.map(part => part.text || "").join("") || "";
+    let parsed;
+    try { parsed = JSON.parse(raw.replace(/^\uFEFF/, "").trim()); } catch (_) {
+      throw new Error("Gemini returned an invalid JSON batch. Please retry.");
+    }
+    if (!Array.isArray(parsed.questions)) throw new Error("Gemini response did not contain a question list.");
+    const questions = parsed.questions.map(q => normalizeQuestion(q || {}, difficulty));
+    if (questions.length !== count || questions.some(q => !isComplete(q, language))) {
+      throw new Error("Gemini returned incomplete questions or options. No partial batch was accepted; please retry.");
+    }
+    return questions;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 export default async function handler(req, res) {
-  res.setHeader("Cache-Control", "no-store");
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed." });
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    return json(res, 405, { error: "Method not allowed." });
+  }
 
   const supabaseUrl = (process.env.GYAN_MANCH_SUPABASE_URL || "https://zpjpoolfkjdlqxioabnf.supabase.co").replace(/\/$/, "");
   const supabaseKey = process.env.GYAN_MANCH_SUPABASE_KEY || req.headers.apikey || "";
-  const auth = String(req.headers.authorization || "");
-  if (!auth.startsWith("Bearer ") || !supabaseKey) return res.status(401).json({ error: "Please sign in with an administrator account." });
+  const authorization = String(req.headers.authorization || "");
+  if (!authorization.startsWith("Bearer ") || !supabaseKey) {
+    return json(res, 401, { error: "Please sign in with an administrator account." });
+  }
 
   try {
-    const userResponse = await fetch(supabaseUrl + "/auth/v1/user", { headers: { apikey: supabaseKey, authorization: auth } });
-    if (!userResponse.ok) return res.status(401).json({ error: "Your administrator session is invalid or expired." });
+    const userResponse = await fetch(supabaseUrl + "/auth/v1/user", {
+      headers: { apikey: supabaseKey, authorization }
+    });
+    if (!userResponse.ok) return json(res, 401, { error: "Your administrator session is invalid or expired." });
     const user = await userResponse.json();
-    const profileResponse = await fetch(supabaseUrl + "/rest/v1/profiles?id=eq." + encodeURIComponent(user.id) + "&select=role,approval_status", { headers: { apikey: supabaseKey, authorization: auth } });
-    if (!profileResponse.ok) return res.status(403).json({ error: "Could not verify administrator permissions." });
+    const profileResponse = await fetch(supabaseUrl + "/rest/v1/profiles?id=eq." + encodeURIComponent(user.id) + "&select=role,approval_status", {
+      headers: { apikey: supabaseKey, authorization }
+    });
+    if (!profileResponse.ok) return json(res, 403, { error: "Could not verify administrator permissions." });
     const profiles = await profileResponse.json();
     const profile = Array.isArray(profiles) ? profiles[0] : null;
-    if (!profile || profile.role !== "admin" || profile.approval_status !== "approved") return res.status(403).json({ error: "Only approved administrators can use the AI Question Agent." });
+    if (!profile || profile.role !== "admin" || profile.approval_status !== "approved") {
+      return json(res, 403, { error: "Only approved administrators can use the AI Question Agent." });
+    }
 
-    const key = process.env.GEMINI_API_KEY;
-    if (!key) return res.status(503).json({ error: "AI is not configured for this Preview yet. Add GEMINI_API_KEY to the Vercel Preview environment only; never put it in browser code." });
+    const key = String(process.env.GEMINI_API_KEY || "").trim();
+    if (!key) return json(res, 503, { error: "AI is not configured for this Preview yet. Add GEMINI_API_KEY to the Vercel Preview environment only; never put it in browser code." });
 
-    const body = req.body || {};
-    const exam = String(body.exam || "General Competitive Exams").slice(0, 80);
-    const subject = String(body.subject || "General Awareness").slice(0, 80);
-    const topic = String(body.topic || "").trim().slice(0, 120);
-    const difficulty = String(body.difficulty || "Mixed").slice(0, 30);
+    let body = req.body || {};
+    if (typeof body === "string") {
+      try { body = JSON.parse(body); } catch (_) { return json(res, 400, { error: "Request body must be valid JSON." }); }
+    }
+    if (!body || typeof body !== "object" || Array.isArray(body)) return json(res, 400, { error: "Invalid request." });
+
+    const exam = cleanText(body.exam || "General Competitive Exams", 80);
+    const subject = cleanText(body.subject || "General Awareness", 80);
+    const topic = cleanText(body.topic, 120);
+    const difficulty = cleanText(body.difficulty || "Mixed", 30);
     const language = ["both", "en", "hi"].includes(body.language) ? body.language : "both";
-    const count = Math.min(25, Math.max(1, Number(body.count) || 10));
-    if (!topic) return res.status(400).json({ error: "Enter a topic first." });
+    const count = Math.min(100, Math.max(1, Math.floor(Number(body.count) || 10)));
+    if (!topic) return json(res, 400, { error: "Enter a topic first." });
+    if (!Number.isFinite(Number(body.count)) || count < 1) return json(res, 400, { error: "Choose a valid question count." });
 
-    const prompt = `You are an expert Indian competitive-exam question setter for Gyan Manch. Create exactly ${count} original, unambiguous MCQs for ${exam}, subject ${subject}, topic ${topic}, difficulty ${difficulty}. Avoid fabricated current-affairs facts; prefer stable syllabus knowledge. Match the exam's style and difficulty, not copied copyrighted past-paper wording. Each question must have exactly four distinct options and exactly one correct option indexed 0-3. Verify the answer logically before returning. Language mode: ${language}. If both, provide accurate natural English and Hindi for the question, all four options, and explanations. If en, Hindi fields may be empty. If hi, provide Hindi fields and English fields may be empty. Return ONLY valid JSON in this schema: {"questions":[{"question_en":"","question_hi":"","options_en":["","","",""],"options_hi":["","","",""],"correct_option":0,"explanation_en":"","explanation_hi":"","difficulty":"${difficulty}"}]}. No markdown fences or text outside JSON.`;
-
-    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(key), {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.35, responseMimeType: "application/json" } })
-    });
-    const aiData = await aiResponse.json().catch(() => ({}));
-    if (!aiResponse.ok) return res.status(502).json({ error: aiData.error?.message || "The AI provider could not generate questions." });
-    const raw = aiData.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || "";
-    let parsed;
-    try { parsed = JSON.parse(raw.replace(/^\uFEFF/, "").trim()); } catch { return res.status(502).json({ error: "AI returned an invalid question format. Please try again." }); }
-    if (!Array.isArray(parsed.questions)) return res.status(502).json({ error: "AI response did not contain a question list." });
-    const questions = parsed.questions.slice(0, count).map(q => ({
-      question_en: String(q.question_en || "").slice(0, 3000),
-      question_hi: String(q.question_hi || "").slice(0, 3000),
-      options_en: Array.isArray(q.options_en) ? q.options_en.slice(0,4).map(v=>String(v||"").slice(0,800)) : [],
-      options_hi: Array.isArray(q.options_hi) ? q.options_hi.slice(0,4).map(v=>String(v||"").slice(0,800)) : [],
-      correct_option: Number(q.correct_option),
-      explanation_en: String(q.explanation_en || "").slice(0,2000),
-      explanation_hi: String(q.explanation_hi || "").slice(0,2000),
-      difficulty: String(q.difficulty || difficulty).slice(0,30)
-    })).filter(q => (q.question_en || q.question_hi) && q.options_en.length === 4 && q.correct_option >= 0 && q.correct_option <= 3);
-    if (questions.length !== count) return res.status(502).json({ error: "AI generated incomplete questions. Please retry or use a smaller batch." });
-    return res.status(200).json({ questions });
+    const model = String(process.env.GEMINI_MODEL || "gemini-2.5-flash").trim();
+    const batchSize = 20;
+    const batchCounts = Array.from({length: Math.ceil(count / batchSize)}, (_, i) => Math.min(batchSize, count - i * batchSize));
+    const batches = await Promise.all(batchCounts.map((batchCount, index) =>
+      generateBatch({ key, model, exam, subject, topic, difficulty, language, count: batchCount, batchIndex: index, batchTotal: batchCounts.length })
+    ));
+    const questions = batches.flat();
+    if (questions.length !== count) return json(res, 502, { error: "The AI could not complete the full question set. Please retry." });
+    return json(res, 200, { questions, requested_count: count, generated_count: questions.length });
   } catch (error) {
-    return res.status(500).json({ error: error?.message || "Unexpected AI agent error." });
+    return json(res, error?.name === "AbortError" ? 504 : 502, {
+      error: error?.message || "Unexpected AI agent error. Please retry."
+    });
   }
 }
