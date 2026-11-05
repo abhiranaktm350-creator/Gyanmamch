@@ -5156,72 +5156,86 @@ function syncCbtSideDrawerUI() {
       // =========================================================================
       function renderStudentLoginView(container) {
         container.innerHTML = `
-          <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-            <!-- Student Login Card -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <div class="max-w-xl mx-auto py-4">
+            <section class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm">
               <div class="inline-flex items-center px-2.5 py-0.5 rounded bg-indigo-50 text-indigo-700 text-xs font-bold mb-2">STUDENT PORTAL</div>
-              <h1 class="text-xl font-extrabold text-slate-900 mb-1">Student Login</h1>
-              <p class="text-xs text-slate-500 mb-5">Username ya registered Gmail aur password se login karein.</p>
+              <h1 class="text-xl font-extrabold text-slate-900 mb-1">Student Account</h1>
+              <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-100 mb-5" role="tablist" aria-label="Student account options">
+                <button type="button" id="studentLoginTab" role="tab" aria-selected="true" aria-controls="studentLoginPanel" class="rounded-lg px-4 py-2.5 text-sm font-bold bg-white text-slate-900 shadow-sm">Login</button>
+                <button type="button" id="studentSignupTab" role="tab" aria-selected="false" aria-controls="studentSignupPanel" class="rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600">Sign Up</button>
+              </div>
 
               <div id="studentAccountStatusNotice" class="hidden mb-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm font-semibold text-amber-900" role="status"></div>
-              <form id="formStudentLogin" class="space-y-4 text-xs sm:text-sm">
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Username / Gmail</label>
-                  <input id="loginStuIdentifier" type="text" autocomplete="username" required placeholder="Enter username or registered Gmail" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
-                </div>
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Password</label>
-                  <div class="flex gap-2"><input id="loginStuPassword" type="password" required placeholder="Enter your password" class="flex-1 min-w-0 rounded-xl border border-slate-300 px-3.5 py-2.5" /><button type="button" data-toggle-password="loginStuPassword" aria-label="Show password" title="Show password" class="password-toggle inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" style="min-width:42px" data-state="hidden"><svg class="password-eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
-                </div>
-                <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold shadow transition">
-                  Log In as Student
-                </button>
-                <p id="studentLoginError" class="hidden text-sm font-semibold text-red-700" role="alert" aria-live="polite"></p>
-                <div class="text-center pt-1">
-                  <button type="button" id="studentForgotPassword" class="text-sm font-semibold text-indigo-700 hover:text-indigo-900 underline underline-offset-4">Forgot password?</button>
-                </div>
-              </form>
 
-            </div>
+              <div id="studentLoginPanel" role="tabpanel" aria-labelledby="studentLoginTab">
+                <p class="text-xs text-slate-500 mb-5">Username ya registered email aur password se login karein.</p>
+                <form id="formStudentLogin" class="space-y-4 text-xs sm:text-sm">
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Username / Email</label>
+                    <input id="loginStuIdentifier" type="text" autocomplete="username" required placeholder="Enter username or email" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5" />
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Password</label>
+                    <div class="flex gap-2"><input id="loginStuPassword" type="password" required placeholder="Enter password" class="flex-1 min-w-0 rounded-xl border border-slate-300 px-3.5 py-2.5" /><button type="button" data-toggle-password="loginStuPassword" aria-label="Show password" title="Show password" class="password-toggle inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" style="min-width:42px" data-state="hidden"><svg class="password-eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+                  </div>
+                  <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold shadow transition">Log In</button>
+                  <p id="studentLoginError" class="hidden text-sm font-semibold text-red-700" role="alert" aria-live="polite"></p>
+                  <div class="text-center pt-1">
+                    <button type="button" id="studentForgotPassword" class="text-sm font-semibold text-indigo-700 hover:text-indigo-900 underline underline-offset-4">Forgot password?</button>
+                  </div>
+                </form>
+              </div>
 
-            <!-- New Student Registration Card -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-              <div class="inline-flex items-center px-2.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-xs font-bold mb-2">NEW LIBRARY STUDENT</div>
-              <h2 class="text-xl font-extrabold text-slate-900 mb-1">Register New Student Account</h2>
-              <p class="text-xs text-slate-500 mb-5">Register with your email and create a username and password. Your account will be reviewed by the administrator.</p>
-
-              <form id="formStudentRegister" class="space-y-3.5 text-xs sm:text-sm">
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Full Name / Display Name</label>
-                  <input id="regStuName" type="text" required placeholder="e.g., Deepak Pant" class="w-full rounded-xl border border-slate-300 px-3.5 py-2" />
-                </div>
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Email Address</label>
-                  <input id="regStuEmail" type="email" autocomplete="email" required placeholder="you@example.com" class="w-full rounded-xl border border-slate-300 px-3.5 py-2" />
-                </div>
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Unique Username</label>
-                  <input id="regStuUsername" type="text" required placeholder="e.g., deepak_uk01" class="w-full rounded-xl border border-slate-300 px-3.5 py-2" />
-                </div>
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Mobile Number (10 digits)</label>
-                  <input id="regStuMobile" type="tel" inputmode="numeric" autocomplete="tel" required minlength="10" maxlength="10" pattern="[0-9]{10}" title="Enter exactly 10 digits" placeholder="e.g., 9412098765" class="w-full rounded-xl border border-slate-300 px-3.5 py-2" />
-                </div>
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Create Password</label>
-                  <div class="flex gap-2"><input id="regStuPassword" type="password" required minlength="6" autocomplete="new-password" placeholder="Minimum 6 characters" class="flex-1 min-w-0 rounded-xl border border-slate-300 px-3.5 py-2" /><button type="button" data-toggle-password="regStuPassword" aria-label="Show password" title="Show password" class="password-toggle inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" style="min-width:42px" data-state="hidden"><svg class="password-eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
-                </div>
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Confirm Password</label>
-                  <div class="flex gap-2"><input id="regStuPasswordConfirm" type="password" required minlength="6" autocomplete="new-password" placeholder="Enter password again" class="flex-1 min-w-0 rounded-xl border border-slate-300 px-3.5 py-2" /><button type="button" data-toggle-password="regStuPasswordConfirm" aria-label="Show password" title="Show password" class="password-toggle inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" style="min-width:42px" data-state="hidden"><svg class="password-eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
-                </div>
-                <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-emerald-600 text-white font-bold shadow transition">
-                  Create Account (Approval Required) →
-                </button>
-              </form>
-            </div>
+              <div id="studentSignupPanel" role="tabpanel" aria-labelledby="studentSignupTab" hidden>
+                <p class="text-xs text-slate-500 mb-5">Create your student account. Your account will be reviewed by the administrator.</p>
+                <form id="formStudentRegister" class="space-y-3.5 text-xs sm:text-sm">
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Full Name / Display Name</label>
+                    <input id="regStuName" type="text" required autocomplete="name" placeholder="Enter full name" class="w-full rounded-xl border border-slate-300 px-3.5 py-2" />
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Email Address</label>
+                    <input id="regStuEmail" type="email" autocomplete="email" required placeholder="Enter email address" class="w-full rounded-xl border border-slate-300 px-3.5 py-2" />
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Username</label>
+                    <input id="regStuUsername" type="text" autocomplete="username" required minlength="3" maxlength="24" placeholder="Choose username" class="w-full rounded-xl border border-slate-300 px-3.5 py-2" />
+                    <p class="text-xs text-slate-500 mt-1">Spaces are allowed.</p>
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Mobile Number (10 digits)</label>
+                    <input id="regStuMobile" type="tel" inputmode="numeric" autocomplete="tel" required minlength="10" maxlength="10" pattern="[0-9]{10}" title="Enter exactly 10 digits" placeholder="Enter mobile number" class="w-full rounded-xl border border-slate-300 px-3.5 py-2" />
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Create Password</label>
+                    <div class="flex gap-2"><input id="regStuPassword" type="password" required minlength="6" autocomplete="new-password" placeholder="Create password" class="flex-1 min-w-0 rounded-xl border border-slate-300 px-3.5 py-2" /><button type="button" data-toggle-password="regStuPassword" aria-label="Show password" title="Show password" class="password-toggle inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" style="min-width:42px" data-state="hidden"><svg class="password-eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Confirm Password</label>
+                    <div class="flex gap-2"><input id="regStuPasswordConfirm" type="password" required minlength="6" autocomplete="new-password" placeholder="Confirm password" class="flex-1 min-w-0 rounded-xl border border-slate-300 px-3.5 py-2" /><button type="button" data-toggle-password="regStuPasswordConfirm" aria-label="Show password" title="Show password" class="password-toggle inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" style="min-width:42px" data-state="hidden"><svg class="password-eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+                  </div>
+                  <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-emerald-600 text-white font-bold shadow transition">Create Account</button>
+                </form>
+              </div>
+            </section>
           </div>
         `;
+
+        const loginTab = document.getElementById('studentLoginTab');
+        const signupTab = document.getElementById('studentSignupTab');
+        const loginPanel = document.getElementById('studentLoginPanel');
+        const signupPanel = document.getElementById('studentSignupPanel');
+        function showStudentAuthTab(tab) {
+          const isLogin = tab === 'login';
+          loginPanel.hidden = !isLogin;
+          signupPanel.hidden = isLogin;
+          loginTab.setAttribute('aria-selected', String(isLogin));
+          signupTab.setAttribute('aria-selected', String(!isLogin));
+          loginTab.className = 'rounded-lg px-4 py-2.5 text-sm font-bold ' + (isLogin ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600');
+          signupTab.className = 'rounded-lg px-4 py-2.5 text-sm font-bold ' + (!isLogin ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600');
+        }
+        loginTab.addEventListener('click', function() { showStudentAuthTab('login'); });
+        signupTab.addEventListener('click', function() { showStudentAuthTab('signup'); });
 
         // Password eye toggles and strict 10-digit mobile input.
         container.querySelectorAll('[data-toggle-password]').forEach(function(btn) {
@@ -5239,7 +5253,7 @@ function syncCbtSideDrawerUI() {
           });
         });
         const mobileInput = document.getElementById('regStuMobile');
-        if (mobileInput) mobileInput.addEventListener('input', function() { this.value = this.value.replace(/\D/g, '').slice(0, 10); });
+        if (mobileInput) mobileInput.addEventListener('input', function() { this.value = this.value.replace(/\\D/g, '').slice(0, 10); });
 
         document.getElementById('formStudentLogin').addEventListener('submit', function(e) {
           e.preventDefault();
@@ -5258,27 +5272,16 @@ function syncCbtSideDrawerUI() {
             return;
           }
           const expectedHash = hashSecret(pass, found.id);
-          if (found.passwordHash !== expectedHash) {
-            showToast('Invalid password. Please try again.', 'error');
+          if (expectedHash !== found.passwordHash) {
+            showToast('Incorrect password. Please try again.', 'error');
             return;
           }
 
-          if (found.status === 'pending') {
-            state.currentUser = null;
-            savePersistentSession(null);
-            const notice = document.getElementById('studentAccountStatusNotice');
-            if (notice) { notice.textContent = '⏳ Account Pending: Admin approval abhi baaki hai. Approval milne tak mock tests aur dashboard access nahi milega.'; notice.classList.remove('hidden'); }
-            showToast('Account pending admin approval. Please wait.', 'warning');
-            return;
-          }
           if (found.status !== 'approved') {
-            state.currentUser = null;
-            savePersistentSession(null);
-            const notice = document.getElementById('studentAccountStatusNotice');
-            if (notice) { notice.textContent = 'Account status: ' + String(found.status || 'unavailable').toUpperCase() + '. Admin se sampark karein.'; notice.classList.remove('hidden'); }
-            showToast('Your account is not approved.', 'error');
+            showToast('Your account is ' + found.status.toUpperCase() + '. Please wait for Admin approval.', 'warning');
             return;
           }
+
           state.currentUser = found; savePersistentSession(found);
           showToast('Welcome back, ' + found.displayName + '! Apna exam select karke mock test shuru karein.', 'success');
           navigateTo('home');
@@ -5294,36 +5297,33 @@ function syncCbtSideDrawerUI() {
           const mob = document.getElementById('regStuMobile').value.trim();
           const pass = document.getElementById('regStuPassword').value;
           const passConfirm = document.getElementById('regStuPasswordConfirm').value;
-          if (!/^\d{10}$/.test(mob)) {
+          if (!/^\\d{10}$/.test(mob)) {
             showToast('Mobile number must contain exactly 10 digits.', 'error');
-            document.getElementById('regStuMobile').focus();
             return;
           }
-          if (pass.length < 6) { showToast('Password kam se kam 6 characters ka hona chahiye.', 'error'); return; }
+          if (pass.length < 6) {
+            showToast('Password must be at least 6 characters.', 'error');
+            return;
+          }
           if (pass !== passConfirm) {
-            showToast('Passwords do not match. Dobara check karein.', 'error');
-            document.getElementById('regStuPasswordConfirm').focus();
+            showToast('Passwords do not match.', 'error');
             return;
           }
-
-          if (db.users.some(u => u.username.toLowerCase() === uname || (mob && u.mobile === mob))) {
-            showToast('Username or mobile number is already registered.', 'error');
+          if (db.users.some(u => u.username.toLowerCase() === uname)) {
+            showToast('This username is already taken. Please choose another.', 'error');
             return;
           }
-
-          const newId = 'usr_stu_' + Date.now();
           const newUser = {
-            id: newId,
+            id: 'usr_' + Date.now().toString(36),
             username: uname,
             mobile: mob,
             displayName: name,
             role: 'student',
             status: 'pending',
-            showOnLeaderboard: true,
-            passwordHash: hashSecret(pass, newId),
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            passwordHash: hashSecret(pass, 'usr_' + Date.now().toString(36)),
+            showOnLeaderboard: true
           };
-
           db.users.push(newUser);
           saveDatabase(db);
           state.currentUser = null;
@@ -8684,12 +8684,12 @@ Answer Key:
           try {
             if (form.id === 'formStudentRegister') {
               const name = document.getElementById('regStuName').value.trim();
-              const username = document.getElementById('regStuUsername').value.trim().toLowerCase();
+              const username = document.getElementById('regStuUsername').value.trim().replace(/\\s+/g, ' ').toLowerCase();
               const phone = document.getElementById('regStuMobile').value.trim();
               const email = document.getElementById('regStuEmail').value.trim().toLowerCase();
               const password = document.getElementById('regStuPassword').value;
               const confirm = document.getElementById('regStuPasswordConfirm').value;
-              if (!name || !/^[a-z0-9_.-]{3,24}$/.test(username)) throw new Error('Username must be 3–24 characters and may contain letters, numbers, dots, underscores, or hyphens.');
+              if (!name || !/^[a-z0-9_. -]{3,24}$/.test(username) || !/[a-z0-9]/.test(username)) throw new Error('Username must be 3–24 characters and may contain letters, numbers, spaces, dots, underscores, or hyphens.');
               if (!/^\d{10}$/.test(phone)) throw new Error('Mobile number exactly 10 digits ka hona chahiye.');
               if (password.length < 8) throw new Error('Password kam se kam 8 characters ka hona chahiye.');
               if (password !== confirm) throw new Error('Dono passwords match nahi karte.');
@@ -8711,7 +8711,7 @@ Answer Key:
             } else {
               const emailInput = form.id === 'formStudentLogin' ? document.getElementById('loginStuIdentifier') : document.getElementById('admLoginUser');
               const passwordInput = form.id === 'formStudentLogin' ? document.getElementById('loginStuPassword') : document.getElementById('admLoginPass');
-              const identifier = emailInput.value.trim().toLowerCase();
+              const identifier = emailInput.value.trim().replace(/\\s+/g, ' ').toLowerCase();
               let data, error;
               if (identifier.includes('@')) {
                 const result = await client.auth.signInWithPassword({ email: identifier, password: passwordInput.value });
