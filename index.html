@@ -571,6 +571,33 @@ table{max-width:100%;border-collapse:collapse}
   </style>
   <link rel="icon" type="image/svg+xml" href="./gyan-manch-icon.svg" />
   <link rel="apple-touch-icon" href="./gyan-manch-icon.svg" />
+
+  <style id="gm-mobile-category-card-fix">
+    /* Keep category tiles light on mobile; prevent dark/black selected or tap states. */
+    body:not(.exam-active) #appMain .cat-card,
+    body:not(.exam-active) #appMain .cat-card:focus,
+    body:not(.exam-active) #appMain .cat-card:active {
+      background-color:#ffffff !important;
+      color:#263648 !important;
+      -webkit-tap-highlight-color:rgba(73,105,135,.12);
+    }
+    body:not(.exam-active) #appMain .cat-card[data-cat-id].ring-2,
+    body:not(.exam-active) #appMain .cat-card[data-cat-id].bg-indigo-50 {
+      background-color:#eef5fc !important;
+      border-color:#8eafd0 !important;
+      box-shadow:0 0 0 2px rgba(73,105,135,.12) !important;
+    }
+    body:not(.exam-active) #appMain .cat-card :is(span,p,div) {
+      color:inherit;
+    }
+    body:not(.exam-active) #appMain .cat-card .text-slate-900 { color:#263648 !important; }
+    body:not(.exam-active) #appMain .cat-card .text-slate-500 { color:#64748b !important; }
+    body:not(.exam-active) #appMain .cat-card:focus-visible {
+      outline:3px solid #7da6ce !important;
+      outline-offset:2px;
+    }
+  </style>
+
 </head>
 <body class="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
 
