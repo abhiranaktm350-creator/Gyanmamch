@@ -635,6 +635,28 @@ table{max-width:100%;border-collapse:collapse}
     }
   </style>
 
+
+  <style id="gm-rounded-lower-sections-and-google-auth-polish">
+    /* Smooth, consistent curves for content cards below the hero; keep exam controls untouched. */
+    body:not(.exam-active) #appMain :is(.rounded-xl.border,.rounded-2xl.border,.rounded-3xl.border),
+    body:not(.exam-active) #appMain :is(.bg-white,.bg-slate-50,.bg-gray-50,.bg-blue-50,.bg-indigo-50).rounded-xl,
+    body:not(.exam-active) #appMain :is(.bg-white,.bg-slate-50,.bg-gray-50,.bg-blue-50,.bg-indigo-50).rounded-2xl,
+    body:not(.exam-active) #appMain :is(.bg-white,.bg-slate-50,.bg-gray-50,.bg-blue-50,.bg-indigo-50).rounded-3xl {
+      border-radius:22px !important;
+      overflow:hidden;
+      -webkit-mask-image:-webkit-radial-gradient(white,black);
+    }
+    body:not(.exam-active) #appMain :is(.rounded-xl.border,.rounded-2xl.border,.rounded-3xl.border) > :is(.rounded-xl,.rounded-2xl,.rounded-3xl) {
+      border-radius:16px !important;
+    }
+    body:not(.exam-active) #appMain :is(button,a,input,select,textarea) { -webkit-mask-image:none; }
+    @media (max-width:767px) {
+      body:not(.exam-active) #appMain :is(.rounded-xl.border,.rounded-2xl.border,.rounded-3xl.border),
+      body:not(.exam-active) #appMain :is(.bg-white,.bg-slate-50,.bg-gray-50,.bg-blue-50,.bg-indigo-50).rounded-xl,
+      body:not(.exam-active) #appMain :is(.bg-white,.bg-slate-50,.bg-gray-50,.bg-blue-50,.bg-indigo-50).rounded-2xl,
+      body:not(.exam-active) #appMain :is(.bg-white,.bg-slate-50,.bg-gray-50,.bg-blue-50,.bg-indigo-50).rounded-3xl { border-radius:20px !important; }
+    }
+  </style>
 </head>
 <body class="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
 
@@ -5206,6 +5228,7 @@ function syncCbtSideDrawerUI() {
           googleLoginButton.innerHTML = '<span class="animate-pulse">Connecting to Google…</span>';
           try {
             sessionStorage.setItem('gmGoogleLoginInProgress', '1');
+            try { localStorage.setItem('gmGoogleLoginInProgress', '1'); } catch (storageError) {}
             const { error } = await client.auth.signInWithOAuth({
               provider: 'google',
               options: { redirectTo: window.location.origin + window.location.pathname }
@@ -5213,6 +5236,7 @@ function syncCbtSideDrawerUI() {
             if (error) throw error;
           } catch (error) {
             sessionStorage.removeItem('gmGoogleLoginInProgress');
+            try { localStorage.removeItem('gmGoogleLoginInProgress'); } catch (storageError) {}
             showToast(error.message || 'Google login could not start. Please try again.', 'error');
             googleLoginButton.disabled = false;
             googleLoginButton.classList.remove('opacity-60');
@@ -5229,6 +5253,7 @@ function syncCbtSideDrawerUI() {
           googleSignupButton.innerHTML = '<span class="animate-pulse">Connecting to Google…</span>';
           try {
             sessionStorage.setItem('gmGoogleSignupInProgress', '1');
+            try { localStorage.setItem('gmGoogleSignupInProgress', '1'); } catch (storageError) {}
             const { error } = await client.auth.signInWithOAuth({
               provider: 'google',
               options: { redirectTo: window.location.origin + window.location.pathname }
@@ -5236,6 +5261,7 @@ function syncCbtSideDrawerUI() {
             if (error) throw error;
           } catch (error) {
             sessionStorage.removeItem('gmGoogleSignupInProgress');
+            try { localStorage.removeItem('gmGoogleSignupInProgress'); } catch (storageError) {}
             showToast(error.message || 'Google signup could not start. Please try again.', 'error');
             googleSignupButton.disabled = false;
             googleSignupButton.classList.remove('opacity-60');
@@ -8546,7 +8572,7 @@ Answer Key:
 
         // Show a secure password update form after a valid Supabase recovery link is opened.
         window.gyanManchSupabase.auth.onAuthStateChange(function(event, session) {
-          if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user && sessionStorage.getItem('gmGoogleLoginInProgress') === '1') {
+          if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user && (sessionStorage.getItem('gmGoogleLoginInProgress') === '1' || localStorage.getItem('gmGoogleLoginInProgress') === '1')) {
             sessionStorage.removeItem('gmGoogleLoginInProgress');
             setTimeout(async function() {
               const client = window.gyanManchSupabase;
@@ -8584,7 +8610,7 @@ Answer Key:
             }, 0);
             return;
           }
-          if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user && sessionStorage.getItem('gmGoogleSignupInProgress') === '1') {
+          if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user && (sessionStorage.getItem('gmGoogleSignupInProgress') === '1' || localStorage.getItem('gmGoogleSignupInProgress') === '1')) {
             sessionStorage.removeItem('gmGoogleSignupInProgress');
             setTimeout(async function() {
               const client = window.gyanManchSupabase;
