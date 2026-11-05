@@ -693,16 +693,32 @@ table{max-width:100%;border-collapse:collapse}
     body.gm-home-view #mobileMenuPanel [data-nav="student-dashboard"],
     body.gm-home-view #mobileMenuPanel [data-nav="admin-dashboard"] { display:none !important; }
     body.gm-home-view #mobileMenuPanel { display:none !important; }
+    /* Professional segmented Login / Sign Up toggle. Preserve the existing blue brand color. */
+    .gm-auth-toggle {
+      display:flex; align-items:center; gap:4px; width:100%;
+      padding:4px; border:1px solid #dbeafe; border-radius:14px;
+      background:#eff6ff; box-sizing:border-box;
+    }
+    .gm-auth-toggle button {
+      flex:1 1 50%; min-width:0; min-height:42px; border-radius:10px !important;
+      padding:10px 12px !important; font-size:13px; font-weight:700;
+      letter-spacing:.04em; transition:background-color .18s ease,color .18s ease,box-shadow .18s ease;
+      transform:none !important;
+    }
     #studentLoginTab[aria-selected="true"],
     #studentSignupTab[aria-selected="true"] {
-      background:#102b50 !important; color:#fff !important;
-      border:2px solid #071b3a !important; box-shadow:0 0 0 3px rgba(37,99,235,.22),0 5px 12px rgba(15,23,42,.18) !important;
-      transform:translateY(-1px); position:relative;
+      background:#1d4ed8 !important; color:#fff !important;
+      border:1px solid #1d4ed8 !important;
+      box-shadow:0 2px 5px rgba(29,78,216,.22) !important;
+      position:relative; z-index:1;
     }
     #studentLoginTab[aria-selected="false"],
     #studentSignupTab[aria-selected="false"] {
-      background:#e8eef5 !important; color:#334155 !important;
-      border:2px solid #d2dce8 !important; box-shadow:none !important;
+      background:transparent !important; color:#1e40af !important;
+      border:1px solid transparent !important; box-shadow:none !important;
+    }
+    .gm-auth-toggle button:focus-visible {
+      outline:3px solid rgba(29,78,216,.28); outline-offset:2px;
     }
   </style>
 \n</head>
@@ -5213,7 +5229,7 @@ function syncCbtSideDrawerUI() {
             <section class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm">
               <div class="inline-flex items-center px-2.5 py-0.5 rounded bg-indigo-50 text-indigo-700 text-xs font-bold mb-2">STUDENT PORTAL</div>
               <h1 class="text-xl font-extrabold text-slate-900 mb-1">Student Account</h1>
-              <div class="grid grid-cols-2 gap-2 mb-5" role="tablist" aria-label="Student account options">
+              <div class="gm-auth-toggle mb-5" role="tablist" aria-label="Student account options">
                 <button type="button" id="studentLoginTab" role="tab" aria-selected="true" aria-controls="studentLoginPanel" class="w-full rounded-xl px-4 py-3 text-sm font-bold tracking-wide bg-blue-800 hover:bg-blue-900 text-white shadow-md transition">LOGIN</button>
                 <button type="button" id="studentSignupTab" role="tab" aria-selected="false" aria-controls="studentSignupPanel" class="w-full rounded-xl px-4 py-3 text-sm font-bold tracking-wide bg-blue-700 hover:bg-blue-800 text-white shadow-md transition">SIGN UP</button>
               </div>
@@ -5284,8 +5300,8 @@ function syncCbtSideDrawerUI() {
           signupPanel.hidden = isLogin;
           loginTab.setAttribute('aria-selected', String(isLogin));
           signupTab.setAttribute('aria-selected', String(!isLogin));
-          loginTab.textContent = isLogin ? 'LOGIN ✓' : 'LOGIN';
-          signupTab.textContent = isLogin ? 'SIGN UP' : 'SIGN UP ✓';
+          loginTab.textContent = 'LOGIN';
+          signupTab.textContent = 'SIGN UP';
           loginTab.className = 'w-full rounded-xl px-4 py-3 text-sm font-bold tracking-wide transition ' + (isLogin ? 'bg-slate-900 text-white border-2 border-slate-950 shadow-lg ring-2 ring-blue-200' : 'bg-slate-100 text-slate-700 border-2 border-slate-200 shadow-none');
           signupTab.className = 'w-full rounded-xl px-4 py-3 text-sm font-bold tracking-wide transition ' + (!isLogin ? 'bg-slate-900 text-white border-2 border-slate-950 shadow-lg ring-2 ring-blue-200' : 'bg-slate-100 text-slate-700 border-2 border-slate-200 shadow-none');
         }
