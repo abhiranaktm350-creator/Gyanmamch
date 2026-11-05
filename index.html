@@ -598,6 +598,37 @@ table{max-width:100%;border-collapse:collapse}
     }
   </style>
 
+
+  <style id="gm-lower-card-colour-match">
+    /* Keep lower content cards visually consistent with the light upper cards. */
+    body:not(.exam-active) #appMain .rounded-xl.border,
+    body:not(.exam-active) #appMain .rounded-lg.border,
+    body:not(.exam-active) #appMain .rounded-2xl.border,
+    body:not(.exam-active) #appMain .shadow-sm.rounded-xl,
+    body:not(.exam-active) #appMain .shadow-md.rounded-xl {
+      background-color:#ffffff !important;
+      border-color:#dce5ee !important;
+      color:#263648 !important;
+    }
+    body:not(.exam-active) #appMain .rounded-xl.border :is(h1,h2,h3,h4,p,span,label,small),
+    body:not(.exam-active) #appMain .rounded-lg.border :is(h1,h2,h3,h4,p,span,label,small),
+    body:not(.exam-active) #appMain .rounded-2xl.border :is(h1,h2,h3,h4,p,span,label,small) {
+      color:#263648;
+    }
+    body:not(.exam-active) #appMain .rounded-xl.border :is(.bg-slate-800,.bg-slate-900,.bg-gray-800,.bg-gray-900),
+    body:not(.exam-active) #appMain .rounded-lg.border :is(.bg-slate-800,.bg-slate-900,.bg-gray-800,.bg-gray-900),
+    body:not(.exam-active) #appMain .rounded-2xl.border :is(.bg-slate-800,.bg-slate-900,.bg-gray-800,.bg-gray-900) {
+      background-color:#f0f5fa !important;
+      color:#263648 !important;
+    }
+    body:not(.exam-active) #appMain .rounded-xl.border :is(button,a).bg-indigo-600,
+    body:not(.exam-active) #appMain .rounded-lg.border :is(button,a).bg-indigo-600,
+    body:not(.exam-active) #appMain .rounded-2xl.border :is(button,a).bg-indigo-600 {
+      background-color:#496987 !important;
+      color:#ffffff !important;
+    }
+  </style>
+
 </head>
 <body class="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
 
