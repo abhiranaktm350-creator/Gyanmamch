@@ -5253,7 +5253,7 @@ function syncCbtSideDrawerUI() {
           });
         });
         const mobileInput = document.getElementById('regStuMobile');
-        if (mobileInput) mobileInput.addEventListener('input', function() { this.value = this.value.replace(/\\D/g, '').slice(0, 10); });
+        if (mobileInput) mobileInput.addEventListener('input', function() { this.value = this.value.replace(/\D/g, '').slice(0, 10); });
 
         document.getElementById('formStudentLogin').addEventListener('submit', function(e) {
           e.preventDefault();
@@ -8684,7 +8684,7 @@ Answer Key:
           try {
             if (form.id === 'formStudentRegister') {
               const name = document.getElementById('regStuName').value.trim();
-              const username = document.getElementById('regStuUsername').value.trim().replace(/\\s+/g, ' ').toLowerCase();
+              const username = document.getElementById('regStuUsername').value.trim().replace(/\s+/g, ' ').toLowerCase();
               const phone = document.getElementById('regStuMobile').value.trim();
               const email = document.getElementById('regStuEmail').value.trim().toLowerCase();
               const password = document.getElementById('regStuPassword').value;
@@ -8711,7 +8711,7 @@ Answer Key:
             } else {
               const emailInput = form.id === 'formStudentLogin' ? document.getElementById('loginStuIdentifier') : document.getElementById('admLoginUser');
               const passwordInput = form.id === 'formStudentLogin' ? document.getElementById('loginStuPassword') : document.getElementById('admLoginPass');
-              const identifier = emailInput.value.trim().replace(/\\s+/g, ' ').toLowerCase();
+              const identifier = emailInput.value.trim().replace(/\s+/g, ' ').toLowerCase();
               let data, error;
               if (identifier.includes('@')) {
                 const result = await client.auth.signInWithPassword({ email: identifier, password: passwordInput.value });
