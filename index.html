@@ -2414,35 +2414,37 @@ table{max-width:100%;border-collapse:collapse}
                 </div>
                 <div class="mt-8 rounded-3xl bg-[#071b3a] px-6 py-7 sm:px-9 sm:py-9 text-center shadow-lg border border-[#19365f]">
                   <div class="text-xs font-bold tracking-[0.22em] uppercase text-blue-200 mb-3">A Thought for Every Learner</div>
-                  <p id="gmEducationQuote" class="mx-auto max-w-3xl text-lg sm:text-2xl leading-relaxed font-semibold text-white" aria-live="polite">“Education is the passport to the future.”</p>
-                  <div class="mt-4 text-xs text-blue-200">Keep learning. Keep moving forward.</div>
+                  <p id="gmEducationQuote" class="mx-auto max-w-3xl text-lg sm:text-2xl leading-relaxed font-semibold text-white" aria-live="polite">“Education is the most powerful weapon which you can use to change the world.”</p>
+                  <div id="gmEducationQuoteAuthor" class="mt-4 text-sm font-bold text-blue-100">— Nelson Mandela</div>
+                  <div id="gmEducationQuoteSource" class="mt-1 text-xs text-blue-200">Source: Nelson Mandela Foundation</div>
                 </div>
             </section>`;
           const educationQuotes = [
-            '“Education is the most powerful weapon you can use to change the world.”',
-            '“The beautiful thing about learning is that nobody can take it away from you.”',
-            '“The more that you read, the more things you will know.”',
-            '“Success is the sum of small efforts, repeated day in and day out.”',
-            '“Learning never exhausts the mind.”',
-            '“An investment in knowledge pays the best interest.”',
-            '“It always seems impossible until it is done.”',
-            '“The secret of getting ahead is getting started.”',
-            '“Great things are done by a series of small things brought together.”',
-            '“Dream, prepare, practise, and let your progress speak.”',
-            '“A little progress each day adds up to big results.”',
-            '“Your future is created by what you learn today.”'
+            {
+              text: '“Education is the most powerful weapon which you can use to change the world.”',
+              author: 'Nelson Mandela',
+              source: 'Nelson Mandela Foundation'
+            },
+            {
+              text: '“The beautiful thing about learning is nobody can take it away from you.”',
+              author: 'B. B. King',
+              source: 'The Charlotte Observer, 5 October 1997'
+            },
+            {
+              text: '“The more that you read, the more things you will know. The more that you learn, the more places you’ll go.”',
+              author: 'Dr. Seuss',
+              source: 'I Can Read with My Eyes Shut!, 1978'
+            }
           ];
-          let quoteIndex = Math.floor(Math.random() * educationQuotes.length);
+          const quoteIndex = Math.floor(Math.random() * educationQuotes.length);
           const quoteNode = document.getElementById('gmEducationQuote');
+          const quoteAuthorNode = document.getElementById('gmEducationQuoteAuthor');
+          const quoteSourceNode = document.getElementById('gmEducationQuoteSource');
           if (quoteNode) {
-            quoteNode.textContent = educationQuotes[quoteIndex];
-            if (window.gmEducationQuoteTimer) clearInterval(window.gmEducationQuoteTimer);
-            window.gmEducationQuoteTimer = setInterval(function() {
-              let nextIndex = quoteIndex;
-              while (educationQuotes.length > 1 && nextIndex === quoteIndex) nextIndex = Math.floor(Math.random() * educationQuotes.length);
-              quoteIndex = nextIndex;
-              quoteNode.textContent = educationQuotes[quoteIndex];
-            }, 7000);
+            const selectedQuote = educationQuotes[quoteIndex];
+            quoteNode.textContent = selectedQuote.text;
+            if (quoteAuthorNode) quoteAuthorNode.textContent = '— ' + selectedQuote.author;
+            if (quoteSourceNode) quoteSourceNode.textContent = 'Source: ' + selectedQuote.source;
           }
           document.getElementById('frontStudentLoginBtn').addEventListener('click', () => navigateTo('student-login'));
           document.getElementById('frontAdminLoginBtn').addEventListener('click', () => navigateTo('admin-login'));
@@ -5161,8 +5163,8 @@ function syncCbtSideDrawerUI() {
               <div class="inline-flex items-center px-2.5 py-0.5 rounded bg-indigo-50 text-indigo-700 text-xs font-bold mb-2">STUDENT PORTAL</div>
               <h1 class="text-xl font-extrabold text-slate-900 mb-1">Student Account</h1>
               <div class="grid grid-cols-2 gap-2 mb-5" role="tablist" aria-label="Student account options">
-                <button type="button" id="studentLoginTab" role="tab" aria-selected="true" aria-controls="studentLoginPanel" class="rounded-xl px-4 py-3 text-sm font-bold tracking-wide bg-blue-800 hover:bg-blue-900 text-white shadow-md transition">LOGIN</button>
-                <button type="button" id="studentSignupTab" role="tab" aria-selected="false" aria-controls="studentSignupPanel" class="rounded-xl px-4 py-3 text-sm font-bold tracking-wide bg-blue-700 hover:bg-blue-800 text-white shadow-md transition">SIGN UP</button>
+                <button type="button" id="studentLoginTab" role="tab" aria-selected="true" aria-controls="studentLoginPanel" class="w-full rounded-xl px-4 py-3 text-sm font-bold tracking-wide bg-blue-800 hover:bg-blue-900 text-white shadow-md transition">LOGIN</button>
+                <button type="button" id="studentSignupTab" role="tab" aria-selected="false" aria-controls="studentSignupPanel" class="w-full rounded-xl px-4 py-3 text-sm font-bold tracking-wide bg-blue-700 hover:bg-blue-800 text-white shadow-md transition">SIGN UP</button>
               </div>
 
               <div id="studentAccountStatusNotice" class="hidden mb-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm font-semibold text-amber-900" role="status"></div>
@@ -5231,8 +5233,8 @@ function syncCbtSideDrawerUI() {
           signupPanel.hidden = isLogin;
           loginTab.setAttribute('aria-selected', String(isLogin));
           signupTab.setAttribute('aria-selected', String(!isLogin));
-          loginTab.className = 'rounded-xl px-4 py-3 text-sm font-bold tracking-wide text-white shadow-md transition ' + (isLogin ? 'bg-blue-800 hover:bg-blue-900' : 'bg-blue-700 hover:bg-blue-800');
-          signupTab.className = 'rounded-xl px-4 py-3 text-sm font-bold tracking-wide text-white shadow-md transition ' + (!isLogin ? 'bg-blue-800 hover:bg-blue-900' : 'bg-blue-700 hover:bg-blue-800');
+          loginTab.className = 'w-full rounded-xl px-4 py-3 text-sm font-bold tracking-wide text-white shadow-md transition ' + (isLogin ? 'bg-blue-800 hover:bg-blue-900' : 'bg-blue-700 hover:bg-blue-800');
+          signupTab.className = 'w-full rounded-xl px-4 py-3 text-sm font-bold tracking-wide text-white shadow-md transition ' + (!isLogin ? 'bg-blue-800 hover:bg-blue-900' : 'bg-blue-700 hover:bg-blue-800');
         }
         loginTab.addEventListener('click', function() { showStudentAuthTab('login'); });
         signupTab.addEventListener('click', function() { showStudentAuthTab('signup'); });
