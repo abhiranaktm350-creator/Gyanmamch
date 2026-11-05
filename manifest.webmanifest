@@ -8,6 +8,14 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#f5f9ff",
-  "theme_color": "#2563eb"
+  "background_color": "#f7f8fa",
+  "theme_color": "#465b73",
+  "icons": [
+    {
+      "src": "./gyan-manch-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }
