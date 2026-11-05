@@ -2927,7 +2927,7 @@ table{max-width:100%;border-collapse:collapse}
         const category = db.categories.find(c => c.id === exam.categoryId);
 
         // Ensure every single exam has an Official Pattern Full Mock Test (with exact sectional/session timers if the exam uses sessions!)
-        let examFullMocks = db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock' && t.isPublished);
+        let examFullMocks = db.tests.filter(t => t.examId === exam.id && t.testType === 'full_mock' && t.isPublished && !t.isSample);
         examFullMocks.forEach(function(mock) {
           if (String(mock.id || '').startsWith('test_official_')) {
             mock.durationMinutes = Number(exam.duration || 60);
