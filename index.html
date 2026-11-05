@@ -572,6 +572,27 @@ table{max-width:100%;border-collapse:collapse}
   <link rel="icon" type="image/svg+xml" href="./gyan-manch-icon.svg" />
   <link rel="apple-touch-icon" href="./gyan-manch-icon.svg" />
 
+  <style id="gm-home-category-button-color">
+    /* Match homepage category buttons to the primary Student Sign In button. */
+    body:not(.exam-active) #appMain .cat-card,
+    body:not(.exam-active) #appMain .cat-card:focus,
+    body:not(.exam-active) #appMain .cat-card:active {
+      background-color:#1d4ed8 !important;
+      border-color:#1d4ed8 !important;
+      color:#ffffff !important;
+    }
+    body:not(.exam-active) #appMain .cat-card :is(span,p,div) { color:inherit !important; }
+    body:not(.exam-active) #appMain .cat-card > div:first-child { background-color:rgba(255,255,255,.16) !important; }
+    body:not(.exam-active) #appMain .cat-card .rounded-full {
+      background-color:rgba(255,255,255,.18) !important;
+      color:#ffffff !important;
+    }
+    body:not(.exam-active) #appMain .cat-card[data-cat-id].ring-2 {
+      background-color:#1e40af !important;
+      border-color:#1e40af !important;
+      box-shadow:0 0 0 2px rgba(29,78,216,.2) !important;
+    }
+  </style>
   <style id="gm-mobile-category-card-fix">
     /* Keep category tiles light on mobile; prevent dark/black selected or tap states. */
     body:not(.exam-active) #appMain .cat-card,
@@ -755,7 +776,7 @@ table{max-width:100%;border-collapse:collapse}
   <div id="libraryQuickSwitcher" class="bg-slate-800 text-slate-100 px-4 py-2 text-xs border-b border-slate-700">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
       <div class="flex items-center gap-2">
-        <span class="font-semibold text-indigo-300 uppercase tracking-wider">Library Portal:</span>
+        
         <span id="currentSessionBadge" class="px-2.5 py-0.5 rounded bg-slate-700 text-slate-100 font-semibold">Student Portal</span>
         <span class="text-[11px] text-slate-400 hidden sm:inline">• Localhost & Library LAN Ready</span>
       </div>
@@ -2434,8 +2455,6 @@ table{max-width:100%;border-collapse:collapse}
               ${renderGmAnnouncementBar()}
               <div class="gm-home-hero bg-white rounded-3xl p-7 sm:p-12 text-slate-900 shadow-xl border border-blue-100">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-800 text-xs font-bold mb-4">Competitive Exam Practice • English / Hindi</div>
-                <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight mb-3 text-slate-900">Gyan Manch</h1>
-                <p class="text-sm sm:text-lg text-slate-600 max-w-3xl mb-7">SSC, Banking, Railway, Defence aur anya competitive exams ke mock tests aur chapter-wise practice ek hi jagah.</p>
                 <div class="flex flex-col sm:flex-row gap-3">
                   <button id="frontStudentLoginBtn" type="button" class="px-6 py-3 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold shadow-md">Student Login / Register</button>
                   <button id="frontAdminLoginBtn" type="button" class="px-6 py-3 rounded-xl border border-amber-300 text-amber-800 hover:bg-amber-50 font-bold">Admin Login</button>
@@ -2445,6 +2464,10 @@ table{max-width:100%;border-collapse:collapse}
                   <p id="gmEducationQuote" class="mx-auto max-w-3xl text-lg sm:text-2xl leading-relaxed font-semibold text-white" aria-live="polite">“Education is the most powerful weapon which you can use to change the world.”</p>
                   <div id="gmEducationQuoteAuthor" class="mt-4 text-sm font-bold text-blue-100">— Nelson Mandela</div>
                   <div id="gmEducationQuoteSource" class="mt-1 text-xs text-blue-200">Source: Nelson Mandela Foundation</div>
+                </div>
+                <div class="mt-6 text-center">
+                  <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight mb-3 text-slate-900">Gyan Manch</h1>
+                  <p class="text-sm sm:text-lg text-slate-600 max-w-3xl mx-auto">SSC, Banking, Railway, Defence aur anya competitive exams ke mock tests aur chapter-wise practice ek hi jagah.</p>
                 </div>
             </section>`;
           const educationQuotes = [
