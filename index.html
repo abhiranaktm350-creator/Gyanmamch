@@ -2410,8 +2410,17 @@ table{max-width:100%;border-collapse:collapse}
                 <p class="text-sm sm:text-lg text-slate-600 max-w-3xl mb-7">SSC, Banking, Railway, Defence aur anya competitive exams ke mock tests aur chapter-wise practice ek hi jagah.</p>
                 <div class="flex flex-col sm:flex-row gap-3">
                   <button id="frontStudentLoginBtn" type="button" class="px-6 py-3 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold shadow-md">Student Login / Register</button>
-                  <button id="frontAdminLoginBtn" type="button" class="px-6 py-3 rounded-xl border border-amber-300/50 text-amber-200 hover:bg-slate-800 font-bold">Admin Login</button>
+                  <button id="frontAdminLoginBtn" type="button" class="px-6 py-3 rounded-xl border border-amber-300 text-amber-800 hover:bg-amber-50 font-bold">Admin Login</button>
                 </div>
+                <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div class="rounded-2xl border border-blue-100 bg-blue-50/80 p-4"><div class="text-2xl mb-2">📚</div><div class="font-bold text-slate-800">Learn & Practise</div><p class="mt-1 text-xs text-slate-600">Topic-wise practice to strengthen concepts every day.</p></div>
+                  <div class="rounded-2xl border border-indigo-100 bg-indigo-50/80 p-4"><div class="text-2xl mb-2">📝</div><div class="font-bold text-slate-800">Real Exam Mocks</div><p class="mt-1 text-xs text-slate-600">Prepare with structured SSC, Banking and Railway mock tests.</p></div>
+                  <div class="rounded-2xl border border-sky-100 bg-sky-50/80 p-4"><div class="text-2xl mb-2">📈</div><div class="font-bold text-slate-800">Track Progress</div><p class="mt-1 text-xs text-slate-600">Review performance and identify topics to improve.</p></div>
+                </div>
+              </div>
+              <div class="mt-5 rounded-3xl border border-slate-200 bg-white p-5 sm:p-7 shadow-sm flex flex-col sm:flex-row items-center gap-5">
+                <div class="shrink-0 rounded-2xl bg-blue-50 p-5 text-5xl" aria-hidden="true">🎓</div>
+                <div class="min-w-0"><div class="text-xs font-bold uppercase tracking-wider text-blue-700 mb-1">Your learning space</div><h2 class="text-xl font-extrabold text-slate-900">A focused place for serious preparation</h2><p class="text-sm text-slate-600 mt-2">Build accuracy, manage time and practise in English or Hindi—one topic and one mock at a time.</p></div>
               </div>
             </section>`;
           document.getElementById('frontStudentLoginBtn').addEventListener('click', () => navigateTo('student-login'));
@@ -5438,6 +5447,7 @@ function syncCbtSideDrawerUI() {
           { id: 'students', label: '1. Student Approvals (' + pendingCount + ' Pending)' },
           { id: 'catalogue', label: '2. Exams, Chapters & Tests' },
           { id: 'questions', label: '3. Bilingual Question Bank (' + db.questions.length + ')' },
+          { id: 'ai-question-agent', label: '4. AI Question Agent' },
           { id: 'pdf-import', label: '4. PDF & CSV Import (' + stagingCount + ' Review)' },
           { id: 'analytics', label: '5. Results & CSV Export' },
           { id: 'announcements', label: '6. Home Notices' },
@@ -5504,11 +5514,82 @@ function syncCbtSideDrawerUI() {
         if (state.adminActiveTab === 'students') renderAdminStudentsTab(tabPane);
         else if (state.adminActiveTab === 'catalogue') renderAdminCatalogueTab(tabPane);
         else if (state.adminActiveTab === 'questions') renderAdminQuestionsTab(tabPane);
+        else if (state.adminActiveTab === 'ai-question-agent') renderAdminQuestionAgentTab(tabPane);
         else if (state.adminActiveTab === 'pdf-import') renderAdminPdfImportTab(tabPane);
         else if (state.adminActiveTab === 'analytics') renderAdminAnalyticsTab(tabPane);
         else if (state.adminActiveTab === 'announcements') renderAdminAnnouncementsTab(tabPane);
         else if (state.adminActiveTab === 'cloud-setup') renderAdminCloudSetupTab(tabPane);
         else if (state.adminActiveTab === 'admin-accounts' && state.currentUser.isPrimaryAdmin) renderPrimaryAdminAccountsTab(tabPane);
+      }
+
+
+      // Admin-only AI Question Agent. Generated questions remain drafts until reviewed.
+      function renderAdminQuestionAgentTab(pane) {
+        if (!state.currentUser || state.currentUser.role !== 'admin' || state.currentUser.status !== 'approved') {
+          pane.innerHTML = '<p class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-800">Approved administrator access required.</p>'; return;
+        }
+        pane.innerHTML = `
+          <section class="rounded-3xl border border-blue-200 bg-gradient-to-br from-white to-blue-50 p-5 sm:p-7 shadow-sm">
+            <div class="flex flex-wrap items-start justify-between gap-3 mb-5">
+              <div><span class="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800">AI CONTENT STUDIO</span><h2 class="mt-2 text-2xl font-extrabold text-slate-900">AI Question Agent</h2><p class="mt-1 text-sm text-slate-600">Create original exam-style MCQs with bilingual questions, options, answers and explanations.</p></div>
+              <div class="rounded-2xl bg-white border border-blue-100 p-3 text-3xl" aria-hidden="true">🤖</div>
+            </div>
+            <form id="gmAiQuestionForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <label class="text-sm font-semibold text-slate-700">Exam
+                <select id="gmAiExam" class="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3"><option>SSC CGL</option><option>SSC CHSL</option><option>SSC MTS</option><option>SSC GD</option><option>Banking PO</option><option>Banking Clerk</option><option>Railway</option><option>NDA</option><option>CDS</option><option>General Competitive Exams</option></select>
+              </label>
+              <label class="text-sm font-semibold text-slate-700">Subject
+                <select id="gmAiSubject" class="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3"><option>Quantitative Aptitude</option><option>Reasoning</option><option>English</option><option>General Awareness</option><option>General Science</option><option>Computer</option></select>
+              </label>
+              <label class="text-sm font-semibold text-slate-700">Topic
+                <input id="gmAiTopic" required maxlength="120" placeholder="e.g. Percentage, Coding-Decoding" class="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3"/>
+              </label>
+              <label class="text-sm font-semibold text-slate-700">Difficulty
+                <select id="gmAiDifficulty" class="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3"><option>Mixed</option><option>Easy</option><option>Moderate</option><option>Hard</option></select>
+              </label>
+              <label class="text-sm font-semibold text-slate-700">Language
+                <select id="gmAiLanguage" class="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3"><option value="both">English + Hindi</option><option value="en">English only</option><option value="hi">Hindi only</option></select>
+              </label>
+              <label class="text-sm font-semibold text-slate-700">Number of Questions
+                <select id="gmAiCount" class="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3"><option>5</option><option selected>10</option><option>15</option><option>20</option><option>25</option></select>
+              </label>
+              <div class="sm:col-span-2 lg:col-span-3 flex flex-wrap items-center gap-3">
+                <button id="gmAiGenerateBtn" type="submit" class="rounded-xl bg-blue-700 px-6 py-3 font-bold text-white shadow hover:bg-blue-800">✨ Generate Questions</button>
+                <span class="text-xs text-slate-500">AI output is a draft. Review accuracy and answer keys before adding it to a mock.</span>
+              </div>
+            </form>
+          </section>
+          <section class="mt-5 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+            <div class="flex flex-wrap items-center justify-between gap-3"><h3 class="font-extrabold text-slate-900">Generated Question Drafts</h3><button id="gmAiCopyJson" type="button" disabled class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-bold text-slate-500 disabled:opacity-40">Copy JSON</button></div>
+            <p id="gmAiStatus" class="mt-3 text-sm text-slate-500" aria-live="polite">Choose exam details and generate a draft. Nothing will be published automatically.</p>
+            <div id="gmAiResults" class="mt-4 space-y-3"></div>
+          </section>`;
+        let generated = [];
+        const form = document.getElementById('gmAiQuestionForm');
+        const btn = document.getElementById('gmAiGenerateBtn');
+        const status = document.getElementById('gmAiStatus');
+        const results = document.getElementById('gmAiResults');
+        const copy = document.getElementById('gmAiCopyJson');
+        form.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          const client = window.gyanManchSupabase;
+          const { data: sessionData } = client ? await client.auth.getSession() : { data: { session: null } };
+          const session = sessionData && sessionData.session;
+          if (!session) { status.textContent = 'Admin session missing. Please sign in again.'; return; }
+          btn.disabled = true; btn.textContent = 'Generating…'; status.textContent = 'AI is preparing questions. Please wait.'; results.innerHTML = ''; generated = []; copy.disabled = true;
+          try {
+            const response = await fetch('/api/admin-question-agent', { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+session.access_token, 'apikey':window.GYAN_MANCH_SUPABASE_KEY || '' }, body:JSON.stringify({ exam:document.getElementById('gmAiExam').value, subject:document.getElementById('gmAiSubject').value, topic:document.getElementById('gmAiTopic').value.trim(), difficulty:document.getElementById('gmAiDifficulty').value, language:document.getElementById('gmAiLanguage').value, count:Number(document.getElementById('gmAiCount').value) }) });
+            const payload = await response.json().catch(()=>({}));
+            if (!response.ok) throw new Error(payload.error || 'Question generation failed.');
+            generated = Array.isArray(payload.questions) ? payload.questions : [];
+            if (!generated.length) throw new Error('AI returned no valid questions. Please try again.');
+            status.textContent = generated.length + ' draft questions generated. Check every answer before using them.';
+            results.innerHTML = generated.map((q,i)=>'<article class="rounded-2xl border border-slate-200 bg-slate-50 p-4"><div class="text-xs font-bold text-blue-700 mb-2">QUESTION '+(i+1)+' · '+escapeHtml(q.difficulty || '')+'</div><p class="font-bold text-slate-900">'+escapeHtml(q.question_en || q.question_hi || '')+'</p>'+(q.question_hi?'<p class="mt-1 text-sm text-slate-700">'+escapeHtml(q.question_hi)+'</p>':'')+'<ol class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">'+(q.options_en||[]).map((o,j)=>'<li class="rounded-lg bg-white border border-slate-200 p-2 text-sm '+(j===q.correct_option?'border-emerald-300 bg-emerald-50 font-bold':'')+'">'+String.fromCharCode(65+j)+'. '+escapeHtml(o)+'</li>').join('')+'</ol><p class="mt-2 text-xs text-emerald-800 font-semibold">Correct answer: '+String.fromCharCode(65+q.correct_option)+'</p>'+(q.explanation_en?'<p class="mt-1 text-xs text-slate-600">Explanation: '+escapeHtml(q.explanation_en)+'</p>':'')+'</article>').join('');
+            copy.disabled = false;
+          } catch(error) { status.textContent = error.message || 'Could not generate questions.'; }
+          finally { btn.disabled = false; btn.textContent = '✨ Generate Questions'; }
+        });
+        copy.addEventListener('click', function(){ if (generated.length) navigator.clipboard.writeText(JSON.stringify({questions:generated},null,2)).then(()=>{status.textContent='Question JSON copied.';}).catch(()=>{status.textContent='Clipboard access unavailable.';}); });
       }
 
       // Primary admin only: promote an already-registered account to Admin 2.
@@ -8574,6 +8655,7 @@ Answer Key:
         window.gyanManchSupabase.auth.onAuthStateChange(function(event, session) {
           if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user && (sessionStorage.getItem('gmGoogleLoginInProgress') === '1' || localStorage.getItem('gmGoogleLoginInProgress') === '1')) {
             sessionStorage.removeItem('gmGoogleLoginInProgress');
+            try { localStorage.removeItem('gmGoogleLoginInProgress'); } catch (storageError) {}
             setTimeout(async function() {
               const client = window.gyanManchSupabase;
               try {
@@ -8612,6 +8694,7 @@ Answer Key:
           }
           if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user && (sessionStorage.getItem('gmGoogleSignupInProgress') === '1' || localStorage.getItem('gmGoogleSignupInProgress') === '1')) {
             sessionStorage.removeItem('gmGoogleSignupInProgress');
+            try { localStorage.removeItem('gmGoogleSignupInProgress'); } catch (storageError) {}
             setTimeout(async function() {
               const client = window.gyanManchSupabase;
               try {
