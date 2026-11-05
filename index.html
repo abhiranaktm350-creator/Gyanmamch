@@ -2821,6 +2821,11 @@ table{max-width:100%;border-collapse:collapse}
           return make('Statements: All roses are flowers. Some flowers fade quickly. Which conclusion definitely follows?','कथन: सभी गुलाब फूल हैं। कुछ फूल जल्दी मुरझाते हैं। कौन-सा निष्कर्ष निश्चित रूप से सही है?','All roses are flowers.',['All flowers are roses.','All roses fade quickly.','No flower fades quickly.'],'Only the first statement is guaranteed by the premises.','केवल पहला कथन दिए गए आधार से निश्चित है।');
         }
         if (subjectId === 'sub_english') {
+          const mode=n%5, k=Math.floor(n/5);
+          if(mode===0){const pairs=[['Neither of the boys ___ present.','was','were','are','have been'],['She ___ to the library every Sunday.','goes','go','going','gone'],['The news ___ true.','is','are','were','have'],['Each of the players ___ a medal.','has','have','are','were'],['By the time we arrived, the train ___.','had left','has leave','leaves','will leaving']];const p=pick(pairs,k);return make('Choose the correct verb: '+p[0],'सही क्रिया चुनें: '+p[0],p[1],[p[2],p[3],p[4]],'The subject and verb must agree in number and tense.','कर्ता के अनुसार क्रिया का सही रूप चुना जाता है।');}
+          if(mode===1){const p=pick([['He do not know the answer.','He does not know the answer.','He did not knows the answer.','He not know the answer.','He do knows the answer.'],['She is senior than me.','She is senior to me.','She is senior from me.','She is more senior than to me.','She senior to I.'],['One of my friend is a doctor.','One of my friends is a doctor.','One of my friend are a doctor.','One among friend is doctor.','One of friends are doctor.'],['I prefer tea than coffee.','I prefer tea to coffee.','I prefer tea over than coffee.','I am prefer tea to coffee.','I preferred tea than coffee.']],k);return make('Choose the grammatically correct sentence.','व्याकरण की दृष्टि से सही वाक्य चुनें।',p[1],[p[0],p[2],p[3]],'The correct sentence follows standard subject–verb agreement and usage.','सही वाक्य में व्याकरण और शब्द-प्रयोग उचित हैं।');}
+          if(mode===2){const p=pick([['“Once in a blue moon” means:','Very rarely','Every day','At night','Very quickly'],['“A blessing in disguise” means:','Something good that seemed bad at first','A public celebration','An obvious danger','A costly gift'],['“Hit the nail on the head” means:','Say exactly the right thing','Make a serious mistake','Work as a carpenter','Avoid a question'],['“Spill the beans” means:','Reveal a secret','Cook a meal','Waste money','Start an argument']],k);return make('Choose the meaning of the idiom: '+p[0],'मुहावरे का सही अर्थ चुनें: '+p[0],p[1],[p[2],p[3],p[4]],'The idiom is used in the stated figurative sense.','मुहावरे का प्रयोग दिए गए भावार्थ में होता है।');}
+          if(mode===3){const p=pick([['Choose the passive voice: “The clerk checked the file.”','The file was checked by the clerk.','The file is checking the clerk.','The clerk was checked by the file.','The file has check by clerk.'],['Choose the active voice: “The letter was written by Riya.”','Riya wrote the letter.','Riya was written the letter.','The letter wrote Riya.','Riya has been written the letter.'],['Choose the passive voice: “They are repairing the road.”','The road is being repaired by them.','The road was repaired by them.','The road has repaired them.','They are being repaired by the road.']],k);return make(p[0],p[0],p[1],[p[2],p[3],p[4]],'The object becomes the subject in passive voice while tense is preserved.','कर्मवाच्य में कर्म को कर्ता स्थान पर लाया जाता है और काल बना रहता है।');}
           const words=[['Abundant','Plentiful','Scarce','Empty','Rare'],['Candid','Frank','Secretive','Vague','Deceitful'],['Diligent','Hard-working','Lazy','Careless','Idle'],['Hostile','Unfriendly','Helpful','Kind','Warm'],['Prudent','Wise','Reckless','Hasty','Foolish'],['Reluctant','Unwilling','Eager','Ready','Keen'],['Concise','Brief','Lengthy','Wordy','Detailed'],['Fragile','Delicate','Sturdy','Strong','Robust'],['Inevitable','Unavoidable','Optional','Doubtful','Avoidable'],['Obsolete','Outdated','Modern','Current','Recent'],['Benevolent','Kind','Cruel','Selfish','Harsh'],['Mitigate','Lessen','Worsen','Increase','Aggravate'],['Vivid','Clear','Dull','Faint','Dim'],['Novice','Beginner','Expert','Veteran','Master'],['Scarce','Rare','Plentiful','Abundant','Common'],['Transparent','Clear','Opaque','Cloudy','Hidden'],['Versatile','Adaptable','Limited','Rigid','Narrow'],['Commence','Begin','Finish','End','Conclude'],['Authentic','Genuine','Fake','False','Counterfeit'],['Expand','Enlarge','Shrink','Reduce','Contract']];
           const w=pick(words,n), ask=n%2===0?'synonym':'antonym', ans=ask==='synonym'?w[1]:w[2], opts=ask==='synonym'?[w[2],w[3],w[4]]:[w[1],w[3],w[4]];
           return make('Choose the '+ask+' of “'+w[0]+'”.','“'+w[0]+'” का '+(ask==='synonym'?'समानार्थी':'विलोम')+' शब्द चुनें।',ans,opts,'The correct '+ask+' is “'+ans+'”.','सही उत्तर “'+ans+'” है।');
@@ -2856,7 +2861,24 @@ table{max-width:100%;border-collapse:collapse}
         const total = Math.max(1, Number(exam.officialQs || 100));
         const counts = {};
         subjects.forEach(id => counts[id] = 0);
-        if (Array.isArray(exam.sessionConfig) && exam.sessionConfig.length) {
+        const fixedDistributions = {
+          ex_ssc_cgl:{sub_reasoning:25,sub_ga:25,sub_quant:25,sub_english:25},
+          ex_ssc_chsl:{sub_english:25,sub_reasoning:25,sub_quant:25,sub_ga:25},
+          ex_ssc_mts:{sub_quant:20,sub_reasoning:20,sub_ga:25,sub_english:25},
+          ex_ibps_po:{sub_english:30,sub_quant:35,sub_reasoning:35},
+          ex_ibps_clerk:{sub_english:30,sub_quant:35,sub_reasoning:35},
+          ex_sbi_po:{sub_english:40,sub_quant:30,sub_reasoning:30},
+          ex_sbi_clerk:{sub_english:30,sub_quant:35,sub_reasoning:35},
+          ex_ibps_rrb_po:{sub_reasoning:40,sub_quant:40},
+          ex_ibps_rrb_oa:{sub_reasoning:40,sub_quant:40},
+          ex_ibps_clerk_mains:{sub_ga:40,sub_english:40,sub_reasoning:40,sub_quant:35},
+          ex_sbi_po_mains:{sub_reasoning:40,sub_ga:50,sub_english:40,sub_quant:25},
+          ex_sbi_clerk_mains:{sub_ga:50,sub_english:40,sub_quant:50,sub_reasoning:50}
+        };
+        const fixed = fixedDistributions[exam.id];
+        if (fixed) {
+          subjects.forEach(id => counts[id] = Number(fixed[id] || 0));
+        } else if (Array.isArray(exam.sessionConfig) && exam.sessionConfig.length) {
           const sections = exam.sessionConfig.filter(sec => Number(sec.durationMinutes) > 0);
           const weights = sections.map(sec => {
             const ids = Array.isArray(sec.subjectIds) ? sec.subjectIds : (sec.subjectId ? [sec.subjectId] : []);
