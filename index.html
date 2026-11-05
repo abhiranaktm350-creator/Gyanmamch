@@ -608,7 +608,7 @@ table{max-width:100%;border-collapse:collapse}
     body:not(.exam-active) #appMain .shadow-md.rounded-xl {
       background-color:#4b6b88 !important;
       border:1px solid #4b6b88 !important;
-      border-radius:14px !important;
+      border-radius:22px !important;
       box-shadow:none !important;
       color:#ffffff !important;
     }
@@ -622,7 +622,7 @@ table{max-width:100%;border-collapse:collapse}
     body:not(.exam-active) #appMain .rounded-2xl.border :is(.bg-slate-800,.bg-slate-900,.bg-gray-800,.bg-gray-900) {
       background-color:#405f7c !important;
       color:#ffffff !important;
-      border-radius:12px !important;
+      border-radius:16px !important;
     }
     body:not(.exam-active) #appMain .rounded-xl.border :is(button,a),
     body:not(.exam-active) #appMain .rounded-lg.border :is(button,a),
@@ -8514,7 +8514,7 @@ Answer Key:
 
         // Show a secure password update form after a valid Supabase recovery link is opened.
         window.gyanManchSupabase.auth.onAuthStateChange(function(event, session) {
-          if (event === 'SIGNED_IN' && session && sessionStorage.getItem('gmGoogleSignupInProgress') === '1') {
+          if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user && sessionStorage.getItem('gmGoogleSignupInProgress') === '1') {
             sessionStorage.removeItem('gmGoogleSignupInProgress');
             setTimeout(async function() {
               const client = window.gyanManchSupabase;
