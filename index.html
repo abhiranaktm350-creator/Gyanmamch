@@ -608,7 +608,8 @@ table{max-width:100%;border-collapse:collapse}
     body:not(.exam-active) #appMain .shadow-md.rounded-xl {
       background-color:#4b6b88 !important;
       border:1px solid #4b6b88 !important;
-      border-radius:22px !important;
+      border-radius:24px !important;
+      overflow:hidden !important;
       box-shadow:none !important;
       color:#ffffff !important;
     }
@@ -627,7 +628,10 @@ table{max-width:100%;border-collapse:collapse}
     body:not(.exam-active) #appMain .rounded-xl.border :is(button,a),
     body:not(.exam-active) #appMain .rounded-lg.border :is(button,a),
     body:not(.exam-active) #appMain .rounded-2xl.border :is(button,a) {
-      border-radius:12px !important;
+      border-radius:16px !important;
+    }
+    body:not(.exam-active) #appMain :is(.rounded-xl.border,.rounded-lg.border,.rounded-2xl.border) {
+      -webkit-mask-image:-webkit-radial-gradient(white,black);
     }
   </style>
 
@@ -5120,6 +5124,11 @@ function syncCbtSideDrawerUI() {
                 <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold shadow transition">
                   Log In as Student
                 </button>
+                <div class="flex items-center gap-3 py-1"><span class="h-px flex-1 bg-slate-200"></span><span class="text-xs text-slate-400 font-semibold">OR</span><span class="h-px flex-1 bg-slate-200"></span></div>
+                <button type="button" id="btnGoogleStudentLogin" class="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-bold transition">
+                  <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.72 7.18l7.62 5.91c4.45-4.1 7.14-10.14 7.14-17.56z"/><path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.53 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.9-5.89l-7.62-5.91c-2.12 1.42-4.84 2.26-8.28 2.26-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                  Continue with Google
+                </button>
                 <p id="studentLoginError" class="hidden text-sm font-semibold text-red-700" role="alert" aria-live="polite"></p>
                 <div class="text-center pt-1">
                   <button type="button" id="studentForgotPassword" class="text-sm font-semibold text-indigo-700 hover:text-indigo-900 underline underline-offset-4">Forgot password?</button>
@@ -5188,6 +5197,29 @@ function syncCbtSideDrawerUI() {
             btn.setAttribute('data-state', reveal ? 'visible' : 'hidden');
           });
         });
+        const googleLoginButton = document.getElementById('btnGoogleStudentLogin');
+        if (googleLoginButton) googleLoginButton.addEventListener('click', async function() {
+          const client = window.gyanManchSupabase;
+          if (!client) { showToast('Secure login is unavailable. Please refresh and try again.', 'error'); return; }
+          googleLoginButton.disabled = true;
+          googleLoginButton.classList.add('opacity-60');
+          googleLoginButton.innerHTML = '<span class="animate-pulse">Connecting to Google…</span>';
+          try {
+            sessionStorage.setItem('gmGoogleLoginInProgress', '1');
+            const { error } = await client.auth.signInWithOAuth({
+              provider: 'google',
+              options: { redirectTo: window.location.origin + window.location.pathname }
+            });
+            if (error) throw error;
+          } catch (error) {
+            sessionStorage.removeItem('gmGoogleLoginInProgress');
+            showToast(error.message || 'Google login could not start. Please try again.', 'error');
+            googleLoginButton.disabled = false;
+            googleLoginButton.classList.remove('opacity-60');
+            googleLoginButton.innerHTML = 'Continue with Google';
+          }
+        });
+
         const googleSignupButton = document.getElementById('btnGoogleStudentSignup');
         if (googleSignupButton) googleSignupButton.addEventListener('click', async function() {
           const client = window.gyanManchSupabase;
@@ -8514,6 +8546,44 @@ Answer Key:
 
         // Show a secure password update form after a valid Supabase recovery link is opened.
         window.gyanManchSupabase.auth.onAuthStateChange(function(event, session) {
+          if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user && sessionStorage.getItem('gmGoogleLoginInProgress') === '1') {
+            sessionStorage.removeItem('gmGoogleLoginInProgress');
+            setTimeout(async function() {
+              const client = window.gyanManchSupabase;
+              try {
+                const authUser = session.user;
+                const { data: profile, error: profileError } = await client.from('profiles')
+                  .select('id,display_name,username,phone,role,approval_status,preferred_language,is_primary_admin')
+                  .eq('id', authUser.id).single();
+                if (profileError || !profile) throw new Error('Google account profile could not be loaded. Please contact the administrator.');
+                if (profile.role !== 'student') throw new Error('This Google account is not registered as a student.');
+                if (profile.approval_status !== 'approved') {
+                  await client.auth.signOut();
+                  navigateTo('student-login');
+                  setTimeout(function() {
+                    const notice = document.getElementById('studentAccountStatusNotice');
+                    if (notice) { notice.textContent = 'Your Google account is registered, but administrator approval is still pending.'; notice.classList.remove('hidden'); }
+                    showToast('Account pending administrator approval.', 'warning');
+                  }, 100);
+                  return;
+                }
+                const email = authUser.email || '';
+                const user = { id:profile.id, username:profile.username || email, mobile:profile.phone || '', displayName:profile.display_name || email, role:profile.role, status:profile.approval_status, isPrimaryAdmin:profile.is_primary_admin === true, showOnLeaderboard:true, email };
+                state.currentUser = user;
+                savePersistentSession(user);
+                await hydrateQuestionsFromSupabase(false);
+                await hydrateAttemptsFromSupabase();
+                db.users = db.users.filter(function(item){ return item.id !== user.id; }).concat(user);
+                navigateTo('home');
+                showToast('Google login successful. Welcome back, ' + user.displayName + '.', 'success');
+              } catch (error) {
+                await client.auth.signOut();
+                navigateTo('student-login');
+                setTimeout(function(){ showToast(error.message || 'Google login failed. Please try again.', 'error'); }, 100);
+              }
+            }, 0);
+            return;
+          }
           if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session && session.user && sessionStorage.getItem('gmGoogleSignupInProgress') === '1') {
             sessionStorage.removeItem('gmGoogleSignupInProgress');
             setTimeout(async function() {
