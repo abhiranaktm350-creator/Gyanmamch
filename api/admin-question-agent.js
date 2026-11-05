@@ -126,7 +126,7 @@ export default async function handler(req, res) {
     const topic = cleanText(body.topic, 120);
     const difficulty = cleanText(body.difficulty || "Mixed", 30);
     const language = ["both", "en", "hi"].includes(body.language) ? body.language : "both";
-    const count = Math.min(100, Math.max(1, Math.floor(Number(body.count) || 10)));
+    const count = Math.min(150, Math.max(1, Math.floor(Number(body.count) || 10)));
     if (!topic) return json(res, 400, { error: "Enter a topic first." });
     if (!Number.isFinite(Number(body.count)) || count < 1) return json(res, 400, { error: "Choose a valid question count." });
 
