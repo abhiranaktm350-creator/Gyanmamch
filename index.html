@@ -3412,15 +3412,12 @@ table{max-width:100%;border-collapse:collapse}
       // 4. TIMED CBT MOCK TEST ENGINE
       // =========================================================================
       function enterExamFullscreen() {
+        // Keep the CBT in its fixed, viewport-filling exam overlay.
+        // Avoid the native Fullscreen API because mobile browsers show a system
+        // "full screen" notification/banner when it is entered.
         const overlay = document.getElementById('cbtOverlay');
         if (!overlay) return;
-        // Use the browser Fullscreen API where supported; the fixed inset overlay remains a fallback.
-        try {
-          if (!document.fullscreenElement && overlay.requestFullscreen) {
-            const result = overlay.requestFullscreen();
-            if (result && typeof result.catch === 'function') result.catch(function() {});
-          }
-        } catch (e) { /* Fullscreen can be unavailable in embedded/mobile browsers. */ }
+        document.body.classList.add('exam-active');
       }
 
 function syncCbtSideDrawerUI() {
