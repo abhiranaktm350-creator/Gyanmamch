@@ -224,6 +224,8 @@
   </style>
 
   <style id="gm-fullscreen-enhancements">
+    /* Hide the persistent floating full-screen prompt; CBT still opens in its exam overlay. */
+    #gmFullscreenButton, .gm-fullscreen-notice, [data-gm-fullscreen-notice] { display:none !important; }
     html, body { min-height:100%; width:100%; margin:0; }
     body { min-height:100vh; min-height:100dvh; }
     #appMain { min-height:calc(100vh - 72px); min-height:calc(100dvh - 72px); }
@@ -567,6 +569,8 @@ table{max-width:100%;border-collapse:collapse}
     }
     #cbtOverlay #modalConfirmSubmit.hidden { display: none !important; }
   </style>
+  <link rel="icon" type="image/svg+xml" href="./gyan-manch-icon.svg" />
+  <link rel="apple-touch-icon" href="./gyan-manch-icon.svg" />
 </head>
 <body class="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
 
@@ -582,9 +586,7 @@ table{max-width:100%;border-collapse:collapse}
           <span>Back</span>
         </button>
         <button id="navBrandBtn" type="button" class="flex items-center gap-2.5 text-left group focus:outline-none">
-          <div class="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-lg shadow-inner group-hover:bg-indigo-500 transition">
-            ज्ञ
-          </div>
+          <img src="./gyan-manch-icon.svg" alt="Gyan Manch logo" class="w-10 h-10 rounded-xl object-cover shadow-md ring-1 ring-white/20" />
           <div>
             <div class="font-extrabold text-lg tracking-tight flex items-center gap-1.5">
               <span>Gyan Manch</span>
