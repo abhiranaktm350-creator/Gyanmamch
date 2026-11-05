@@ -5160,9 +5160,9 @@ function syncCbtSideDrawerUI() {
             <section class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm">
               <div class="inline-flex items-center px-2.5 py-0.5 rounded bg-indigo-50 text-indigo-700 text-xs font-bold mb-2">STUDENT PORTAL</div>
               <h1 class="text-xl font-extrabold text-slate-900 mb-1">Student Account</h1>
-              <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-100 mb-5" role="tablist" aria-label="Student account options">
-                <button type="button" id="studentLoginTab" role="tab" aria-selected="true" aria-controls="studentLoginPanel" class="rounded-lg px-4 py-2.5 text-sm font-bold bg-white text-slate-900 shadow-sm">Login</button>
-                <button type="button" id="studentSignupTab" role="tab" aria-selected="false" aria-controls="studentSignupPanel" class="rounded-lg px-4 py-2.5 text-sm font-bold text-slate-600">Sign Up</button>
+              <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-800 mb-5 border border-slate-700" role="tablist" aria-label="Student account options">
+                <button type="button" id="studentLoginTab" role="tab" aria-selected="true" aria-controls="studentLoginPanel" class="rounded-lg px-4 py-3 text-sm font-extrabold tracking-wide bg-[#071b3a] text-white border border-white/20 shadow-md">LOGIN</button>
+                <button type="button" id="studentSignupTab" role="tab" aria-selected="false" aria-controls="studentSignupPanel" class="rounded-lg px-4 py-3 text-sm font-extrabold tracking-wide bg-slate-700 text-white border border-slate-600 hover:bg-slate-600">SIGN UP</button>
               </div>
 
               <div id="studentAccountStatusNotice" class="hidden mb-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm font-semibold text-amber-900" role="status"></div>
@@ -5178,7 +5178,7 @@ function syncCbtSideDrawerUI() {
                     <label class="block font-semibold text-slate-700 mb-1">Password</label>
                     <div class="flex gap-2"><input id="loginStuPassword" type="password" required placeholder="Enter password" class="flex-1 min-w-0 rounded-xl border border-slate-300 px-3.5 py-2.5" /><button type="button" data-toggle-password="loginStuPassword" aria-label="Show password" title="Show password" class="password-toggle inline-flex items-center justify-center rounded-xl border border-slate-300 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition" style="min-width:42px" data-state="hidden"><svg class="password-eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
                   </div>
-                  <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold shadow transition">Log In</button>
+                  <button type="submit" class="w-full py-2.5 rounded-xl bg-[#071b3a] hover:bg-slate-800 text-white font-extrabold shadow-md transition">LOG IN</button>
                   <p id="studentLoginError" class="hidden text-sm font-semibold text-red-700" role="alert" aria-live="polite"></p>
                   <div class="text-center pt-1">
                     <button type="button" id="studentForgotPassword" class="text-sm font-semibold text-indigo-700 hover:text-indigo-900 underline underline-offset-4">Forgot password?</button>
@@ -5231,8 +5231,8 @@ function syncCbtSideDrawerUI() {
           signupPanel.hidden = isLogin;
           loginTab.setAttribute('aria-selected', String(isLogin));
           signupTab.setAttribute('aria-selected', String(!isLogin));
-          loginTab.className = 'rounded-lg px-4 py-2.5 text-sm font-bold ' + (isLogin ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600');
-          signupTab.className = 'rounded-lg px-4 py-2.5 text-sm font-bold ' + (!isLogin ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600');
+          loginTab.className = 'rounded-lg px-4 py-3 text-sm font-extrabold tracking-wide border ' + (isLogin ? 'bg-[#071b3a] text-white border-white/20 shadow-md' : 'bg-slate-700 text-white border-slate-600 hover:bg-slate-600');
+          signupTab.className = 'rounded-lg px-4 py-3 text-sm font-extrabold tracking-wide border ' + (!isLogin ? 'bg-[#071b3a] text-white border-white/20 shadow-md' : 'bg-slate-700 text-white border-slate-600 hover:bg-slate-600');
         }
         loginTab.addEventListener('click', function() { showStudentAuthTab('login'); });
         signupTab.addEventListener('click', function() { showStudentAuthTab('signup'); });
