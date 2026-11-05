@@ -8753,5 +8753,42 @@ Answer Key:
   
 
 
+  <script>
+    // PWA install support. The install control appears only when the browser offers installation.
+    (function () {
+      if (!("serviceWorker" in navigator)) return;
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./service-worker.js", { scope: "./" })
+          .catch(function (error) { console.warn("Gyan Manch offline support could not start:", error); });
+      });
+      let installPrompt = null;
+      window.addEventListener("beforeinstallprompt", function (event) {
+        event.preventDefault();
+        installPrompt = event;
+        let button = document.getElementById("gmPwaInstallButton");
+        if (!button) {
+          button = document.createElement("button");
+          button.id = "gmPwaInstallButton";
+          button.type = "button";
+          button.textContent = "Install Gyan Manch";
+          button.setAttribute("aria-label", "Install Gyan Manch app");
+          button.style.cssText = "position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));z-index:9997;border:1px solid #cbd5e1;border-radius:999px;background:#fff;color:#263648;padding:12px 16px;font:600 13px Inter, sans-serif;box-shadow:0 8px 28px #0002;cursor:pointer";
+          document.body.appendChild(button);
+          button.addEventListener("click", async function () {
+            if (!installPrompt) return;
+            installPrompt.prompt();
+            await installPrompt.userChoice;
+            installPrompt = null;
+            button.remove();
+          });
+        }
+      });
+      window.addEventListener("appinstalled", function () {
+        const button = document.getElementById("gmPwaInstallButton");
+        if (button) button.remove();
+        installPrompt = null;
+      });
+    })();
+  </script>
 </body>
 </html>
