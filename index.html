@@ -2890,8 +2890,9 @@ table{max-width:100%;border-collapse:collapse}
           const subjectId=subjects[i%subjects.length];
           let q=rows.find(x=>x.subjectId===subjectId && !x.__used);
           if(!q){q=rows.find(x=>!x.__used);}
-          if(q){q.__used=true;delete q.__used;mixed.push(q);}
+          if(q){q.__used=true;mixed.push(q);}
         }
+        mixed.forEach(q=>{delete q.__used;});
         return mixed.slice(0,total);
       }
 
@@ -2900,15 +2901,20 @@ table{max-width:100%;border-collapse:collapse}
         const expected = Math.max(1, Number(exam.officialQs || 100));
         const existingIds = Array.isArray(mock.questionIds) ? mock.questionIds : [];
         const existing = existingIds.map(id => db.questions.find(q => q.id === id)).filter(q => q && q.isPublished);
-        if (existing.length >= expected) return;
-        const generated = createPatternFullMockQuestions(exam);
         const retained = existing.filter(q => q.examId === exam.id && q.questionScope !== 'chapter_only');
+        if (retained.length >= expected) return;
+        const generated = createPatternFullMockQuestions(exam);
         const needed = Math.max(0, expected-retained.length);
         const additions = generated.slice(0,needed);
         const idSet = new Set(db.questions.map(q=>q.id));
         additions.forEach(q => { if(!idSet.has(q.id)){db.questions.push(q);idSet.add(q.id);} });
         mock.questionIds = retained.map(q=>q.id).concat(additions.map(q=>q.id));
         mock.questionIds = Array.from(new Set(mock.questionIds)).slice(0,expected);
+        // Keep only questions belonging to this exam; never mix another exam's bank into a mock.
+        mock.questionIds = mock.questionIds.filter(id => {
+          const q = db.questions.find(item => item.id === id);
+          return q && q.examId === exam.id && q.questionScope !== 'chapter_only';
+        }).slice(0,expected);
         mock.title = exam.name + ' — Full Mock Test #1 (' + expected + ' Questions • Official Pattern)';
         mock.title_hi = exam.name + ' — पूर्ण मॉक टेस्ट #1 (' + expected + ' प्रश्न)';
         mock.isSample = false;
