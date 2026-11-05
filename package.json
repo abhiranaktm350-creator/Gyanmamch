@@ -8,7 +8,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "npm run check && rm -rf dist && mkdir -p dist && cp index.html _headers manifest.webmanifest dist/",
+    "build": "npm run check && rm -rf dist && mkdir -p dist && cp index.html _headers manifest.webmanifest service-worker.js gyan-manch-icon.svg dist/",
     "check": "node scripts/check-inline-js.mjs"
   }
 }
