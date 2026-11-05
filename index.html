@@ -2774,6 +2774,148 @@ table{max-width:100%;border-collapse:collapse}
       // =========================================================================
       // 2. EXAM DETAIL VIEW (Full Mock Tests + Chapter Practice Sets)
       // =========================================================================
+
+      // Original exam-pattern practice question generator. These are not claimed as PYQs.
+      function buildPatternFullMockQuestion(exam, subjectId, index) {
+        const n = Number(index) || 0;
+        const pick = (arr, i) => arr[((i % arr.length) + arr.length) % arr.length];
+        const make = (text, hindi, answer, distractors, explanation, hindiExplanation) => {
+          const raw = [String(answer), ...distractors.map(String)];
+          const correctAt = (n * 7 + subjectId.length) % 4;
+          const options = raw.slice();
+          const correct = options.shift();
+          options.splice(correctAt, 0, correct);
+          return {
+            id: 'q_auto_' + exam.id + '_' + subjectId + '_' + n,
+            examId: exam.id, subjectId: subjectId, chapterId: null,
+            questionFormat: 'mcq_single', difficulty: n % 5 === 0 ? 'Hard' : (n % 3 === 0 ? 'Easy' : 'Moderate'),
+            text_en: text, text_hi: hindi || text,
+            options_en: options, options_hi: options.slice(), correctOption: correctAt,
+            marks: Number(exam.posMarks || 1), negativeMarks: Number(exam.negMarks || 0.25),
+            explanation_en: explanation || ('Correct answer: ' + correct + '.'),
+            explanation_hi: hindiExplanation || ('सही उत्तर: ' + correct + '।'),
+            sourceType: 'original_practice', verificationStatus: 'unverified',
+            examYearShift: 'Pattern-based practice', tags: [exam.code, subjectId, 'Full Mock'],
+            isPublished: true, isSample: false, questionScope: 'full_mock'
+          };
+        };
+        if (subjectId === 'sub_quant') {
+          const mode = n % 8, k = Math.floor(n / 8);
+          if (mode === 0) { const p=10+((n*7)%41), v=240+k*37+n*3, a=v*p/100; return make('What is '+p+'% of '+v+'?',''+v+' का '+p+'% कितना होगा?',a,[a+12,a-10,a+20],'Multiply '+v+' by '+p+'/100.','संख्या को प्रतिशत से गुणा करके 100 से भाग दें।'); }
+          if (mode === 1) { const a=2+(n%5), b=3+((n*3)%7), total=(a+b)*(12+k); const ans=total*a/(a+b); return make('Two quantities are in the ratio '+a+':'+b+'. If their sum is '+total+', find the first quantity.','दो राशियों का अनुपात '+a+':'+b+' है और योग '+total+' है। पहली राशि ज्ञात करें।',ans,[ans+6,ans-4,ans+10],'First share = total × first ratio / sum of ratios.','पहला भाग = कुल योग × पहला अनुपात / अनुपातों का योग।'); }
+          if (mode === 2) { const cp=400+n*23, p=5+(n*3)%31, ans=cp*(100+p)/100; return make('An article costs ₹'+cp+' and is sold at a profit of '+p+'%. Find its selling price.','एक वस्तु का क्रय मूल्य ₹'+cp+' है और '+p+'% लाभ पर बेची जाती है। विक्रय मूल्य ज्ञात करें।',Number(ans.toFixed(2)),[cp*(100-p)/100,cp+p,cp+2*p],'Selling price = cost price × (100 + profit%)/100.','विक्रय मूल्य = क्रय मूल्य × (100 + लाभ प्रतिशत)/100।'); }
+          if (mode === 3) { const p=1000+n*125, r=5+(n%8), t=2+(n%4), ans=p*r*t/100; return make('Find the simple interest on ₹'+p+' at '+r+'% per annum for '+t+' years.','₹'+p+' पर '+r+'% वार्षिक दर से '+t+' वर्षों का साधारण ब्याज ज्ञात करें।',ans,[ans+100,ans-50,p*r/100],'Simple interest = Principal × Rate × Time / 100.','साधारण ब्याज = मूलधन × दर × समय / 100।'); }
+          if (mode === 4) { const d=180+n*17, t=2+(n%6), ans=d/t; return make('A vehicle covers '+d+' km in '+t+' hours. What is its average speed?','एक वाहन '+t+' घंटे में '+d+' किमी चलता है। औसत चाल कितनी है?',Number(ans.toFixed(2)),[d*t,d/(t+1),ans+10],'Speed = distance ÷ time.','चाल = दूरी ÷ समय।'); }
+          if (mode === 5) { const a=12+n%13,b=18+(n*2)%17,c=20+(n*3)%19,d=24+(n*5)%15,e=26+(n*7)%21,ans=(a+b+c+d+e)/5; return make('Find the average of '+[a,b,c,d,e].join(', ')+'.',''+[a,b,c,d,e].join(', ')+' का औसत ज्ञात करें।',ans,[ans+2,ans-3,ans+5],'Average = sum of observations ÷ number of observations.','औसत = सभी मानों का योग ÷ मानों की संख्या।'); }
+          if (mode === 6) { const x=8+n%11,y=12+(n*3)%13,ans=x*y/(x+y); return make('A can complete a job in '+x+' days and B in '+y+' days. How long will they take together?','A किसी कार्य को '+x+' दिन और B '+y+' दिन में करता है। दोनों मिलकर कितने दिन लेंगे?',Number(ans.toFixed(2)),[x+y,Math.abs(x-y),Number((x*y/(x-y)).toFixed(2))],'Combined time = (A × B)/(A + B).','मिलकर समय = (A × B)/(A + B)।'); }
+          const first=3+n%9, diff=2+(n*3)%7, seq=[0,1,2,3].map(i=>first+i*diff), ans=first+4*diff;
+          return make('Find the next term: '+seq.join(', ')+', ?','अगला पद ज्ञात करें: '+seq.join(', ')+', ?',ans,[ans+diff,ans-1,ans+2],'The series increases by a constant difference of '+diff+'.','श्रृंखला में प्रत्येक बार '+diff+' जोड़ा गया है।');
+        }
+        if (subjectId === 'sub_reasoning') {
+          const mode=n%6,k=Math.floor(n/6);
+          if(mode===0){const a=3+k,b= a+4+(k%3),c=b+5+(k%4),d=c+6+(k%5),ans=d+7+(k%6);return make('Find the missing number: '+[a,b,c,d,'?'].join(', '), 'लुप्त संख्या ज्ञात करें: '+[a,b,c,d,'?'].join(', '),ans,[ans+2,ans-3,ans+5],'The differences increase by one each time.','अंतर क्रमशः एक-एक बढ़ रहा है।');}
+          if(mode===1){const shift=1+(n%5),letter=String.fromCharCode(65+(n%20)),coded=String.fromCharCode(65+((letter.charCodeAt(0)-65+shift)%26));return make('If each letter is shifted '+shift+' place(s) forward in the alphabet, how is '+letter+' coded?','यदि प्रत्येक अक्षर को वर्णमाला में '+shift+' स्थान आगे किया जाए, तो '+letter+' का कोड क्या होगा?',coded,[String.fromCharCode(65+((letter.charCodeAt(0)-65+shift+1)%26)),letter,String.fromCharCode(65+((letter.charCodeAt(0)-65+shift+2)%26))],'Move '+shift+' letters forward from '+letter+'.',''+letter+' से '+shift+' अक्षर आगे बढ़ें।');}
+          if(mode===2){const x=12+n%20;return make('Choose the number that does not belong: '+[x,x+2,x+4,x+7].join(', '),'असंगत संख्या चुनें: '+[x,x+2,x+4,x+7].join(', '),x+7,[x,x+2,x+4],'The first three numbers are consecutive even steps; the last breaks the pattern.','पहली तीन संख्याएँ समान अंतर से हैं, अंतिम संख्या पैटर्न तोड़ती है।');}
+          if(mode===3){const dirs=['North','East','South','West'];const dir=pick(dirs,n);return make('A person faces '+dir+' and turns 90° clockwise. Which direction is faced now?','एक व्यक्ति '+({North:'उत्तर',East:'पूर्व',South:'दक्षिण',West:'पश्चिम'}[dir])+' की ओर है और 90° घड़ी की दिशा में मुड़ता है। अब किस दिशा में है?',pick(dirs,(dirs.indexOf(dir)+1)%4),dirs.filter((v,i)=>i!==((dirs.indexOf(dir)+1)%4)).slice(0,3),'A 90° clockwise turn moves to the next cardinal direction.','90° घड़ी की दिशा में मुड़ने पर अगली दिशा आती है।');}
+          if(mode===4){const a=2+n%4,b=3+(n%5);return make('A is the brother of B. B is the mother of C. How is A related to C?','A, B का भाई है। B, C की माँ है। A का C से क्या संबंध है?','Maternal uncle',['Father','Brother','Grandfather'],'The brother of one’s mother is the maternal uncle.','माँ का भाई मामा होता है।');}
+          return make('Statements: All roses are flowers. Some flowers fade quickly. Which conclusion definitely follows?','कथन: सभी गुलाब फूल हैं। कुछ फूल जल्दी मुरझाते हैं। कौन-सा निष्कर्ष निश्चित रूप से सही है?','All roses are flowers.',['All flowers are roses.','All roses fade quickly.','No flower fades quickly.'],'Only the first statement is guaranteed by the premises.','केवल पहला कथन दिए गए आधार से निश्चित है।');
+        }
+        if (subjectId === 'sub_english') {
+          const words=[['Abundant','Plentiful','Scarce','Empty','Rare'],['Candid','Frank','Secretive','Vague','Deceitful'],['Diligent','Hard-working','Lazy','Careless','Idle'],['Hostile','Unfriendly','Helpful','Kind','Warm'],['Prudent','Wise','Reckless','Hasty','Foolish'],['Reluctant','Unwilling','Eager','Ready','Keen'],['Concise','Brief','Lengthy','Wordy','Detailed'],['Fragile','Delicate','Sturdy','Strong','Robust'],['Inevitable','Unavoidable','Optional','Doubtful','Avoidable'],['Obsolete','Outdated','Modern','Current','Recent'],['Benevolent','Kind','Cruel','Selfish','Harsh'],['Mitigate','Lessen','Worsen','Increase','Aggravate'],['Vivid','Clear','Dull','Faint','Dim'],['Novice','Beginner','Expert','Veteran','Master'],['Scarce','Rare','Plentiful','Abundant','Common'],['Transparent','Clear','Opaque','Cloudy','Hidden'],['Versatile','Adaptable','Limited','Rigid','Narrow'],['Commence','Begin','Finish','End','Conclude'],['Authentic','Genuine','Fake','False','Counterfeit'],['Expand','Enlarge','Shrink','Reduce','Contract']];
+          const w=pick(words,n), ask=n%2===0?'synonym':'antonym', ans=ask==='synonym'?w[1]:w[2], opts=ask==='synonym'?[w[2],w[3],w[4]]:[w[1],w[3],w[4]];
+          return make('Choose the '+ask+' of “'+w[0]+'”.','“'+w[0]+'” का '+(ask==='synonym'?'समानार्थी':'विलोम')+' शब्द चुनें।',ans,opts,'The correct '+ask+' is “'+ans+'”.','सही उत्तर “'+ans+'” है।');
+        }
+        if (subjectId === 'sub_hindi') {
+          const items=[['अग्नि','अनल','जल','वायु','पृथ्वी'],['आकाश','नभ','पाताल','धरती','सागर'],['उन्नति','अवनति','प्रगति','विकास','वृद्धि'],['कठोर','कोमल','सख्त','दृढ़','कड़ा'],['निर्मल','स्वच्छ','मलिन','पवित्र','साफ'],['अल्प','कम','अधिक','थोड़ा','न्यून'],['दिन','दिवस','रात्रि','प्रातः','सवेरा'],['वन','अरण्य','नगर','ग्राम','घर'],['जल','नीर','अग्नि','पवन','धरा'],['मित्र','सखा','शत्रु','सहचर','दोस्त'],['साहस','वीरता','भय','हिम्मत','पराक्रम'],['सुगंध','खुशबू','दुर्गंध','महक','सौरभ']];
+          const w=pick(items,n), ask=n%2===0?'समानार्थी':'विलोम', answer=ask==='समानार्थी'?w[1]:w[2];
+          return make('“'+w[0]+'” का '+ask+' शब्द चुनिए।','“'+w[0]+'” का '+ask+' शब्द चुनिए।',answer,[w[3],w[4],ask==='समानार्थी'?w[2]:w[1]],'“'+answer+'” इसका सही '+ask+' है।','“'+answer+'” इसका सही '+ask+' है।');
+        }
+        if (subjectId === 'sub_computer') {
+          const facts=[['CPU','Central Processing Unit','Computer monitor','Power supply','Keyboard','CPU performs the main processing.'],['RAM','Temporary volatile memory','Permanent optical storage','Printer memory','Network cable','RAM stores data temporarily while programs run.'],['HTTP','Hypertext Transfer Protocol','High Transfer Text Program','Host Terminal Transfer Protocol','Hyperlink Text Tool','HTTP is used to transfer web resources.'],['URL','Uniform Resource Locator','Universal Record Link','Unified Resource Language','User Reference Location','A URL identifies the address of a web resource.'],['ROM','Read Only Memory','Random Output Memory','Read Open Module','Rapid Operating Memory','ROM is non-volatile memory.'],['Firewall','Network traffic filtering','File compression','Screen brightness','Text formatting','A firewall filters network traffic according to rules.'],['Phishing','Fraudulent attempt to steal information','Data backup','Disk formatting','File encryption','Phishing uses deceptive messages or sites to steal data.'],['Binary','Base 2','Base 8','Base 10','Base 16','Binary uses only 0 and 1.'],['HTML','HyperText Markup Language','HighText Machine Language','Hyperlink Transfer Mode','Home Tool Markup Language','HTML structures web pages.'],['Spreadsheet','Rows and columns of cells','Slides','Audio tracks','Network packets','A spreadsheet organizes data in cells.'],['LAN','Local Area Network','Large Access Node','Long Analog Network','Linked Application Number','LAN connects devices in a limited area.'],['SSD','Solid State Drive','Serial Storage Disk','System Software Device','Secure System Data','An SSD uses flash memory and has no moving disk platters.']];
+          const f=pick(facts,n);return make('What does '+f[0]+' refer to?',''+f[0]+' का सही अर्थ क्या है?',f[1],[f[2],f[3],f[4]],f[5],f[5]);
+        }
+        if (subjectId === 'sub_science') {
+          const facts=[['SI unit of force','Newton','Joule','Watt','Pascal','Force is measured in newtons.'],['gas absorbed by plants during photosynthesis','Carbon dioxide','Oxygen','Nitrogen','Hydrogen','Plants use carbon dioxide to make food.'],['largest organ of the human body','Skin','Liver','Heart','Lung','The skin is the largest organ.'],['chemical formula of common salt','NaCl','HCl','NaOH','KCl','Common salt is sodium chloride.'],['speed of light in vacuum (approx.)','3 × 10⁸ m/s','3 × 10⁶ m/s','3 × 10⁴ m/s','300 m/s','The approximate speed is 3 × 10⁸ metres per second.'],['vitamin produced in skin in sunlight','Vitamin D','Vitamin A','Vitamin C','Vitamin K','Sunlight enables the skin to synthesize vitamin D.'],['pH of a neutral solution at 25°C','7','0','5','14','A neutral solution has pH 7 at 25°C.'],['blood cells that help clotting','Platelets','Red blood cells','White blood cells','Plasma only','Platelets help blood clot.'],['plant tissue that transports water','Xylem','Phloem','Epidermis','Cortex','Xylem transports water and minerals.'],['planet known as the Red Planet','Mars','Venus','Jupiter','Mercury','Iron oxide gives Mars its reddish appearance.'],['unit of electric current','Ampere','Volt','Ohm','Watt','Electric current is measured in amperes.'],['main gas in Earth atmosphere','Nitrogen','Oxygen','Carbon dioxide','Argon','Nitrogen makes up about 78% of the atmosphere.']];
+          const f=pick(facts,n);return make('Which is the correct answer: '+f[0]+'?','सही उत्तर चुनें: '+f[0]+'?',f[1],[f[2],f[3],f[4]],f[5],f[5]);
+        }
+        if (subjectId === 'sub_uk_gk') {
+          const facts=[['Which is the highest peak located in Uttarakhand?','Nanda Devi','Trishul','Chaukhamba','Panchachuli','Nanda Devi is the highest peak wholly within India.'],['The Valley of Flowers National Park is in which district?','Chamoli','Nainital','Almora','Pithoragarh','The Valley of Flowers is in Chamoli district.'],['Which river is associated with the origin at Gaumukh?','Bhagirathi','Alaknanda','Kosi','Ramganga','The Bhagirathi originates at Gaumukh in the Gangotri glacier region.'],['The Chipko Movement is strongly associated with which region?','Uttarakhand Himalaya','Thar Desert','Konkan coast','Deccan plateau','The movement began in the Himalayan region of present-day Uttarakhand.'],['Which is the summer capital of Uttarakhand?','Gairsain (Bhararisain)','Dehradun','Haridwar','Rishikesh','Gairsain is the summer capital.'],['Jim Corbett National Park is primarily in which state?','Uttarakhand','Uttar Pradesh','Himachal Pradesh','Sikkim','Jim Corbett National Park is in Uttarakhand.'],['Which lake is popularly called the Naini Lake?','Nainital','Bhimtal','Sattal','Roopkund','Naini Lake is the central lake of Nainital.'],['The Kumbh Mela in Haridwar is held on the bank of which river?','Ganga','Yamuna','Saryu','Kosi','Haridwar is on the banks of the Ganga.'],['Which folk dance is associated with Kumaon?','Chholiya','Bhangra','Garba','Lavani','Chholiya is a traditional sword dance of Kumaon.'],['Which pass connects the Pithoragarh region with Tibet?','Lipulekh Pass','Nathu La','Rohtang Pass','Shipki La','Lipulekh is a Himalayan pass in Pithoragarh district.'],['Which is the state animal of Uttarakhand?','Alpine musk deer','Tiger','Snow leopard','Elephant','The alpine musk deer is the state animal.'],['Which city is known as the gateway to the Char Dham Yatra?','Rishikesh','Roorkee','Kashipur','Rudrapur','Rishikesh is a major gateway for the Char Dham route.']];
+          const f=pick(facts,n);return make(f[0],f[0],f[1],[f[2],f[3],f[4]],f[5],f[5]);
+        }
+        if (subjectId === 'sub_cdp') {
+          const facts=[['According to Piaget, the concrete operational stage generally occurs during which age range?','7–11 years','0–2 years','2–7 years','12 years and above','Piaget places concrete operational thought roughly between 7 and 11 years.'],['Who proposed the theory of social learning?','Albert Bandura','Jean Piaget','B. F. Skinner','Sigmund Freud','Bandura is associated with social learning theory.'],['Formative assessment is primarily used to:','Improve learning during instruction','Rank schools at year end','Award final certification only','Select students for admission','Formative assessment provides feedback during the learning process.'],['Inclusive education means:','Educating all learners together with appropriate support','Teaching only high achievers','Separating all learners by ability','Using one method for every learner','Inclusion removes barriers and provides support for diverse learners.'],['The concept of Zone of Proximal Development is associated with:','Lev Vygotsky','Jean Piaget','Maria Montessori','John Dewey','Vygotsky described learning with guidance within the ZPD.'],['A child-centred classroom emphasizes:','Learner participation and needs','Only lecture and memorisation','Strict silence at all times','Teacher-only decision making','Child-centred teaching builds on learner activity and needs.'],['Which is an example of intrinsic motivation?','Reading out of curiosity','Studying only for a prize','Working only to avoid punishment','Attending only for attendance marks','Intrinsic motivation comes from interest or satisfaction in the activity.'],['A diagnostic test is used to:','Identify specific learning difficulties','Give a final grade only','Compare school buildings','Measure attendance','Diagnostic assessment identifies strengths and learning gaps.'],['Which domain includes attitudes and values?','Affective domain','Cognitive domain','Psychomotor domain','Physical domain only','The affective domain concerns attitudes, values and feelings.'],['Learning by doing is strongly associated with:','John Dewey','Ivan Pavlov','Noam Chomsky','Charles Darwin','Dewey emphasized experiential learning.'],['A portfolio is best described as:','A purposeful collection of learner work over time','A single final examination','A seating chart','A daily attendance sheet','A portfolio documents progress and achievement over time.'],['Scaffolding in teaching refers to:','Temporary support gradually withdrawn','Permanent answers supplied by teacher','Punishment for mistakes','Avoiding student interaction','Scaffolding is temporary guidance that fades as competence grows.']];
+          const f=pick(facts,n);return make(f[0],f[0],f[1],[f[2],f[3],f[4]],f[5],f[5]);
+        }
+        const facts=[['The Constitution of India came into effect on','26 January 1950','15 August 1947','26 November 1949','2 October 1950','The Constitution came into force on 26 January 1950.'],['The Preamble describes India as a','Sovereign Socialist Secular Democratic Republic','Monarchy','Confederation of kingdoms','Military state','These words describe the nature of the Indian republic.'],['Fundamental Duties were added by which amendment?','42nd Amendment','44th Amendment','52nd Amendment','61st Amendment','The 42nd Amendment Act, 1976 added Fundamental Duties.'],['The largest state of India by area is','Rajasthan','Uttar Pradesh','Madhya Pradesh','Maharashtra','Rajasthan is the largest state by area.'],['The Tropic of Cancer passes through how many Indian states?','8','6','7','9','The Tropic of Cancer passes through eight Indian states.'],['Who was the first President of India?','Dr. Rajendra Prasad','Dr. S. Radhakrishnan','Jawaharlal Nehru','Zakir Husain','Dr. Rajendra Prasad was the first President.'],['The Reserve Bank of India began operations in','1935','1947','1949','1951','RBI commenced operations on 1 April 1935.'],['The headquarters of the United Nations is in','New York','Geneva','Paris','London','The UN headquarters is in New York City.'],['Which body conducts elections to Parliament in India?','Election Commission of India','UPSC','Finance Commission','NITI Aayog','The Election Commission supervises elections.'],['The normal term of the Lok Sabha is','5 years','4 years','6 years','7 years','The Lok Sabha normally has a five-year term unless dissolved earlier.'],['Who is known as the Father of the Indian Constitution?','Dr. B. R. Ambedkar','Mahatma Gandhi','Sardar Patel','Rajendra Prasad','Dr. Ambedkar chaired the Drafting Committee.'],['The Planning Commission was replaced by','NITI Aayog','Finance Commission','GST Council','Election Commission','NITI Aayog replaced the Planning Commission in 2015.'],['Which is the longest river flowing entirely within India?','Godavari','Ganga','Brahmaputra','Narmada','Godavari is the longest river flowing entirely within India.'],['The term “repo rate” is associated with','Monetary policy','Agricultural census','Foreign affairs','Judicial review','Repo rate is a monetary policy instrument of the RBI.'],['Which gas is most abundant in Earth’s atmosphere?','Nitrogen','Oxygen','Carbon dioxide','Hydrogen','Nitrogen accounts for roughly 78% of the atmosphere.'],['The first battle of Panipat was fought in','1526','1556','1761','1498','The first Battle of Panipat was fought in 1526.'],['The Indian Parliament consists of','President, Lok Sabha and Rajya Sabha','Lok Sabha only','Rajya Sabha only','Prime Minister and Cabinet only','The President is a constituent part of Parliament.'],['Which institution is the central bank of India?','Reserve Bank of India','State Bank of India','SEBI','NABARD','RBI is India’s central bank.'],['The GST in India was launched on','1 July 2017','1 April 2016','15 August 2017','1 January 2018','GST was implemented from 1 July 2017.'],['The term “blue revolution” is related to','Fish production','Milk production','Oilseeds','Space research','Blue Revolution refers to growth in fisheries and aquaculture.']];
+        const f=pick(facts,n);return make(f[0]+'?',''+f[0]+'?',f[1],[f[2],f[3],f[4]],f[5],f[5]);
+      }
+
+      function createPatternFullMockQuestions(exam) {
+        const subjects = (Array.isArray(exam.allowedSubjects) && exam.allowedSubjects.length)
+          ? exam.allowedSubjects.slice() : ['sub_quant','sub_reasoning','sub_english','sub_ga'];
+        const total = Math.max(1, Number(exam.officialQs || 100));
+        const counts = {};
+        subjects.forEach(id => counts[id] = 0);
+        if (Array.isArray(exam.sessionConfig) && exam.sessionConfig.length) {
+          const sections = exam.sessionConfig.filter(sec => Number(sec.durationMinutes) > 0);
+          const weights = sections.map(sec => {
+            const ids = Array.isArray(sec.subjectIds) ? sec.subjectIds : (sec.subjectId ? [sec.subjectId] : []);
+            return { ids: ids.filter(id => counts[id] !== undefined), weight: Math.max(1, Number(sec.durationMinutes) || 1) };
+          }).filter(x => x.ids.length);
+          const weightTotal = weights.reduce((sum,x) => sum+x.weight,0) || 1;
+          let allocated = 0;
+          weights.forEach((x,idx) => {
+            const share = idx === weights.length-1 ? total-allocated : Math.floor(total*x.weight/weightTotal);
+            allocated += share;
+            x.ids.forEach(id => counts[id] += Math.floor(share/x.ids.length));
+            for(let r=0;r<share%x.ids.length;r++) counts[x.ids[r]]++;
+          });
+        } else {
+          subjects.forEach(id => counts[id] = Math.floor(total/subjects.length));
+          for(let i=0;i<total%subjects.length;i++) counts[subjects[i]]++;
+        }
+        // Rebalance any unassigned questions and keep the official total exact.
+        let assigned = Object.values(counts).reduce((a,b)=>a+b,0);
+        let cursor=0;
+        while(assigned<total){counts[subjects[cursor%subjects.length]]++;assigned++;cursor++;}
+        const rows=[];
+        subjects.forEach(subjectId => {
+          const count=counts[subjectId]||0;
+          for(let i=0;i<count;i++) rows.push(buildPatternFullMockQuestion(exam,subjectId,i));
+        });
+        // Interleave subjects so the mock resembles a mixed CBT paper.
+        const mixed=[];
+        const positions={};subjects.forEach(id=>positions[id]=0);
+        for(let i=0;i<total;i++){
+          const subjectId=subjects[i%subjects.length];
+          let q=rows.find(x=>x.subjectId===subjectId && !x.__used);
+          if(!q){q=rows.find(x=>!x.__used);}
+          if(q){q.__used=true;delete q.__used;mixed.push(q);}
+        }
+        return mixed.slice(0,total);
+      }
+
+      function ensureOfficialFullMockQuestions(exam, mock) {
+        if (!exam || !mock || !String(mock.id || '').startsWith('test_official_')) return;
+        const expected = Math.max(1, Number(exam.officialQs || 100));
+        const existingIds = Array.isArray(mock.questionIds) ? mock.questionIds : [];
+        const existing = existingIds.map(id => db.questions.find(q => q.id === id)).filter(q => q && q.isPublished);
+        if (existing.length >= expected) return;
+        const generated = createPatternFullMockQuestions(exam);
+        const retained = existing.filter(q => q.examId === exam.id && q.questionScope !== 'chapter_only');
+        const needed = Math.max(0, expected-retained.length);
+        const additions = generated.slice(0,needed);
+        const idSet = new Set(db.questions.map(q=>q.id));
+        additions.forEach(q => { if(!idSet.has(q.id)){db.questions.push(q);idSet.add(q.id);} });
+        mock.questionIds = retained.map(q=>q.id).concat(additions.map(q=>q.id));
+        mock.questionIds = Array.from(new Set(mock.questionIds)).slice(0,expected);
+        mock.title = exam.name + ' — Full Mock Test #1 (' + expected + ' Questions • Official Pattern)';
+        mock.title_hi = exam.name + ' — पूर्ण मॉक टेस्ट #1 (' + expected + ' प्रश्न)';
+        mock.isSample = false;
+        mock.isPublished = true;
+        saveDatabase(db);
+      }
+
       function renderExamDetailView(container) {
         const exam = db.exams.find(e => e.id === state.selectedExamId) || db.exams[0];
         const category = db.categories.find(c => c.id === exam.categoryId);
@@ -2823,6 +2965,7 @@ table{max-width:100%;border-collapse:collapse}
           saveDatabase(db);
           examFullMocks = [autoOfficialTest];
         }
+        examFullMocks.forEach(function(mock) { ensureOfficialFullMockQuestions(exam, mock); });
         const allFullMocks = examFullMocks;
 
         // Sessional / Sectional Tests for this exam (or general sessional tests)
