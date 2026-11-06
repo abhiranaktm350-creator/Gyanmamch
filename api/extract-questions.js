@@ -114,7 +114,7 @@ export default async function handler(request, response) {
       return json(response, 403, { error: "Only approved teaching staff can extract questions." });
     }
     if (!geminiApiKey && !aiApiKey) {
-      return json(response, 503, { error: "AI is not connected yet. Add AI_API_KEY or AI_GATEWAY_API_KEY to Vercel Production environment variables, then redeploy." });
+      return json(response, 503, { error: "AI is not connected yet. Add GEMINI_API_KEY to the Vercel Preview environment for this branch, then redeploy the Preview." });
     }
 
     let body = request.body;
