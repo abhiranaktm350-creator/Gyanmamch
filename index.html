@@ -823,6 +823,11 @@ table{max-width:100%;border-collapse:collapse}
           <div class="text-[11px] text-slate-400 hidden sm:inline">Time:</div>
           <div id="cbtTimerText" class="font-mono font-bold text-sm sm:text-base text-emerald-400 tracking-wider">60:00</div>
         </div>
+        <div id="cbtSectionTimerPill" class="hidden px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold items-center gap-2">
+          <span id="cbtSectionTimerLabel">Session Timer:</span>
+          <span id="cbtSectionTimerValue" class="font-mono text-sm text-indigo-800">20:00</span>
+          <button id="btnCbtNextSectionLock" type="button" class="ml-1 px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold">Submit Section →</button>
+        </div>
 
         <!-- Side panel control (kept separate from Submit control) -->
         <div class="flex items-center p-0">
@@ -844,11 +849,6 @@ table{max-width:100%;border-collapse:collapse}
     <div class="bg-white border-b border-slate-200 px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 overflow-x-auto shrink-0">
       <div id="cbtSectionTabs" class="flex items-center gap-1.5 overflow-x-auto"></div>
       <div class="flex items-center gap-3 shrink-0">
-        <div id="cbtSectionTimerPill" class="hidden px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold flex items-center gap-2">
-          <span id="cbtSectionTimerLabel">Section Timer:</span>
-          <span id="cbtSectionTimerValue" class="font-mono text-sm text-indigo-800">20:00</span>
-          <button id="btnCbtNextSectionLock" type="button" class="ml-1 px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold">Submit Section →</button>
-        </div>
         <div id="cbtAutoSaveIndicator" class="hidden text-[11px] text-emerald-700 font-medium items-center gap-1 shrink-0" aria-hidden="true">
           <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
           <span>Auto-saved</span>
@@ -2948,8 +2948,10 @@ table{max-width:100%;border-collapse:collapse}
       function examUsesSessionTimer(exam) {
         if (!exam) return false;
         // Sessional/sectional clocks are limited to SSC CGL and Banking mocks.
+        const hasConfiguredSessions = Boolean(exam.hasSectionalTiming && Array.isArray(exam.sessionConfig) && exam.sessionConfig.length > 0);
         return exam.categoryId === 'cat_banking' ||
-          (exam.categoryId === 'cat_ssc' && /^ex_ssc_cgl/.test(String(exam.id || '')));
+          (exam.categoryId === 'cat_ssc' && /^ex_ssc_cgl/.test(String(exam.id || ''))) ||
+          hasConfiguredSessions;
       }
 
       function renderExamDetailView(container) {
@@ -3966,14 +3968,14 @@ function syncCbtSideDrawerUI() {
               active.answers[currQ.id].timeSpent = Number(active.answers[currQ.id].timeSpent || 0) + elapsed;
             }
           }
-          // Main paper clock is independent of the active session clock.
-          active.remainingSeconds = Math.max(0, Math.ceil((Number(active.deadlineAt) - now) / 1000));
+          // Session-based exams use only the active session clock; the overall paper clock is not shown or enforced.
+          if (!active.hasSectionalTiming) active.remainingSeconds = Math.max(0, Math.ceil((Number(active.deadlineAt) - now) / 1000));
           if (active.hasSectionalTiming) {
             active.sectionRemainingSeconds = Math.max(0, Math.ceil((Number(active.sectionDeadlineAt) - now) / 1000));
           }
           updateCbtTimerDisplay();
-          // Main exam expiry has priority over a simultaneous section expiry.
-          if (active.remainingSeconds <= 0) {
+          // Only non-sessional exams use the overall paper countdown.
+          if (!active.hasSectionalTiming && active.remainingSeconds <= 0) {
             window.clearInterval(active.timerInterval);
             active.timerInterval = null;
             showToast('Main exam time expired! Automatically submitting your mock test attempt...', 'warning');
@@ -4049,9 +4051,10 @@ function syncCbtSideDrawerUI() {
         if (!state.activeCbt) return;
         const cbt = state.activeCbt;
         const timerText = document.getElementById('cbtTimerText');
-        if (timerText) {
-          // The main CBT timer always displays the full exam's remaining time.
-          // The active session/section clock is displayed separately in its pill.
+        const mainTimerBox = document.getElementById('cbtTimerBox');
+        if (mainTimerBox) mainTimerBox.classList.toggle('hidden', Boolean(cbt.hasSectionalTiming));
+        if (timerText && !cbt.hasSectionalTiming) {
+          // Non-sessional exams retain the full-paper countdown.
           const rem = cbt.remainingSeconds;
           timerText.textContent = formatSeconds(rem);
           if (rem <= 120) {
@@ -4072,10 +4075,12 @@ function syncCbtSideDrawerUI() {
           if (cbt.hasSectionalTiming && cbt.test.sections && cbt.test.sections[cbt.activeSectionIndex]) {
             const currSec = cbt.test.sections[cbt.activeSectionIndex];
             secPill.classList.remove('hidden');
+            secPill.classList.add('flex');
             secLbl.textContent = (cbt.timerMode === 'session' ? 'Session Timer: ' : 'Section Timer: ') + currSec.name;
             secVal.textContent = formatSeconds(cbt.sectionRemainingSeconds);
           } else {
             secPill.classList.add('hidden');
+            secPill.classList.remove('flex');
           }
         }
       }
