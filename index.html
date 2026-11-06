@@ -7952,9 +7952,12 @@ Answer Key:
           let chunkLines = [];
           let chunkLength = 0;
           let chunkQuestionCount = 0;
+          let inAnswerKey = false;
           const maxChunkChars = 8000;
           sourceLines.forEach(function(line) {
-            const isQuestion = questionStart.test(line.trim());
+            const trimmedLine = line.trim();
+            if (/^(?:answer\\s*key|answers|उत्तर\\s*कुंजी)\\b/i.test(trimmedLine)) inAnswerKey = true;
+            const isQuestion = !inAnswerKey && questionStart.test(trimmedLine);
             const lineLength = line.length + 1;
             if (isQuestion && chunkQuestionCount > 0 && chunkLength >= maxChunkChars) {
               chunks.push({ text: chunkLines.join('\n'), expectedCount: chunkQuestionCount });
