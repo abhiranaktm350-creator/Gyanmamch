@@ -7344,10 +7344,10 @@ Answer Key:
           if (runButton) { runButton.disabled = true; runButton.classList.add('opacity-60'); }
           setImportProgress(0, 'Preparing secure upload…', file.name + ' • ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB');
           try {
+            const client = window.gyanManchSupabase;
             if (!previewOnly) {
                           // Persist the selected PDF to private Supabase Storage and create an import job.
                           // Extraction still uses the same local file, so upload and question review remain one workflow.
-                          const client = window.gyanManchSupabase;
                           if (!client || !state.currentUser || !state.currentUser.id) {
                             throw new Error('Admin session missing. Sign in again, then choose the PDF.');
                           }
