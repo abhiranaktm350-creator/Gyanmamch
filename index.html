@@ -1859,6 +1859,7 @@ table{max-width:100%;border-collapse:collapse}
               if (!Array.isArray(parsed.attempts)) parsed.attempts = [];
               if (!Array.isArray(parsed.announcements)) parsed.announcements = [];
               if (!Array.isArray(parsed.pdfImportQueue)) parsed.pdfImportQueue = [];
+              if (!Array.isArray(parsed.pdfImportDrafts)) parsed.pdfImportDrafts = [];
               try { localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed)); } catch (e) {}
               return parsed;
             }
@@ -6730,6 +6731,7 @@ function syncCbtSideDrawerUI() {
 
       // --- ADMIN TAB 4: FULL MULTI-QUESTION PDF-TO-QUESTIONS EXTRACTOR, BULK APPROVAL & MOCK TEST GENERATOR ---
       async function persistAdminQuestionToSupabase(question, examLegacyId) {
+        if (isGyanManchPreviewBuild()) return { testId:newTest.id, questionCount:createdQIds.length, previewOnly:true };
         const client = window.gyanManchSupabase;
         if (!client || !state.currentUser || !['admin','teacher'].includes(state.currentUser.role)) throw new Error('Approved administrator session required.');
         const auth = await client.auth.getUser();
@@ -6773,6 +6775,30 @@ function syncCbtSideDrawerUI() {
           const linkSave = await client.from('test_questions').upsert(links,{onConflict:'test_id,question_id'});
           if (linkSave.error) throw linkSave.error;
         }
+      }
+
+      // Preview builds keep uploaded originals locally; they never write PDF files or review records to production Supabase.
+      function isGyanManchPreviewBuild() {
+        const host = String(window.location.hostname || '').toLowerCase();
+        return host.endsWith('.vercel.app') && host !== 'gyanmamch.vercel.app';
+      }
+      function storePreviewPdfFile(file, draftId) {
+        return new Promise(function(resolve, reject) {
+          if (!window.indexedDB) { resolve(false); return; }
+          const request = indexedDB.open('gyan-manch-preview-pdf-archive', 1);
+          request.onupgradeneeded = function() {
+            const database = request.result;
+            if (!database.objectStoreNames.contains('originals')) database.createObjectStore('originals', { keyPath: 'draftId' });
+          };
+          request.onerror = function() { reject(request.error || new Error('Could not open local PDF archive.')); };
+          request.onsuccess = function() {
+            const database = request.result;
+            const transaction = database.transaction('originals', 'readwrite');
+            transaction.objectStore('originals').put({ draftId:draftId, fileName:file.name, fileType:file.type || 'application/pdf', fileSize:file.size, savedAt:new Date().toISOString(), blob:file });
+            transaction.oncomplete = function() { database.close(); resolve(true); };
+            transaction.onerror = function() { database.close(); reject(transaction.error || new Error('Could not save original PDF locally.')); };
+          };
+        });
       }
 
       async function persistApprovedPdfBatchToSupabase(exam, newTest, createdQIds, batchFileName, currentPaperItems) {
@@ -6836,6 +6862,13 @@ function syncCbtSideDrawerUI() {
       }
 
       function renderAdminPdfImportTab(pane) {
+        const latestQueueItem = db.pdfImportQueue.length ? db.pdfImportQueue[db.pdfImportQueue.length - 1] : null;
+        const activeDraftId = window.gyanManchActivePdfDraftId || (latestQueueItem && (latestQueueItem.draftId || latestQueueItem.fileName));
+        const activeDraftItems = activeDraftId ? db.pdfImportQueue.filter(function(item) { return (item.draftId || item.fileName) === activeDraftId; }) : [];
+        const activeDraftRecord = (db.pdfImportDrafts || []).find(function(draft) { return draft.id === activeDraftId; });
+        const activeApprovedCount = activeDraftItems.filter(function(item) { return item.reviewStatus === 'approved' && !item.published; }).length;
+        const activeUnapprovedCount = activeDraftItems.filter(function(item) { return item.reviewStatus === 'unapproved' && !item.published; }).length;
+        const activeReviewCount = activeDraftItems.filter(function(item) { return item.reviewStatus === 'review_required' && !item.published; }).length;
         pane.innerHTML = `
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <!-- Full Multi-Question PDF & Scanned Question Paper OCR Scanner -->
@@ -6951,16 +6984,23 @@ function syncCbtSideDrawerUI() {
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-200">
               <div>
                 <h3 class="font-bold text-slate-900 text-base">3. Extracted Questions Review Queue (${db.pdfImportQueue.length} Questions Staged)</h3>
-                <p class="text-xs text-slate-500">Review or edit any question below, or click <strong>Approve All & Create Official Mock Test</strong> to publish the entire paper at once.</p>
+                <p class="text-xs text-slate-500">Each uploaded PDF stays as one separate draft. Approve questions individually, then submit only approved questions.</p>
               </div>
-              ${db.pdfImportQueue.length > 0 ? `
+              ${activeDraftItems.length > 0 ? `
+                <div class="w-full rounded-xl border border-indigo-200 bg-indigo-50 p-3 mb-3">
+                  <div class="font-bold text-indigo-950 text-sm">Draft PDF: ${escapeHtml(activeDraftRecord ? activeDraftRecord.fileName : (activeDraftItems[0].fileName || 'Imported PDF'))}</div>
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 text-xs">
+                    <div class="rounded-lg bg-white p-2"><div class="text-slate-500">Total</div><strong>${activeDraftItems.length}</strong></div>
+                    <div class="rounded-lg bg-white p-2"><div class="text-slate-500">Approved</div><strong class="text-emerald-700">${activeApprovedCount}</strong></div>
+                    <div class="rounded-lg bg-white p-2"><div class="text-slate-500">Unapproved</div><strong>${activeUnapprovedCount}</strong></div>
+                    <div class="rounded-lg bg-white p-2"><div class="text-slate-500">Review required</div><strong class="text-rose-700">${activeReviewCount}</strong></div>
+                  </div>
+                  <div class="text-[11px] text-slate-600 mt-2">${activeDraftRecord && activeDraftRecord.processingComplete ? 'PDF extraction complete. You can review now.' : 'PDF processing is not complete yet. Submit is unavailable.'}</div>
+                </div>
                 <div class="flex flex-wrap items-center gap-2">
-                  <button id="btnApproveAllStaged" type="button" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow transition">
-                    ✓ Approve ALL (${db.pdfImportQueue.length}) & Create Official Mock Test
-                  </button>
-                  <button id="btnClearAllStaged" type="button" class="px-3 py-2 rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-semibold transition">
-                    Clear Queue
-                  </button>
+                  <button id="btnApproveAllStaged" type="button" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow transition">✓ Mark all in this PDF approved</button>
+                  ${activeDraftRecord && activeDraftRecord.processingComplete ? '<button id="btnSubmitApprovedDraft" type="button" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow transition">Submit approved questions to Question Bank</button>' : ''}
+                  <button id="btnClearAllStaged" type="button" class="px-3 py-2 rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-semibold transition">Clear Queue</button>
                 </div>
               ` : ''}
             </div>
@@ -6977,6 +7017,7 @@ function syncCbtSideDrawerUI() {
                       <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
                         <div class="flex items-center gap-2">
                           <span class="px-2 py-0.5 rounded bg-slate-900 text-white text-xs font-bold">Staged Q.${qIdx + 1}</span>
+                          <span class="px-2 py-0.5 rounded ${item.reviewStatus === 'approved' ? 'bg-emerald-100 text-emerald-800' : item.reviewStatus === 'review_required' ? 'bg-rose-100 text-rose-800' : item.published ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-700'} text-[11px] font-bold">${item.published ? 'Submitted' : (item.reviewStatus || 'Unapproved').replace('_',' ')}</span>
                           <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 text-xs font-bold">${escapeHtml(item.fileName)}</span>
                           <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-xs font-bold">+${item.marks} / -${item.negativeMarks}</span>
                           ${item.isDuplicate ? `<span class="px-2 py-0.5 rounded bg-amber-200 text-amber-900 text-xs font-bold">⚠️ Duplicate in DB</span>` : ''}
@@ -7295,72 +7336,100 @@ Answer Key:
           }
           const file = fileInput.files[0];
           let importJobId = null;
+          const previewOnly = isGyanManchPreviewBuild();
+          const draftId = 'pdfdraft_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
           const queueIdsBeforeUpload = new Set(db.pdfImportQueue.map(function(item) { return item.id; }));
           const targetExId = document.getElementById('pdfTargetExamSelect').value;
           const targetSubId = document.getElementById('pdfTargetSubjectSelect').value;
           if (runButton) { runButton.disabled = true; runButton.classList.add('opacity-60'); }
           setImportProgress(0, 'Preparing secure upload…', file.name + ' • ' + (file.size / (1024 * 1024)).toFixed(2) + ' MB');
           try {
-            // Persist the selected PDF to private Supabase Storage and create an import job.
-            // Extraction still uses the same local file, so upload and question review remain one workflow.
-            const client = window.gyanManchSupabase;
-            if (!client || !state.currentUser || !state.currentUser.id) {
-              throw new Error('Admin session missing. Sign in again, then choose the PDF.');
-            }
-            const sessionResult = await client.auth.getSession();
-            const accessToken = sessionResult && sessionResult.data && sessionResult.data.session && sessionResult.data.session.access_token;
-            if (!accessToken) throw new Error('Your admin session expired. Sign in again and retry.');
-            const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '_').slice(-100) || 'question-paper.pdf';
-            const filePath = state.currentUser.id + '/' + Date.now() + '_' + safeName;
-            const supabaseUrl = window.GYAN_MANCH_SUPABASE_URL;
-            const publishableKey = window.GYAN_MANCH_SUPABASE_KEY;
-            if (!supabaseUrl || !publishableKey) throw new Error('Supabase client configuration is missing. Reload the website.');
-
-            setImportProgress(1, 'Uploading PDF to secure storage…', file.name + ' • ' + (file.size / 1048576).toFixed(2) + ' MB');
-            await new Promise(function(resolve, reject) {
-              const xhr = new XMLHttpRequest();
-              xhr.open('POST', supabaseUrl.replace(/\/$/, '') + '/storage/v1/object/question-pdfs/' + filePath.split('/').map(encodeURIComponent).join('/'));
-              xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-              xhr.setRequestHeader('apikey', publishableKey);
-              xhr.setRequestHeader('Content-Type', file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream'));
-              xhr.setRequestHeader('x-upsert', 'false');
-              xhr.upload.onprogress = function(event) {
-                if (!event.lengthComputable) return;
-                const pct = Math.max(1, Math.min(25, Math.round((event.loaded / event.total) * 25)));
-                setImportProgress(pct, 'Uploading PDF… ' + Math.round((event.loaded / event.total) * 100) + '%', (event.loaded / 1048576).toFixed(2) + ' MB of ' + (event.total / 1048576).toFixed(2) + ' MB uploaded');
-              };
-              xhr.onload = function() {
-                if (xhr.status >= 200 && xhr.status < 300) { setImportProgress(25, 'PDF uploaded successfully', 'Creating the extraction/review record…'); resolve(); return; }
-                let message = 'Storage upload failed (' + xhr.status + ').';
-                try { const body = JSON.parse(xhr.responseText); message = body.message || body.error || message; } catch (_) {}
-                reject(new Error(message));
-              };
-              xhr.onerror = function() { reject(new Error('Network error while uploading the PDF. Check connection and retry.')); };
-              xhr.onabort = function() { reject(new Error('PDF upload was cancelled.')); };
-              xhr.send(file);
-            });
-
-            importJobId = null;
-            try {
-              const examLookup = await client.from('exams').select('id').eq('legacy_id', targetExId).maybeSingle();
-              const jobInsert = await client.from('pdf_import_jobs').insert({
-                uploaded_by: state.currentUser.id,
-                file_path: filePath,
-                original_filename: file.name,
-                status: 'extracting',
-                target_exam_id: examLookup && examLookup.data ? examLookup.data.id : null
-              }).select('id').single();
-              if (jobInsert.error) throw jobInsert.error;
-              importJobId = jobInsert.data.id;
-              window.gyanManchPdfJobId = importJobId;
-              window.gyanManchPdfFilePath = filePath;
-              window.gyanManchPdfFileName = file.name;
-            } catch (jobError) {
-              setImportProgress(27, 'PDF uploaded; preparing questions…', 'The file is saved, but the review record could not be created: ' + (jobError.message || 'database error') + '. Questions will still be extracted for review.');
+            if (!previewOnly) {
+                          // Persist the selected PDF to private Supabase Storage and create an import job.
+                          // Extraction still uses the same local file, so upload and question review remain one workflow.
+                          const client = window.gyanManchSupabase;
+                          if (!client || !state.currentUser || !state.currentUser.id) {
+                            throw new Error('Admin session missing. Sign in again, then choose the PDF.');
+                          }
+                          const sessionResult = await client.auth.getSession();
+                          const accessToken = sessionResult && sessionResult.data && sessionResult.data.session && sessionResult.data.session.access_token;
+                          if (!accessToken) throw new Error('Your admin session expired. Sign in again and retry.');
+                          const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '_').slice(-100) || 'question-paper.pdf';
+                          const filePath = state.currentUser.id + '/' + Date.now() + '_' + safeName;
+                          const supabaseUrl = window.GYAN_MANCH_SUPABASE_URL;
+                          const publishableKey = window.GYAN_MANCH_SUPABASE_KEY;
+                          if (!supabaseUrl || !publishableKey) throw new Error('Supabase client configuration is missing. Reload the website.');
+              
+                          setImportProgress(1, 'Uploading PDF to secure storage…', file.name + ' • ' + (file.size / 1048576).toFixed(2) + ' MB');
+                          await new Promise(function(resolve, reject) {
+                            const xhr = new XMLHttpRequest();
+                            xhr.open('POST', supabaseUrl.replace(/\/$/, '') + '/storage/v1/object/question-pdfs/' + filePath.split('/').map(encodeURIComponent).join('/'));
+                            xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+                            xhr.setRequestHeader('apikey', publishableKey);
+                            xhr.setRequestHeader('Content-Type', file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream'));
+                            xhr.setRequestHeader('x-upsert', 'false');
+                            xhr.upload.onprogress = function(event) {
+                              if (!event.lengthComputable) return;
+                              const pct = Math.max(1, Math.min(25, Math.round((event.loaded / event.total) * 25)));
+                              setImportProgress(pct, 'Uploading PDF… ' + Math.round((event.loaded / event.total) * 100) + '%', (event.loaded / 1048576).toFixed(2) + ' MB of ' + (event.total / 1048576).toFixed(2) + ' MB uploaded');
+                            };
+                            xhr.onload = function() {
+                              if (xhr.status >= 200 && xhr.status < 300) { setImportProgress(25, 'PDF uploaded successfully', 'Creating the extraction/review record…'); resolve(); return; }
+                              let message = 'Storage upload failed (' + xhr.status + ').';
+                              try { const body = JSON.parse(xhr.responseText); message = body.message || body.error || message; } catch (_) {}
+                              reject(new Error(message));
+                            };
+                            xhr.onerror = function() { reject(new Error('Network error while uploading the PDF. Check connection and retry.')); };
+                            xhr.onabort = function() { reject(new Error('PDF upload was cancelled.')); };
+                            xhr.send(file);
+                          });
+              
+                          importJobId = null;
+                          try {
+                            const examLookup = await client.from('exams').select('id').eq('legacy_id', targetExId).maybeSingle();
+                            const jobInsert = await client.from('pdf_import_jobs').insert({
+                              uploaded_by: state.currentUser.id,
+                              file_path: filePath,
+                              original_filename: file.name,
+                              status: 'extracting',
+                              target_exam_id: examLookup && examLookup.data ? examLookup.data.id : null
+                            }).select('id').single();
+                            if (jobInsert.error) throw jobInsert.error;
+                            importJobId = jobInsert.data.id;
+                            window.gyanManchPdfJobId = importJobId;
+                            window.gyanManchPdfFilePath = filePath;
+                            window.gyanManchPdfFileName = file.name;
+                          } catch (jobError) {
+                            setImportProgress(27, 'PDF uploaded; preparing questions…', 'The file is saved, but the review record could not be created: ' + (jobError.message || 'database error') + '. Questions will still be extracted for review.');
+                          }
+              
+              
+            } else {
+              setImportProgress(8, 'Saving original PDF in this preview…', 'This preview uses local browser storage only; production storage and database are not touched.');
+              await storePreviewPdfFile(file, draftId);
+              setImportProgress(25, 'Original PDF saved to preview archive', 'Extracting questions from ' + file.name);
             }
 
             async function finalizeImportJob() {
               const paperItems = db.pdfImportQueue.filter(function(item) { return !queueIdsBeforeUpload.has(item.id) && (item.fileName === file.name || item.fileName === 'Scanned_' + file.name); });
+              paperItems.forEach(function(item, index) {
+                item.draftId = draftId;
+                item.sourceFileName = file.name;
+                item.sourceQuestionNumber = item.sourceQuestionNumber || index + 1;
+                if (!item.reviewStatus) item.reviewStatus = (item.correctOption === null || item.correctOption === undefined || item.correctOption < 0 || item.extractionWarning) ? 'review_required' : 'unapproved';
+                item.published = Boolean(item.published);
+              });
+              if (!Array.isArray(db.pdfImportDrafts)) db.pdfImportDrafts = [];
+              const priorDraft = db.pdfImportDrafts.find(function(draft) { return draft.id === draftId; });
+              const draftRecord = {
+                id:draftId, fileName:file.name, fileSize:file.size, targetExamId:targetExId, targetSubjectId:targetSubId,
+                status:paperItems.length ? 'ready_for_review' : 'failed', processingComplete:true,
+                totalQuestions:paperItems.length, questionIds:paperItems.map(function(item) { return item.id; }),
+                originalStoredLocally:previewOnly, createdAt:new Date().toISOString()
+              };
+              if (priorDraft) Object.assign(priorDraft, draftRecord); else db.pdfImportDrafts.push(draftRecord);
+              window.gyanManchActivePdfDraftId = draftId;
+              saveDatabase(db);
               if (importJobId) {
                 const payload = paperItems.map(function(item) {
                   return { question_en:item.text_en || '', question_hi:item.text_hi || '', options_en:item.options_en || [], options_hi:item.options_hi || [], correct_option:item.correctOption, explanation_en:item.explanation_en || '', explanation_hi:item.explanation_hi || '' };
@@ -7714,10 +7783,10 @@ Answer Key:
         }
 
         // Approve ALL Staged Questions & Create Official Mock Test automatically
-        const btnApproveAll = document.getElementById('btnApproveAllStaged');
-        if (btnApproveAll) {
-          btnApproveAll.addEventListener('click', async function() {
-            const missingKey = db.pdfImportQueue.find(it => it.correctOption === null || it.correctOption < 0 || it.correctOption > 3);
+        const btnSubmitApproved = document.getElementById('btnSubmitApprovedDraft');
+        if (btnSubmitApproved) {
+          btnSubmitApproved.addEventListener('click', async function() {
+            const missingKey = activeDraftItems.find(it => it.reviewStatus === 'approved' && (it.correctOption === null || it.correctOption < 0 || it.correctOption > 4));
             if (missingKey) {
               showToast('Some staged questions are missing an Answer Key. Please select Option A/B/C/D for highlighted items first.', 'error');
               return;
@@ -7725,10 +7794,12 @@ Answer Key:
             const targetExId = document.getElementById('pdfTargetExamSelect').value;
             const exam = db.exams.find(e => e.id === targetExId) || db.exams[0];
             const createdQIds = [];
-            const batchFileName = db.pdfImportQueue[0] ? db.pdfImportQueue[0].fileName : 'Imported PDF Paper';
+            const batchFileName = activeDraftItems[0] ? activeDraftItems[0].fileName : 'Imported PDF Paper';
             // Keep one uploaded paper as one test. Do not accidentally merge staged questions from other PDFs.
-            const currentPaperItems = db.pdfImportQueue.filter(item => item.fileName === batchFileName && item.examId === exam.id);
-            const missingHindiOptionItem = currentPaperItems.find(item => {
+            const currentPaperItems = activeDraftItems.filter(item => item.fileName === batchFileName && (!item.examId || item.examId === exam.id));
+            const approvedPaperItems = currentPaperItems.filter(item => item.reviewStatus === 'approved' && !item.published);
+            if (!approvedPaperItems.length) { showToast('Is PDF draft mein abhi koi approved, unpublished question nahi hai.', 'warning'); return; }
+            const missingHindiOptionItem = approvedPaperItems.find(item => {
               const questionEn = String(item.text_en || '').trim();
               const questionHi = String(item.text_hi || '').trim();
               if (questionEn && (!questionHi || questionHi === questionEn)) return true;
@@ -7743,7 +7814,7 @@ Answer Key:
             const normalizeApprovedQuestion = (value) => String(value || '').toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
             let skippedDuplicates = 0;
 
-            currentPaperItems.forEach(function(item, idx) {
+            approvedPaperItems.forEach(function(item, idx) {
               const candidateEn = normalizeApprovedQuestion(item.text_en);
               const candidateHi = normalizeApprovedQuestion(item.text_hi);
               const duplicateInDb = db.questions.some(q => {
@@ -7829,8 +7900,12 @@ Answer Key:
               return;
             }
             db.tests.unshift(newTest);
-            const currentBatchIds = new Set(currentPaperItems.map(item => item.id));
-            db.pdfImportQueue = db.pdfImportQueue.filter(item => !currentBatchIds.has(item.id));
+            approvedPaperItems.forEach(function(item) { item.published = true; item.reviewStatus = 'submitted'; });
+            if (activeDraftRecord) {
+              activeDraftRecord.status = 'partially_submitted';
+              activeDraftRecord.submittedAt = new Date().toISOString();
+              activeDraftRecord.submittedQuestionIds = approvedPaperItems.map(function(item) { return item.id; });
+            }
             saveDatabase(db);
             showToast('Created ONE mock test with ' + createdQIds.length + ' questions from this PDF. Skipped ' + skippedDuplicates + ' duplicate(s).', 'success');
             navigateTo('exam-detail', { examId: exam.id });
@@ -7847,67 +7922,41 @@ Answer Key:
           });
         }
 
-        // Single-item Approve or Discard
+        // Individual review only changes the draft status. Publication happens only through Submit.
         pane.querySelectorAll('.btn-approve-stg').forEach(function(btn) {
           btn.addEventListener('click', function() {
-            const stgId = btn.getAttribute('data-approve-stg');
-            const item = db.pdfImportQueue.find(x => x.id === stgId);
+            const item = db.pdfImportQueue.find(function(x) { return x.id === btn.getAttribute('data-approve-stg'); });
             if (!item) return;
-
             if (item.correctOption === null || item.correctOption < 0 || item.correctOption > 4) {
-              showToast('Please select the Answer Key (Option A/B/C/D) before approving.', 'error');
-              return;
+              item.reviewStatus = 'review_required'; saveDatabase(db);
+              showToast('Answer key missing. Question stays in Review Required.', 'warning'); return;
             }
-            if (String(item.text_en || '').trim() && (!String(item.text_hi || '').trim() || String(item.text_hi || '').trim() === String(item.text_en || '').trim())) {
-              showToast('Hindi question translation missing. Fill the Hindi question before approving.', 'error');
-              return;
-            }
-            const optionEn = Array.isArray(item.options_en) ? item.options_en : [];
-            const optionHi = Array.isArray(item.options_hi) ? item.options_hi : [];
-            const missingHindiOptions = optionEn.slice(0, 5).some((value, idx) => String(value || '').trim() && (!String(optionHi[idx] || '').trim() || String(optionHi[idx] || '').trim() === String(value || '').trim()));
-            if (missingHindiOptions) {
-              showToast('Hindi option translation missing. Fill the Hindi field for every English option before approving.', 'error');
-              return;
-            }
-
-            const newQId = 'q_imp_' + Date.now();
-            db.questions.unshift({
-              id: newQId,
-              examId: item.examId || 'ex_ssc_cgl',
-              subjectId: item.subjectId || 'sub_ga',
-              chapterId: item.chapterId || 'ch_geog',
-              text_en: item.text_en,
-              text_hi: item.text_hi || item.text_en,
-              options_en: item.options_en,
-              options_hi: Array.isArray(item.options_hi) ? item.options_hi : [],
-              correctOption: Number(item.correctOption),
-              marks: Number(item.marks || 2.0),
-              negativeMarks: Number(item.negativeMarks || 0.5),
-              explanation_en: item.explanation_en || 'Verified answer key.',
-              explanation_hi: item.explanation_hi || '',
-              sourceType: 'admin_created',
-              verificationStatus: 'verified',
-              examYearShift: 'Official Pattern',
-              tags: item.tags || ['SSC-CGL'],
-              isPublished: true,
-              isSample: false
-            });
-
-            if (db.tests[0]) db.tests[0].questionIds.push(newQId);
-            db.pdfImportQueue = db.pdfImportQueue.filter(x => x.id !== stgId);
+            item.reviewStatus = 'approved';
+            item.reviewedAt = new Date().toISOString();
             saveDatabase(db);
-            showToast('Question approved and added to database!', 'success');
+            showToast('Question draft mein approved mark ho gaya. Submit se pehle Question Bank mein nahi jayega.', 'success');
             renderAdminDashboardView(document.getElementById('appMain'));
           });
         });
-
         pane.querySelectorAll('.btn-discard-stg').forEach(function(btn) {
           btn.addEventListener('click', function() {
-            const stgId = btn.getAttribute('data-discard-stg');
-            db.pdfImportQueue = db.pdfImportQueue.filter(x => x.id !== stgId);
+            const item = db.pdfImportQueue.find(function(x) { return x.id === btn.getAttribute('data-discard-stg'); });
+            if (!item) return;
+            item.reviewStatus = 'unapproved';
+            item.published = false;
             saveDatabase(db);
             renderAdminDashboardView(document.getElementById('appMain'));
           });
+        });
+        const approveAllDraftButton = document.getElementById('btnApproveAllStaged');
+        if (approveAllDraftButton) approveAllDraftButton.addEventListener('click', function() {
+          activeDraftItems.forEach(function(item) {
+            if (item.published) return;
+            item.reviewStatus = (item.correctOption === null || item.correctOption < 0 || item.correctOption > 4) ? 'review_required' : 'approved';
+          });
+          saveDatabase(db);
+          showToast('Is PDF ke questions review status ke saath save ho gaye. Submit button se sirf approved questions publish honge.', 'success');
+          renderAdminDashboardView(document.getElementById('appMain'));
         });
       }
 
