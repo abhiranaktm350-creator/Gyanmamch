@@ -6863,7 +6863,8 @@ function syncCbtSideDrawerUI() {
 
       function renderAdminPdfImportTab(pane) {
         const latestQueueItem = db.pdfImportQueue.length ? db.pdfImportQueue[db.pdfImportQueue.length - 1] : null;
-        const activeDraftId = window.gyanManchActivePdfDraftId || (latestQueueItem && (latestQueueItem.draftId || latestQueueItem.fileName));
+        const latestDraftRecord = (db.pdfImportDrafts || []).slice().sort(function(a,b) { return String(b.createdAt || '').localeCompare(String(a.createdAt || '')); })[0];
+        const activeDraftId = window.gyanManchActivePdfDraftId || (latestDraftRecord && latestDraftRecord.id) || (latestQueueItem && (latestQueueItem.draftId || latestQueueItem.fileName));
         const activeDraftItems = activeDraftId ? db.pdfImportQueue.filter(function(item) { return (item.draftId || item.fileName) === activeDraftId; }) : [];
         const activeDraftRecord = (db.pdfImportDrafts || []).find(function(draft) { return draft.id === activeDraftId; });
         const activeApprovedCount = activeDraftItems.filter(function(item) { return item.reviewStatus === 'approved' && !item.published; }).length;
@@ -6988,7 +6989,10 @@ function syncCbtSideDrawerUI() {
               </div>
               ${activeDraftItems.length > 0 ? `
                 <div class="w-full rounded-xl border border-indigo-200 bg-indigo-50 p-3 mb-3">
-                  <div class="font-bold text-indigo-950 text-sm">Draft PDF: ${escapeHtml(activeDraftRecord ? activeDraftRecord.fileName : (activeDraftItems[0].fileName || 'Imported PDF'))}</div>
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="font-bold text-indigo-950 text-sm">Draft PDF: ${escapeHtml(activeDraftRecord ? activeDraftRecord.fileName : (activeDraftItems[0].fileName || 'Imported PDF'))}</div>
+                    ${(db.pdfImportDrafts || []).length > 1 ? '<select id="pdfDraftPicker" class="rounded-lg border border-indigo-200 bg-white px-2 py-1 text-xs">' + db.pdfImportDrafts.slice().sort(function(a,b) { return String(b.createdAt || '').localeCompare(String(a.createdAt || '')); }).map(function(draft) { return '<option value="' + escapeHtml(draft.id) + '" ' + (draft.id === activeDraftId ? 'selected' : '') + '>' + escapeHtml(draft.fileName) + ' · ' + Number(draft.totalQuestions || 0) + ' Q</option>'; }).join('') + '</select>' : ''}
+                  </div>
                   <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 text-xs">
                     <div class="rounded-lg bg-white p-2"><div class="text-slate-500">Total</div><strong>${activeDraftItems.length}</strong></div>
                     <div class="rounded-lg bg-white p-2"><div class="text-slate-500">Approved</div><strong class="text-emerald-700">${activeApprovedCount}</strong></div>
@@ -7902,7 +7906,7 @@ Answer Key:
             db.tests.unshift(newTest);
             approvedPaperItems.forEach(function(item) { item.published = true; item.reviewStatus = 'submitted'; });
             if (activeDraftRecord) {
-              activeDraftRecord.status = 'partially_submitted';
+              activeDraftRecord.status = activeDraftItems.every(function(item) { return item.published || item.reviewStatus === 'approved'; }) ? 'submitted' : 'partially_submitted';
               activeDraftRecord.submittedAt = new Date().toISOString();
               activeDraftRecord.submittedQuestionIds = approvedPaperItems.map(function(item) { return item.id; });
             }
@@ -7947,6 +7951,11 @@ Answer Key:
             saveDatabase(db);
             renderAdminDashboardView(document.getElementById('appMain'));
           });
+        });
+        const pdfDraftPicker = document.getElementById('pdfDraftPicker');
+        if (pdfDraftPicker) pdfDraftPicker.addEventListener('change', function() {
+          window.gyanManchActivePdfDraftId = pdfDraftPicker.value;
+          renderAdminDashboardView(document.getElementById('appMain'));
         });
         const approveAllDraftButton = document.getElementById('btnApproveAllStaged');
         if (approveAllDraftButton) approveAllDraftButton.addEventListener('click', function() {
