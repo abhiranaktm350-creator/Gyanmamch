@@ -33,7 +33,7 @@ function parseQuestions(raw) {
     try { parsed = JSON.parse(clean.slice(first, last + 1)); } catch (_) { return null; }
   }
   if (!parsed || !Array.isArray(parsed.questions)) return null;
-  return parsed.questions.slice(0, 35).map(q => ({
+  return parsed.questions.slice(0, 50).map(q => ({
     question_en: String(q && q.question_en || "").slice(0, 3000),
     question_hi: String(q && q.question_hi || "").slice(0, 3000),
     options_en: normalizeOptions(q && q.options_en),
@@ -97,6 +97,7 @@ export default async function handler(request, response) {
       return json(response, 400, { error: "Request body must be a JSON object." });
     }
     const text = String(body.text || "").trim();
+    const expectedCount = Number.isInteger(Number(body.expected_count)) && Number(body.expected_count) > 0 ? Math.min(50, Number(body.expected_count)) : null;
     const answerKey = String(body.answer_key || "").trim().slice(0, 12000);
     if (text.length < 40) return json(response, 400, { error: "The document text is too short. Try a clearer PDF or paste its text." });
     if (text.length > 24000) return json(response, 413, { error: "This section is too long to process at once. Split the paper into smaller parts and try again." });
@@ -145,12 +146,18 @@ export default async function handler(request, response) {
     if (!questions || !questions.length) {
       return json(response, 422, { error: "The document could not be structured. Try a clearer file or use manual review." });
     }
-    // Use a dedicated translation pass instead of relying on extraction alone.
+    if (expectedCount !== null && questions.length !== expectedCount) {
+      return json(response, 422, { error: "Source count check failed: this section contains about " + expectedCount + " numbered questions, but AI extracted " + questions.length + ". No partial set was accepted; retry with a clearer PDF or use manual review.", expected_count: expectedCount, extracted_count: questions.length });
+    }
+    // Translate in both directions. Keep source text untouched and fill the missing language fields.
     const translationInput = questions.map((q, index) => ({
       index,
       question_en: q.question_en,
+      question_hi: q.question_hi,
       options_en: q.options_en,
-      explanation_en: q.explanation_en
+      options_hi: q.options_hi,
+      explanation_en: q.explanation_en,
+      explanation_hi: q.explanation_hi
     }));
     const translationPrompt = [
       "Translate the supplied exam questions from English into natural, accurate Hindi written in Devanagari.",
@@ -171,7 +178,7 @@ export default async function handler(request, response) {
           max_tokens: 6000,
           response_format: { type: "json_object" },
           messages: [
-            { role: "system", content: "You are a professional English-to-Hindi exam translator. Return valid JSON only." },
+            { role: "system", content: "You are a professional bilingual English-Hindi exam translator. Return valid JSON only." },
             { role: "user", content: translationPrompt }
           ]
         }),
@@ -198,18 +205,22 @@ export default async function handler(request, response) {
       const index = Number(item && item.index);
       if (!Number.isInteger(index) || index < 0 || index >= questions.length) return;
       const q = questions[index];
-      if (typeof item.question_hi === "string" && item.question_hi.trim()) q.question_hi = item.question_hi.trim().slice(0, 3000);
-      if (Array.isArray(item.options_hi)) q.options_hi = normalizeOptions(item.options_hi);
-      if (typeof item.explanation_hi === "string" && item.explanation_hi.trim()) q.explanation_hi = item.explanation_hi.trim().slice(0, 2000);
+      if (!q.question_en.trim() && typeof item.question_en === "string" && item.question_en.trim()) q.question_en = item.question_en.trim().slice(0, 3000);
+      if (!q.question_hi.trim() && typeof item.question_hi === "string" && item.question_hi.trim()) q.question_hi = item.question_hi.trim().slice(0, 3000);
+      if (Array.isArray(item.options_en) && q.options_en.every(v => !v.trim())) q.options_en = normalizeOptions(item.options_en);
+      if (Array.isArray(item.options_hi) && q.options_hi.every(v => !v.trim())) q.options_hi = normalizeOptions(item.options_hi);
+      if (!q.explanation_en.trim() && typeof item.explanation_en === "string") q.explanation_en = item.explanation_en.trim().slice(0, 2000);
+      if (!q.explanation_hi.trim() && typeof item.explanation_hi === "string") q.explanation_hi = item.explanation_hi.trim().slice(0, 2000);
     });
     const missingTranslations = questions.filter(q =>
-      (q.question_en.trim() && !q.question_hi.trim()) ||
-      q.options_en.some((option, i) => option.trim() && !q.options_hi[i].trim())
+      (!q.question_en.trim() || !q.question_hi.trim()) ||
+      q.options_en.some((option, i) => option.trim() && !q.options_hi[i].trim()) ||
+      q.options_hi.some((option, i) => option.trim() && !q.options_en[i].trim())
     );
     if (missingTranslations.length) {
       return json(response, 502, { error: "Hindi translation is missing for some questions or options. Please retry the PDF import; incomplete translations were not sent for approval." });
     }
-    return json(response, 200, { questions });
+    return json(response, 200, { questions, expected_count: expectedCount, extracted_count: questions.length });
   } catch (error) {
     const timedOut = error && error.name === "AbortError";
     return json(response, timedOut ? 504 : 500, {
