@@ -141,11 +141,27 @@ export default async function handler(req, res) {
     if (!Number.isFinite(Number(body.count)) || count < 1) return json(res, 400, { error: "Choose a valid question count." });
 
     const model = String(process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
-    const batchSize = 20;
+    const batchSize = 10;
     const batchCounts = Array.from({length: Math.ceil(count / batchSize)}, (_, i) => Math.min(batchSize, count - i * batchSize));
-    const batches = await Promise.all(batchCounts.map((batchCount, index) =>
-      generateBatch({ key, model, exam, subject, topic, difficulty, language, count: batchCount, batchIndex: index, batchTotal: batchCounts.length })
-    ));
+    const batches = [];
+    // Send batches sequentially to avoid bursts that trigger Gemini rate limits.
+    for (let index = 0; index < batchCounts.length; index++) {
+      let batch;
+      for (let attempt = 0; attempt < 4; attempt++) {
+        try {
+          batch = await generateBatch({
+            key, model, exam, subject, topic, difficulty, language,
+            count: batchCounts[index], batchIndex: index, batchTotal: batchCounts.length
+          });
+          break;
+        } catch (error) {
+          const isRateLimit = /rate limit|429|resource_exhausted|too many requests/i.test(error?.message || "");
+          if (!isRateLimit || attempt === 3) throw error;
+          await new Promise(resolve => setTimeout(resolve, 1500 * (2 ** attempt)));
+        }
+      }
+      batches.push(batch);
+    }
     const questions = batches.flat();
     if (questions.length !== count) return json(res, 502, { error: "The AI could not complete the full question set. Please retry." });
     return json(res, 200, { questions, requested_count: count, generated_count: questions.length });
