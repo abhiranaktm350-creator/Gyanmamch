@@ -2944,6 +2944,13 @@ table{max-width:100%;border-collapse:collapse}
         saveDatabase(db);
       }
 
+      function examUsesSessionTimer(exam) {
+        if (!exam) return false;
+        // Sessional/sectional clocks are limited to SSC CGL and Banking mocks.
+        return exam.categoryId === 'cat_banking' ||
+          (exam.categoryId === 'cat_ssc' && /^ex_ssc_cgl/.test(String(exam.id || '')));
+      }
+
       function renderExamDetailView(container) {
         const exam = db.exams.find(e => e.id === state.selectedExamId) || db.exams[0];
         const category = db.categories.find(c => c.id === exam.categoryId);
@@ -2953,15 +2960,15 @@ table{max-width:100%;border-collapse:collapse}
         examFullMocks.forEach(function(mock) {
           if (String(mock.id || '').startsWith('test_official_')) {
             mock.durationMinutes = Number(exam.duration || 60);
-            mock.hasSectionalTiming = Boolean(exam.hasSectionalTiming);
-            mock.sections = exam.hasSectionalTiming && Array.isArray(exam.sessionConfig)
+            mock.hasSectionalTiming = examUsesSessionTimer(exam) && Boolean(exam.hasSectionalTiming);
+            mock.sections = examUsesSessionTimer(exam) && exam.hasSectionalTiming && Array.isArray(exam.sessionConfig)
               ? JSON.parse(JSON.stringify(exam.sessionConfig)) : [];
             mock.defaultMarks = Number(exam.posMarks !== undefined ? exam.posMarks : 1);
             mock.defaultNegative = Number(exam.negMarks !== undefined ? exam.negMarks : 0.25);
           }
         });
         if (examFullMocks.length === 0) {
-          const autoSections = exam.hasSectionalTiming && Array.isArray(exam.sessionConfig)
+          const autoSections = examUsesSessionTimer(exam) && exam.hasSectionalTiming && Array.isArray(exam.sessionConfig)
             ? JSON.parse(JSON.stringify(exam.sessionConfig))
             : [
                 { id: 'sec_quant', name: 'Quantitative Aptitude', name_hi: 'मात्रात्मक अभियोग्यता', subjectId: 'sub_quant' },
@@ -2976,7 +2983,7 @@ table{max-width:100%;border-collapse:collapse}
             title: exam.name + ' — Official Pattern Full Mock Test #1 (' + exam.duration + ' Mins • +' + Number(exam.posMarks || 1).toFixed(2) + ' / -' + Number(exam.negMarks !== undefined ? exam.negMarks : 0.25).toFixed(2) + ')',
             title_hi: exam.name + ' — आधिकारिक पैटर्न पूर्ण मॉक टेस्ट #1 (' + exam.duration + ' मिनट)',
             testType: 'full_mock',
-            hasSectionalTiming: Boolean(exam.hasSectionalTiming),
+            hasSectionalTiming: examUsesSessionTimer(exam) && Boolean(exam.hasSectionalTiming),
             durationMinutes: Number(exam.duration || 60),
             defaultMarks: Number(exam.posMarks !== undefined ? exam.posMarks : 1.0),
             defaultNegative: Number(exam.negMarks !== undefined ? exam.negMarks : 0.25),
@@ -3692,9 +3699,12 @@ function syncCbtSideDrawerUI() {
         const examSessionConfig = examDefinition && Array.isArray(examDefinition.sessionConfig) ? examDefinition.sessionConfig : [];
         // Apply the official exam profile to every mock for that exam, not only auto-generated official mocks.
         // An explicitly timed admin test remains in control of its own section durations.
-        const configuredSections = (generatedOfficial || !hasExplicitTimedSections) && examSessionConfig.length
-          ? examSessionConfig
-          : (storedSections.length ? storedSections : (Array.isArray(storedTest.sessionConfig) ? storedTest.sessionConfig : examSessionConfig));
+        const sessionTimerAllowed = examUsesSessionTimer(examDefinition);
+        const configuredSections = sessionTimerAllowed
+          ? ((generatedOfficial || !hasExplicitTimedSections) && examSessionConfig.length
+              ? examSessionConfig
+              : (storedSections.length ? storedSections : (Array.isArray(storedTest.sessionConfig) ? storedTest.sessionConfig : examSessionConfig)))
+          : [];
         const test = Object.assign({}, storedTest, generatedOfficial && examDefinition ? {
           durationMinutes: Number(examDefinition.duration || storedTest.durationMinutes || 60),
           hasSectionalTiming: Boolean(examDefinition.hasSectionalTiming),
@@ -3752,7 +3762,7 @@ function syncCbtSideDrawerUI() {
           clearInterval(state.activeCbt.timerInterval);
         }
 
-        const hasSecTiming = Boolean((test.testType === 'sessional_test' || test.hasSectionalTiming || test.sections.length > 0) && test.sections.length > 0 && Number(test.sections[0].durationMinutes) > 0);
+        const hasSecTiming = Boolean(examUsesSessionTimer(examDefinition) && (test.testType === 'sessional_test' || test.hasSectionalTiming || test.sections.length > 0) && test.sections.length > 0 && Number(test.sections[0].durationMinutes) > 0);
         const firstSecMins = hasSecTiming ? Number(test.sections[0].durationMinutes || (test.testType === 'sessional_test' ? test.durationMinutes : 20) || 20) : Number(test.durationMinutes || 60);
         const configuredSessionTotalMins = hasSecTiming
           ? test.sections.reduce(function(total, sec){ return total + Math.max(0, Number(sec.durationMinutes) || 0); }, 0)
