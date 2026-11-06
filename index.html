@@ -3965,27 +3965,25 @@ function syncCbtSideDrawerUI() {
               active.answers[currQ.id].timeSpent = Number(active.answers[currQ.id].timeSpent || 0) + elapsed;
             }
           }
+          // Main paper clock is independent of the active session clock.
+          active.remainingSeconds = Math.max(0, Math.ceil((Number(active.deadlineAt) - now) / 1000));
           if (active.hasSectionalTiming) {
             active.sectionRemainingSeconds = Math.max(0, Math.ceil((Number(active.sectionDeadlineAt) - now) / 1000));
-            // Main paper clock is independent of the active session clock.
-            active.remainingSeconds = Math.max(0, Math.ceil((Number(active.deadlineAt) - now) / 1000));
-            if (active.sectionRemainingSeconds <= 0) {
-              window.clearInterval(active.timerInterval);
-              active.timerInterval = null;
-              updateCbtTimerDisplay();
-              advanceToNextTimedSection(true);
-              return;
-            }
-          } else {
-            active.remainingSeconds = Math.max(0, Math.ceil((Number(active.deadlineAt) - now) / 1000));
           }
           updateCbtTimerDisplay();
-          // Main exam expiry takes priority even while a session clock is active.
+          // Main exam expiry has priority over a simultaneous section expiry.
           if (active.remainingSeconds <= 0) {
             window.clearInterval(active.timerInterval);
             active.timerInterval = null;
             showToast('Main exam time expired! Automatically submitting your mock test attempt...', 'warning');
             finalizeAndScoreAttempt(true);
+            return;
+          }
+          if (active.hasSectionalTiming && active.sectionRemainingSeconds <= 0) {
+            window.clearInterval(active.timerInterval);
+            active.timerInterval = null;
+            advanceToNextTimedSection(true);
+            return;
           }
         }, 250);
       }
