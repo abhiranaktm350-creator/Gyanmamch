@@ -7944,23 +7944,29 @@ Answer Key:
           const accessToken = sessionResult && sessionResult.data && sessionResult.data.session && sessionResult.data.session.access_token;
           if (!accessToken) return false;
 
-          // Process long papers in smaller line-preserving chunks instead of silently truncating after 24k.
+          // Split only between numbered question blocks. This prevents a long paper
+          // from cutting a question in half and asking the AI to reconstruct it.
           const sourceLines = String(rawText || '').replace(/\r/g, '').split('\n');
+          const questionStart = /^(?:Q(?:uestion)?\.?\s*|प्रश्न\s*)?\d{1,3}\s*[.):\-]\s*\S/i;
           const chunks = [];
           let chunkLines = [];
           let chunkLength = 0;
-          const maxChunkChars = 15000;
+          let chunkQuestionCount = 0;
+          const maxChunkChars = 8000;
           sourceLines.forEach(function(line) {
+            const isQuestion = questionStart.test(line.trim());
             const lineLength = line.length + 1;
-            if (chunkLines.length && chunkLength + lineLength > maxChunkChars) {
-              chunks.push(chunkLines.join('\n'));
+            if (isQuestion && chunkQuestionCount > 0 && chunkLength >= maxChunkChars) {
+              chunks.push({ text: chunkLines.join('\n'), expectedCount: chunkQuestionCount });
               chunkLines = [];
               chunkLength = 0;
+              chunkQuestionCount = 0;
             }
             chunkLines.push(line);
             chunkLength += lineLength;
+            if (isQuestion) chunkQuestionCount++;
           });
-          if (chunkLines.length) chunks.push(chunkLines.join('\n'));
+          if (chunkLines.length) chunks.push({ text: chunkLines.join('\n'), expectedCount: chunkQuestionCount || null });
           if (!chunks.length) return false;
 
           const extractedItems = [];
@@ -7972,7 +7978,8 @@ Answer Key:
                 'authorization': 'Bearer ' + accessToken
               },
               body: JSON.stringify({
-                text: chunks[chunkIndex].slice(0, 18000),
+                text: chunks[chunkIndex].text.slice(0, 18000),
+                expected_count: chunks[chunkIndex].expectedCount,
                 answer_key: String(answerKeyText || '').slice(0, 12000),
                 chunk_number: chunkIndex + 1,
                 total_chunks: chunks.length
@@ -7991,6 +7998,22 @@ Answer Key:
             }
             extractedItems.push(...payload.questions);
           }
+
+          // Remove repeated questions returned by the model before they enter the review queue.
+          const seenQuestionKeys = new Set();
+          const uniqueExtractedItems = extractedItems.filter(function(item) {
+            const keyEn = normalizeImportedQuestion(String(item.question_en || ''));
+            const keyHi = normalizeImportedQuestion(String(item.question_hi || ''));
+            const key = keyEn || keyHi;
+            if (!key) return false;
+            if (seenQuestionKeys.has(key) || (keyHi && seenQuestionKeys.has(keyHi))) return false;
+            seenQuestionKeys.add(key);
+            if (keyHi) seenQuestionKeys.add(keyHi);
+            return true;
+          });
+          const removedWithinPdf = extractedItems.length - uniqueExtractedItems.length;
+          extractedItems.length = 0;
+          extractedItems.push(...uniqueExtractedItems);
 
           if (!extractedItems.length) {
             showToast('No questions were recognized. If this is a scanned PDF, try a clearer scan or OCR.', 'warning');
