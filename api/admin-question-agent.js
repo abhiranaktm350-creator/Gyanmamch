@@ -51,12 +51,14 @@ async function generateBatch({ key, model, exam, subject, topic, difficulty, lan
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 50000);
   try {
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(key), {
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
       body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.3, responseMimeType: "application/json" }
+        model,
+        input: prompt,
+        store: false,
+        generation_config: { thinking_level: "low" }
       }),
       signal: controller.signal
     });
@@ -67,9 +69,17 @@ async function generateBatch({ key, model, exam, subject, topic, difficulty, lan
         response.status === 401 || response.status === 403 ? "Gemini rejected the configured API key. Check the Preview environment variable." :
         message || "Gemini could not generate this question batch.");
     }
-    const raw = data.candidates?.[0]?.content?.parts?.map(part => part.text || "").join("") || "";
+    const raw = typeof data.output_text === "string" ? data.output_text :
+      (Array.isArray(data.output) ? data.output.flatMap(step =>
+        step.type === "model_output" && Array.isArray(step.content)
+          ? step.content.filter(part => part.type === "text").map(part => part.text || "")
+          : step.type === "text" ? [step.text || ""] : []
+      ).join("\n") : "");
     let parsed;
-    try { parsed = JSON.parse(raw.replace(/^\uFEFF/, "").trim()); } catch (_) {
+    try {
+      const clean = raw.replace(/^\\uFEFF/, "").trim().replace(/^\x60{3}(?:json)?\s*/i, "").replace(/\s*\x60{3}\s*$/, "");
+      parsed = JSON.parse(clean);
+    } catch (_) {
       throw new Error("Gemini returned an invalid JSON batch. Please retry.");
     }
     if (!Array.isArray(parsed.questions)) throw new Error("Gemini response did not contain a question list.");
@@ -130,7 +140,7 @@ export default async function handler(req, res) {
     if (!topic) return json(res, 400, { error: "Enter a topic first." });
     if (!Number.isFinite(Number(body.count)) || count < 1) return json(res, 400, { error: "Choose a valid question count." });
 
-    const model = String(process.env.GEMINI_MODEL || "gemini-2.5-flash").trim();
+    const model = String(process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
     const batchSize = 20;
     const batchCounts = Array.from({length: Math.ceil(count / batchSize)}, (_, i) => Math.min(batchSize, count - i * batchSize));
     const batches = await Promise.all(batchCounts.map((batchCount, index) =>
