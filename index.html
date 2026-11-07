@@ -7375,10 +7375,22 @@ function syncCbtSideDrawerUI() {
           const targetSubId = document.getElementById('pdfTargetSubjectSelect').value;
           if (button) { button.disabled = true; button.textContent = 'ChatGPT is extracting and translating…'; }
           try {
+            const queueCountBefore = db.pdfImportQueue.length;
             const added = await tryBackgroundExtractQuestions(rawText, 'Bulk_Paper_Import.pdf', targetExId, targetSubId, '');
-            if (!added) showToast('No questions were added. Check the detected question numbering and try again.', 'warning');
+            const stagedNow = Math.max(0, db.pdfImportQueue.length - queueCountBefore);
+            if (!added || stagedNow === 0) {
+              showToast('No questions reached the Review Queue. Check the ChatGPT error above, admin session, and OPENAI_API_KEY in Vercel Preview.', 'error');
+            } else {
+              window.gyanManchActivePdfDraftId = null;
+              showToast(stagedNow + ' question(s) added to Review Queue. Run the AI Quality Checker and verify numbering/answers before approval.', 'success');
+            }
+          } catch (parseError) {
+            showToast('Bulk import stopped: ' + (parseError && parseError.message ? parseError.message : 'Unknown error'), 'error');
           } finally {
+            state.adminActiveTab = 'pdf-import';
             renderAdminDashboardView(document.getElementById('appMain'));
+            const qualityButton = document.getElementById('btnRunQualityAudit');
+            if (qualityButton && db.pdfImportQueue.length > 0) setTimeout(function(){ qualityButton.click(); }, 500);
           }
         });
 
@@ -8415,18 +8427,26 @@ Answer Key:
           // When the source parser detected printed question numbers, never fall back
           // to unnumbered model output: that is the main source of phantom questions.
           const expectedSet = new Set(chunks.flatMap(function(chunk) { return chunk.expectedNumbers || []; }));
+          const matchedNumberedItems = orderedNumberedItems.filter(function(item) { return expectedSet.has(Number(item.source_question_number)); });
+          let numberingMismatchFallback = false;
+          // If ChatGPT returns valid question content but numbers are formatted differently
+          // (e.g. CSV/Q.No/Devanagari numbering), do not silently discard the entire paper.
+          // Keep those questions in the queue with a mandatory manual-review warning.
           const finalExtractedItems = expectedSet.size
-            ? orderedNumberedItems.filter(function(item) { return expectedSet.has(Number(item.source_question_number)); })
+            ? (matchedNumberedItems.length ? matchedNumberedItems : (orderedNumberedItems.length ? orderedNumberedItems : unnumberedItems))
             : (orderedNumberedItems.length ? orderedNumberedItems : unnumberedItems);
+          numberingMismatchFallback = expectedSet.size > 0 && matchedNumberedItems.length === 0 && finalExtractedItems.length > 0;
           extractedItems.length = 0;
           extractedItems.push(...finalExtractedItems);
 
           if (!extractedItems.length) {
-            showToast('ChatGPT did not return questions with the PDF’s printed question numbers. No extra or unnumbered questions were added. Check OCR numbering and retry.', 'warning');
+            showToast('ChatGPT could not identify question blocks in this text. Use clear question numbering (1., 2., 3.) or include Q1/Q2 labels, then retry.', 'warning');
             return false;
           }
-          if (expectedSet.size && extractedItems.length !== expectedSet.size) {
-            extractionCountWarnings.push('Detected ' + expectedSet.size + ' printed question starts; ChatGPT matched ' + extractedItems.length + '. Only matched printed question numbers were staged.');
+          if (numberingMismatchFallback) {
+            extractionCountWarnings.push('Question numbering could not be matched to the pasted text. Questions were staged for manual review; verify the full paper and remove any non-question rows.');
+          } else if (expectedSet.size && extractedItems.length !== expectedSet.size) {
+            extractionCountWarnings.push('Detected ' + expectedSet.size + ' printed question starts; ChatGPT matched ' + extractedItems.length + '. Verify missing or extra questions in the review queue.');
           }
 
           const countWarning = extractionCountWarnings.length ? extractionCountWarnings.join(' ') : null;
