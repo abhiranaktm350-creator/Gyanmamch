@@ -7705,10 +7705,10 @@ Answer Key:
                 const embeddedLines = Object.keys(embeddedRows).map(Number).sort((a, b) => b - a).map(function(y) {
                   return embeddedRows[y].sort((a, b) => a.x - b.x).map(function(item) { return item.str; }).join(' ').trim();
                 }).filter(Boolean);
-                const pageEmbedded = embeddedLines.join('\\n').trim();
+                const pageEmbedded = embeddedLines.join('\n').trim();
 
                 let pageOcr = '';
-                const embeddedQuestionStarts = (pageEmbedded.match(/(?:^|\\n)\\s*(?:Q(?:uestion)?\\.?\\s*\\d{1,4}|\\d{1,4}\\s*[.):])\\s*/gim) || []).length;
+                const embeddedQuestionStarts = (pageEmbedded.match(/(?:^|\n)\\s*(?:Q(?:uestion)?\\.?\\s*\\d{1,4}|\\d{1,4}\\s*[.):])\\s*/gim) || []).length;
                 // A partial/poor text layer (for example, only page headers or one
                 // detected question) must not suppress the ChatGPT Vision OCR pass.
                 if (pageEmbedded.length < 30 || embeddedQuestionStarts < 2) {
