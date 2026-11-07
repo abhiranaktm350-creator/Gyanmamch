@@ -47,7 +47,7 @@ export default async function handler(req, res) {
         messages: [
           { role: "system", content: "You are a highly accurate OCR engine for Indian competitive examination papers. Transcribe visible text only." },
           { role: "user", content: [
-            { type: "text", text: "Read this scanned question-paper page and transcribe every visible question, question number, option label and option text in reading order. Preserve the original language (English or Hindi), spelling, numbers, symbols, tables and line breaks. Do not translate, solve, infer missing text, invent questions or include page headers/footers unless they are part of a question. If a word is unreadable, mark it [unclear]. Return plain text only." },
+            { type: "text", text: "Act as a high-accuracy document OCR system, not a question-answering assistant. Transcribe the ENTIRE page from top to bottom and left to right. Capture every printed question number and complete question stem, every option label (a)/(b)/(c)/(d) and its full text, passage shared by multiple questions, tables, equations, fractions, superscripts, symbols, units and answer labels if printed. Keep each question and each option on its own line. Preserve numbering exactly as printed; do not renumber. Preserve the source language (English or Hindi) and wording; do not translate, solve, summarize, correct grammar, infer or invent text. Do not merge adjacent questions. If text is unclear, write [unclear] at that exact position rather than skipping the line. Include page headings only if they are part of the question paper. Return plain text only." },
             { type: "image_url", image_url: { url: image, detail: "high" } }
           ] }
         ]
