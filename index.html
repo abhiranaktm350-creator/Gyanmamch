@@ -7557,10 +7557,9 @@ Answer Key:
               if (chatGptAddedCount > 0) {
                 state.adminActiveTab = 'pdf-import';
                 saveDatabase(db);
-                renderAdminDashboardView(document.getElementById('appMain'));
-                setImportProgress(100, 'ChatGPT OCR complete — ' + chatGptAddedCount + ' questions staged', 'Check the page-wise OCR report and review every question before approval.');
+                setImportProgress(100, 'ChatGPT OCR complete — ' + chatGptAddedCount + ' questions staged', 'The page-wise scan report remains visible. Refresh the Review Queue after noting it.');
               } else {
-                setImportProgress(0, 'OCR scan completed but no questions were staged', 'Check the page-wise OCR report for ChatGPT errors or missing text.');
+                setImportProgress(0, 'OCR scan completed but no questions were staged', 'The page-wise report remains visible. Check page engines and request errors.');
               }
               return;
             }
@@ -7666,10 +7665,17 @@ Answer Key:
           const sessionResult = await client.auth.getSession();
           const session = sessionResult && sessionResult.data && sessionResult.data.session;
           if (!session || !session.access_token) throw new Error('No signed-in session; ChatGPT OCR request was not sent. Please sign in again.');
+          const maxSide = 1800;
+          const scale = Math.min(1, maxSide / Math.max(canvas.width, canvas.height));
+          const requestCanvas = document.createElement('canvas');
+          requestCanvas.width = Math.max(1, Math.round(canvas.width * scale));
+          requestCanvas.height = Math.max(1, Math.round(canvas.height * scale));
+          requestCanvas.getContext('2d').drawImage(canvas, 0, 0, requestCanvas.width, requestCanvas.height);
+          const image = requestCanvas.toDataURL('image/jpeg', 0.78);
           const response = await fetch('/api/ocr-page', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token, 'apikey': window.GYAN_MANCH_SUPABASE_KEY || '' },
-            body: JSON.stringify({ image: canvas.toDataURL('image/jpeg', 0.86) })
+            body: JSON.stringify({ image })
           });
           const payload = await response.json().catch(() => ({}));
           if (!response.ok) throw new Error(payload.error || 'ChatGPT Vision OCR is unavailable.');
@@ -7794,7 +7800,7 @@ Answer Key:
                 totalDetectedQuestions += pageQuestionCount;
                 totalCapturedChars += chosenPageText.length;
                 if (engine === 'ChatGPT Vision') chatGptPageCount++;
-                pageStats.push({ page: p, engine, questions: pageQuestionCount, chars: chosenPageText.length });
+                pageStats.push({ page: p, engine, questions: pageQuestionCount, chars: chosenPageText.length, error: !pageOcr && !pageEmbedded ? 'No text returned' : '' });
                 renderOcrReport(maxPages);
                 if (statusEl) statusEl.textContent = 'Scanned page ' + p + '/' + maxPages + ' • ' + engine + ' • ' + pageQuestionCount + ' question headers detected';
               }
@@ -7851,16 +7857,17 @@ Answer Key:
               const finalQueueCount = db.pdfImportQueue.filter(item => item.fileName === 'Scanned_' + file.name).length;
               if (extractionSummaryEl) extractionSummaryEl.textContent = 'Final report: ' + pageStats.length + ' pages scanned • ' + chatGptPageCount + ' by ChatGPT Vision • ' + totalDetectedQuestions + ' question headers detected • ' + finalQueueCount + ' questions staged for review.';
               if (statusEl) statusEl.textContent = '✓ Scan + extraction complete • ' + finalQueueCount + ' questions staged.';
-              setTimeout(function() {
-                renderAdminDashboardView(document.getElementById('appMain'));
-              }, 900);
+              // Keep the live scan report visible; rerendering destroys the page-wise report.
             } else {
               if (statusEl) statusEl.textContent = '⚠️ Scanned image rendered! Offline OCR fallback loaded into Box #2 — review & click Parse.';
               showToast('Scanned paper rendered! You can inspect or edit the text in Box #2 and click Parse.', 'info');
             }
           } catch (ocrErr) {
             if (laserEl) laserEl.classList.add('hidden');
-            showToast('Scanned Paper OCR Note: ' + ocrErr.message, 'warning');
+            if (statusEl) statusEl.textContent = 'OCR failed: ' + (ocrErr && ocrErr.message ? ocrErr.message : 'Unknown error');
+            if (extractionSummaryEl) extractionSummaryEl.textContent = 'Scan stopped. Check the page-wise report, correct the issue, and retry.';
+            showToast('Scanned Paper OCR Error: ' + (ocrErr && ocrErr.message ? ocrErr.message : 'Unknown error'), 'error');
+            throw ocrErr;
           }
         }
 
