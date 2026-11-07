@@ -7614,8 +7614,7 @@ Answer Key:
             const queueBefore = db.pdfImportQueue.length;
             const backgroundExtracted = await tryBackgroundExtractQuestions(combinedText, file.name, targetExId, targetSubId, '');
             if (!backgroundExtracted) {
-              setImportProgress(0, 'ChatGPT extraction did not complete', 'No fallback question parser was run, to prevent numbered passage items or option labels from becoming extra questions. Retry after checking the ChatGPT Preview configuration.');
-              return;
+              setImportProgress(74, 'ChatGPT extraction did not complete', 'No fallback question parser was run, to prevent numbered passage items or option labels from becoming extra questions. The visual OCR pass will retry the source pages.');
             }
             let addedCount = Math.max(0, db.pdfImportQueue.length - queueBefore);
             const newlyStaged = function() { return db.pdfImportQueue.filter(function(item) { return !queueIdsBeforeUpload.has(item.id); }); };
