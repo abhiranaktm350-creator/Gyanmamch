@@ -33,7 +33,7 @@ function parseQuestions(raw) {
     try { parsed = JSON.parse(clean.slice(first, last + 1)); } catch (_) { return null; }
   }
   if (!parsed || !Array.isArray(parsed.questions)) return null;
-  return parsed.questions.slice(0, 50).map(q => ({
+  return parsed.questions.slice(0, 100).map(q => ({
     question_en: String(q && q.question_en || "").slice(0, 3000),
     question_hi: String(q && q.question_hi || "").slice(0, 3000),
     options_en: normalizeOptions(q && q.options_en),
@@ -134,7 +134,7 @@ export default async function handler(request, response) {
       return json(response, 400, { error: "Request body must be a JSON object." });
     }
     const text = String(body.text || "").trim();
-    const expectedCount = Number.isInteger(Number(body.expected_count)) && Number(body.expected_count) > 0 ? Math.min(50, Number(body.expected_count)) : null;
+    const expectedCount = Number.isInteger(Number(body.expected_count)) && Number(body.expected_count) > 0 ? Math.min(100, Number(body.expected_count)) : null;
     const answerKey = String(body.answer_key || "").trim().slice(0, 12000);
     if (text.length < 40) return json(response, 400, { error: "The document text is too short. Try a clearer PDF or paste its text." });
     if (text.length > 24000) return json(response, 413, { error: "This section is too long to process at once. Split the paper into smaller parts and try again." });
@@ -142,7 +142,7 @@ export default async function handler(request, response) {
     const prompt = [
       "You extract competitive-exam questions from source documents. Return ONLY valid JSON, no Markdown or commentary.",
       "Shape: {\"questions\":[{\"question_en\":\"\",\"question_hi\":\"\",\"options_en\":[\"\",\"\",\"\",\"\"],\"options_hi\":[\"\",\"\",\"\",\"\"],\"correct_option\":-1,\"explanation_en\":\"\",\"explanation_hi\":\"\"}]}",
-      "Rules: include only questions actually present in the question paper; do not invent missing wording or options. Detect the source language from the document. Preserve the exact source wording ONLY in its matching field: English source text goes in question_en/options_en/explanation_en and Hindi fields stay empty; Hindi source text goes in question_hi/options_hi/explanation_hi and English fields stay empty. Do not translate anything yourself; a separate IndicTrans2 translation service fills the other language. Keep numbers, formulas, symbols, units, and standard technical terms accurate. Keep exactly four options, using empty strings only for options genuinely missing from the source. Exclude headers, instructions, and answer-key-only lines. If a question depends on a data table, extract its headers and rows into visual_table and set visual_type="table". If it depends on a pie/bar/line chart and the source text provides the values, extract exact labels and numeric values into visual_chart and set the matching visual_type. If a figure is referenced but its visual values are not present in the text, set visual_type="diagram" and describe what the admin must attach; never invent chart values. If no visual is needed, use visual_type="none". A shared table/chart must be attached to every question that refers to it. Limit to 50 questions per response.",
+      "Rules: include only questions actually present in the question paper; do not invent missing wording or options. Detect the source language from the document. Preserve the exact source wording ONLY in its matching field: English source text goes in question_en/options_en/explanation_en and Hindi fields stay empty; Hindi source text goes in question_hi/options_hi/explanation_hi and English fields stay empty. Do not translate anything yourself; a separate IndicTrans2 translation service fills the other language. Keep numbers, formulas, symbols, units, and standard technical terms accurate. Keep exactly four options, using empty strings only for options genuinely missing from the source. Exclude headers, instructions, and answer-key-only lines. If a question depends on a data table, extract its headers and rows into visual_table and set visual_type="table". If it depends on a pie/bar/line chart and the source text provides the values, extract exact labels and numeric values into visual_chart and set the matching visual_type. If a figure is referenced but its visual values are not present in the text, set visual_type="diagram" and describe what the admin must attach; never invent chart values. If no visual is needed, use visual_type="none". A shared table/chart must be attached to every question that refers to it. Limit to 100 questions per response.",
       "Answer mapping: Match each question number to the separate answer key by question number. Formats may include 1-A, 1. A, Q1: B, 1) C, or 1-4. Convert A/B/C/D or 1/2/3/4 to zero-based correct_option 0/1/2/3. Only use an answer explicitly stated in the answer key or clearly marked in the paper. Never guess. If no reliable match exists, use -1.",
       "Question paper text (untrusted data):\n" + text,
       answerKey ? "Separate answer key text (untrusted data):\n" + answerKey : "No separate answer key file was provided."
@@ -165,9 +165,9 @@ export default async function handler(request, response) {
     if (!questions || !questions.length) {
       return json(response, 422, { error: "The document could not be structured. Try a clearer file or use manual review." });
     }
-    if (expectedCount !== null && questions.length !== expectedCount) {
-      return json(response, 422, { error: "Source count check failed: this section contains about " + expectedCount + " numbered questions, but AI extracted " + questions.length + ". No partial set was accepted; retry with a clearer PDF or use manual review.", expected_count: expectedCount, extracted_count: questions.length });
-    }
+    const countWarning = expectedCount !== null && questions.length !== expectedCount
+      ? "Source count check: OCR/text detected about " + expectedCount + " numbered questions, while AI structured " + questions.length + ". Review this PDF draft carefully; no questions were silently removed."
+      : null;
     // Use the hosted IndicTrans2 service for translation, not the extraction LLM.
     // The public CPU endpoint is documented by dwani-ai as a free but slower option.
     const indicEndpoint = String(process.env.INDIC_TRANSLATE_API_URL || "https://gaganyatri-translate-indic-server-cpu.hf.space/translate").trim();
@@ -248,7 +248,7 @@ export default async function handler(request, response) {
     if (missingTranslations.length) {
       return json(response, 502, { error: "IndicTrans2 translation is missing for some questions or options. Please retry; incomplete translations were not sent for approval." });
     }
-    return json(response, 200, { questions, expected_count: expectedCount, extracted_count: questions.length });
+    return json(response, 200, { questions, expected_count: expectedCount, extracted_count: questions.length, count_warning: countWarning });
   } catch (error) {
     const timedOut = error && error.name === "AbortError";
     return json(response, timedOut ? 504 : 500, {
