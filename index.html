@@ -7633,7 +7633,7 @@ Answer Key:
           const response = await fetch('/api/ocr-page', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token, 'apikey': window.GYAN_MANCH_SUPABASE_KEY || '' },
-            body: JSON.stringify({ image: canvas.toDataURL('image/jpeg', 0.78) })
+            body: JSON.stringify({ image: canvas.toDataURL('image/jpeg', 0.86) })
           });
           const payload = await response.json().catch(() => ({}));
           if (!response.ok) throw new Error(payload.error || 'ChatGPT Vision OCR is unavailable.');
@@ -7683,7 +7683,7 @@ Answer Key:
                 if (barEl) barEl.style.width = pct + '%';
 
                 const page = await pdf.getPage(p);
-                const viewport = page.getViewport({ scale: 2.5 });
+                const viewport = page.getViewport({ scale: 2.8 });
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
                 const ctx = canvas.getContext('2d');
@@ -7692,7 +7692,20 @@ Answer Key:
 
                 // First check if page also has any embedded text items
                 const txtContent = await page.getTextContent();
-                const pageEmbedded = txtContent.items.map(i => i.str).join(' ').trim();
+                // Rebuild selectable PDF text into visual lines. Joining every text item
+                // with spaces destroys question numbers/options and makes fallback OCR miss questions.
+                const embeddedRows = {};
+                txtContent.items.forEach(function(item) {
+                  const value = String(item.str || '').trim();
+                  if (!value) return;
+                  const yKey = Math.round(item.transform[5] / 2) * 2;
+                  if (!embeddedRows[yKey]) embeddedRows[yKey] = [];
+                  embeddedRows[yKey].push({ x: item.transform[4], str: value });
+                });
+                const embeddedLines = Object.keys(embeddedRows).map(Number).sort((a, b) => b - a).map(function(y) {
+                  return embeddedRows[y].sort((a, b) => a.x - b.x).map(function(item) { return item.str; }).join(' ').trim();
+                }).filter(Boolean);
+                const pageEmbedded = embeddedLines.join('\\n').trim();
 
                 let pageOcr = '';
                 if (pageEmbedded.length < 30) {
