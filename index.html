@@ -7882,18 +7882,8 @@ Answer Key:
             const currentPaperItems = activeDraftItems.filter(item => item.fileName === batchFileName && (!item.examId || item.examId === exam.id));
             const approvedPaperItems = currentPaperItems.filter(item => item.reviewStatus === 'approved' && !item.published && (!item.isDuplicate || item.duplicateApproved));
             if (!approvedPaperItems.length) { showToast('Is PDF draft mein abhi koi approved, unpublished question nahi hai.', 'warning'); return; }
-            const missingHindiOptionItem = approvedPaperItems.find(item => {
-              const questionEn = String(item.text_en || '').trim();
-              const questionHi = String(item.text_hi || '').trim();
-              if (questionEn && (!questionHi || questionHi === questionEn)) return true;
-              const en = Array.isArray(item.options_en) ? item.options_en : [];
-              const hi = Array.isArray(item.options_hi) ? item.options_hi : [];
-              return en.slice(0, 5).some((value, idx) => String(value || '').trim() && (!String(hi[idx] || '').trim() || String(hi[idx] || '').trim() === String(value || '').trim()));
-            });
-            if (missingHindiOptionItem) {
-              showToast('Hindi question/options are missing or untranslated. Fill every Hindi field in the review queue before publishing this PDF.', 'error');
-              return;
-            }
+            // Hindi is optional for approval and mock creation. Keep original English text/options;
+            // the CBT viewer falls back to English when a Hindi translation is not available.
             approvedPaperItems.forEach(function(item, idx) {
               const newQId = 'q_pdf_' + Date.now() + '_' + idx;
               db.questions.push({
