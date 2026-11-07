@@ -33,7 +33,7 @@ function parseQuestions(raw) {
     try { parsed = JSON.parse(clean.slice(first, last + 1)); } catch (_) { return null; }
   }
   if (!parsed || !Array.isArray(parsed.questions)) return null;
-  return parsed.questions.slice(0, 100).map(q => ({
+  return parsed.questions.map(q => ({
     question_en: String(q && q.question_en || "").slice(0, 3000),
     question_hi: String(q && q.question_hi || "").slice(0, 3000),
     options_en: normalizeOptions(q && q.options_en),
@@ -134,7 +134,7 @@ export default async function handler(request, response) {
       return json(response, 400, { error: "Request body must be a JSON object." });
     }
     const text = String(body.text || "").trim();
-    const expectedCount = Number.isInteger(Number(body.expected_count)) && Number(body.expected_count) > 0 ? Math.min(100, Number(body.expected_count)) : null;
+    const expectedCount = Number.isInteger(Number(body.expected_count)) && Number(body.expected_count) > 0 ? Math.min(10000, Number(body.expected_count)) : null;
     const answerKey = String(body.answer_key || "").trim().slice(0, 12000);
     if (text.length < 40) return json(response, 400, { error: "The document text is too short. Try a clearer PDF or paste its text." });
     if (text.length > 24000) return json(response, 413, { error: "This section is too long to process at once. Split the paper into smaller parts and try again." });
@@ -142,7 +142,7 @@ export default async function handler(request, response) {
     const prompt = [
       "You extract competitive-exam questions from source documents. Return ONLY valid JSON, no Markdown or commentary.",
       "Shape: {\"questions\":[{\"question_en\":\"\",\"question_hi\":\"\",\"options_en\":[\"\",\"\",\"\",\"\"],\"options_hi\":[\"\",\"\",\"\",\"\"],\"correct_option\":-1,\"explanation_en\":\"\",\"explanation_hi\":\"\"}]}",
-      "Rules: include only questions actually present in the question paper; do not invent missing wording or options. Detect the source language from the document. Preserve the exact source wording ONLY in its matching field: English source text goes in question_en/options_en/explanation_en and Hindi fields stay empty; Hindi source text goes in question_hi/options_hi/explanation_hi and English fields stay empty. Do not translate anything yourself; a separate IndicTrans2 translation service fills the other language. Keep numbers, formulas, symbols, units, and standard technical terms accurate. Keep exactly four options, using empty strings only for options genuinely missing from the source. Exclude headers, instructions, and answer-key-only lines. If a question depends on a data table, extract its headers and rows into visual_table and set visual_type="table". If it depends on a pie/bar/line chart and the source text provides the values, extract exact labels and numeric values into visual_chart and set the matching visual_type. If a figure is referenced but its visual values are not present in the text, set visual_type="diagram" and describe what the admin must attach; never invent chart values. If no visual is needed, use visual_type="none". A shared table/chart must be attached to every question that refers to it. Limit to 100 questions per response.",
+      "Rules: include only questions actually present in the question paper; do not invent missing wording or options. Detect the source language from the document. Preserve the exact source wording ONLY in its matching field: English source text goes in question_en/options_en/explanation_en and Hindi fields stay empty; Hindi source text goes in question_hi/options_hi/explanation_hi and English fields stay empty. Do not translate anything yourself; a separate IndicTrans2 translation service fills the other language. Keep numbers, formulas, symbols, units, and standard technical terms accurate. Keep exactly four options, using empty strings only for options genuinely missing from the source. Exclude headers, instructions, and answer-key-only lines. If a question depends on a data table, extract its headers and rows into visual_table and set visual_type="table". If it depends on a pie/bar/line chart and the source text provides the values, extract exact labels and numeric values into visual_chart and set the matching visual_type. If a figure is referenced but its visual values are not present in the text, set visual_type="diagram" and describe what the admin must attach; never invent chart values. If no visual is needed, use visual_type="none". A shared table/chart must be attached to every question that refers to it. Return every question present in this chunk; do not impose a 100-question limit on the complete PDF. This request may be one of many chunks from a larger paper.",
       "Answer mapping: Match each question number to the separate answer key by question number. Formats may include 1-A, 1. A, Q1: B, 1) C, or 1-4. Convert A/B/C/D or 1/2/3/4 to zero-based correct_option 0/1/2/3. Only use an answer explicitly stated in the answer key or clearly marked in the paper. Never guess. If no reliable match exists, use -1.",
       "Question paper text (untrusted data):\n" + text,
       answerKey ? "Separate answer key text (untrusted data):\n" + answerKey : "No separate answer key file was provided."
@@ -217,6 +217,7 @@ export default async function handler(request, response) {
       if (sourceExplanation.trim()) direction.push({ text: sourceExplanation, set: value => { q[targetExplanationKey] = value.slice(0, 2000); } });
     });
 
+    let translationWarning = null;
     try {
       for (const [direction, srcLang, tgtLang] of [
         [tasks.enToHi, "eng_Latn", "hin_Deva"],
@@ -226,29 +227,20 @@ export default async function handler(request, response) {
           const batch = direction.slice(offset, offset + 40);
           const translations = await translateBatch(batch.map(item => item.text), srcLang, tgtLang);
           translations.forEach((translation, index) => {
-            if (!translation) throw new Error("IndicTrans2 returned an empty translation.");
-            batch[index].set(translation);
+            if (translation) batch[index].set(translation);
           });
         }
       }
     } catch (error) {
       const timedOut = error && error.name === "AbortError";
-      return json(response, 502, {
-        error: timedOut
-          ? "IndicTrans2 translation timed out. Try a smaller PDF section and retry."
-          : "IndicTrans2 translation service is temporarily unavailable or returned incomplete translations. No incomplete question set was accepted."
-      });
+      translationWarning = timedOut
+        ? "Hindi/English translation timed out. Original source-language questions are still available for admin approval."
+        : "Translation service is unavailable or incomplete. Original source-language questions are still available for admin approval.";
     }
 
-    const missingTranslations = questions.filter(q =>
-      (!q.question_en.trim() || !q.question_hi.trim()) ||
-      q.options_en.some((option, i) => option.trim() && !q.options_hi[i].trim()) ||
-      q.options_hi.some((option, i) => option.trim() && !q.options_en[i].trim())
-    );
-    if (missingTranslations.length) {
-      return json(response, 502, { error: "IndicTrans2 translation is missing for some questions or options. Please retry; incomplete translations were not sent for approval." });
-    }
-    return json(response, 200, { questions, expected_count: expectedCount, extracted_count: questions.length, count_warning: countWarning });
+    // Missing translations are warnings only. Never block question review or mock creation
+    // when the original source-language question and options were extracted successfully.
+    return json(response, 200, { questions, expected_count: expectedCount, extracted_count: questions.length, count_warning: countWarning, translation_warning: translationWarning });
   } catch (error) {
     const timedOut = error && error.name === "AbortError";
     return json(response, timedOut ? 504 : 500, {
