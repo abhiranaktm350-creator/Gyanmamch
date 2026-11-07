@@ -7054,12 +7054,13 @@ function syncCbtSideDrawerUI() {
                       <div class="rounded-xl border border-cyan-200 bg-cyan-50/60 p-3 mb-3 text-xs">
                         <div class="font-bold text-cyan-950 mb-2">Question Visual / Data Attachment</div>
                         <p class="text-slate-600 mb-2">AI-detected table/chart is shown here. You can edit its JSON or attach a diagram image. The same visual appears in the student exam preview.</p>
-                        <textarea data-stg-visual="\${item.id}" rows="4" class="w-full rounded-lg border border-cyan-300 bg-white p-2 font-mono text-[11px]" placeholder='{"type":"table","title":"Sales data","table":{"headers":["Year","Sales"],"rows":[["2024","120"],["2025","150"]]}}'>\${escapeHtml(JSON.stringify(item.visualData || {}, null, 2))}</textarea>
+                        <textarea data-stg-visual="${item.id}" rows="4" class="w-full rounded-lg border border-cyan-300 bg-white p-2 font-mono text-[11px]" placeholder='{"type":"table","title":"Sales data","table":{"headers":["Year","Sales"],"rows":[["2024","120"],["2025","150"]]}}'>${escapeHtml(JSON.stringify(item.visualData || {}, null, 2))}</textarea>
+                        <div id="stgVisualPreview-${item.id}" class="mt-2">${window.gmRenderQuestionMedia ? window.gmRenderQuestionMedia({visualData:item.visualData,visualImageData:item.visualImageData}) : ''} </div>
                         <div class="flex flex-wrap items-center gap-2 mt-2">
-                          <label class="inline-flex items-center gap-2 rounded-lg border border-cyan-300 bg-white px-3 py-2 font-semibold text-cyan-900 cursor-pointer">Attach chart / diagram image<input type="file" accept="image/png,image/jpeg,image/webp" data-stg-visual-image="\${item.id}" class="hidden" /></label>
-                          \${item.visualImageData ? '<span class="text-emerald-700 font-semibold">Image attached</span>' : '<span class="text-slate-500">Optional · PNG/JPG/WebP</span>'}
+                          <label class="inline-flex items-center gap-2 rounded-lg border border-cyan-300 bg-white px-3 py-2 font-semibold text-cyan-900 cursor-pointer">Attach chart / diagram image<input type="file" accept="image/png,image/jpeg,image/webp" data-stg-visual-image="${item.id}" class="hidden" /></label>
+                          ${item.visualImageData ? '<span class="text-emerald-700 font-semibold">Image attached</span>' : '<span class="text-slate-500">Optional · PNG/JPG/WebP</span>'}
                         </div>
-                        \${item.visualData && item.visualData.type && item.visualData.type !== 'none' ? '<div class="mt-2 text-cyan-900 font-semibold">Detected visual: ' + escapeHtml(item.visualData.type) + '</div>' : ''}
+                        ${item.visualData && item.visualData.type && item.visualData.type !== 'none' ? '<div class="mt-2 text-cyan-900 font-semibold">Detected visual: ' + escapeHtml(item.visualData.type) + '</div>' : ''}
                       </div>
 
                       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3 text-xs">
@@ -7122,6 +7123,8 @@ function syncCbtSideDrawerUI() {
               if (parsed && !['table','pie','bar','line','diagram','none'].includes(parsed.type)) throw new Error('Visual type must be table, pie, bar, line, diagram or none.');
               item.visualData = parsed;
               saveDatabase(db);
+              const preview = document.getElementById('stgVisualPreview-' + item.id);
+              if (preview && window.gmRenderQuestionMedia) preview.innerHTML = window.gmRenderQuestionMedia({visualData:item.visualData,visualImageData:item.visualImageData});
               showToast('Question visual saved in draft.', 'success');
             } catch (error) { showToast('Visual JSON is invalid: ' + error.message, 'error'); }
           });
