@@ -7382,14 +7382,38 @@ function syncCbtSideDrawerUI() {
           const targetSubId = document.getElementById('pdfTargetSubjectSelect').value;
           if (button) { button.disabled = true; button.textContent = 'ChatGPT is extracting and translating…'; }
           try {
-            const queueCountBefore = db.pdfImportQueue.length;
+            const queueIdsBefore = new Set(db.pdfImportQueue.map(function(item) { return item.id; }));
             const added = await tryBackgroundExtractQuestions(rawText, 'Bulk_Paper_Import.pdf', targetExId, targetSubId, '');
-            const stagedNow = Math.max(0, db.pdfImportQueue.length - queueCountBefore);
+            const newItems = db.pdfImportQueue.filter(function(item) {
+              return !queueIdsBefore.has(item.id) && item.fileName === 'Bulk_Paper_Import.pdf';
+            });
+            const stagedNow = newItems.length;
             if (!added || stagedNow === 0) {
-              showToast('No questions reached the Review Queue. Check the ChatGPT error above, admin session, and OPENAI_API_KEY in Vercel Preview.', 'error');
+              showToast('No questions reached the Review Queue. Your pasted text is still here. Check the ChatGPT error, admin session and Preview API key.', 'error');
             } else {
-              window.gyanManchActivePdfDraftId = null;
-              showToast(stagedNow + ' question(s) added to Review Queue. Run the AI Quality Checker and verify numbering/answers before approval.', 'success');
+              const draftId = 'bulk_pdf_draft_' + Date.now();
+              newItems.forEach(function(item, index) {
+                item.draftId = draftId;
+                item.sourceFileName = 'Bulk_Paper_Import.pdf';
+                item.sourceQuestionNumber = item.sourceQuestionNumber || (index + 1);
+                if (!item.reviewStatus) item.reviewStatus = (item.correctOption === null || item.correctOption === undefined || item.correctOption < 0 || item.extractionWarning) ? 'review_required' : 'unapproved';
+                item.published = Boolean(item.published);
+              });
+              if (!Array.isArray(db.pdfImportDrafts)) db.pdfImportDrafts = [];
+              db.pdfImportDrafts.push({
+                id: draftId,
+                fileName: 'Bulk_Paper_Import.pdf',
+                targetExamId: targetExId,
+                targetSubjectId: targetSubId,
+                status: 'ready_for_review',
+                processingComplete: true,
+                totalQuestions: newItems.length,
+                questionIds: newItems.map(function(item) { return item.id; }),
+                createdAt: new Date().toISOString()
+              });
+              window.gyanManchActivePdfDraftId = draftId;
+              saveDatabase(db);
+              showToast(stagedNow + ' question(s) safely saved in Review Queue. They will remain as a separate draft until you approve or discard them.', 'success');
             }
           } catch (parseError) {
             showToast('Bulk import stopped: ' + (parseError && parseError.message ? parseError.message : 'Unknown error'), 'error');
