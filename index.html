@@ -7548,6 +7548,22 @@ Answer Key:
               }
               return;
             }
+            // Force every PDF through the visual page scanner so ChatGPT Vision
+            // receives each page even when the PDF already contains selectable text.
+            if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+              setImportProgress(18, 'Starting ChatGPT Vision scan…', 'Every PDF page will be rendered and sent to ChatGPT OCR. Page-wise scan results will be shown.');
+              await runVisualOcrOnFile(file, targetExId, targetSubId);
+              const chatGptAddedCount = await finalizeImportJob();
+              if (chatGptAddedCount > 0) {
+                state.adminActiveTab = 'pdf-import';
+                saveDatabase(db);
+                renderAdminDashboardView(document.getElementById('appMain'));
+                setImportProgress(100, 'ChatGPT OCR complete — ' + chatGptAddedCount + ' questions staged', 'Check the page-wise OCR report and review every question before approval.');
+              } else {
+                setImportProgress(0, 'OCR scan completed but no questions were staged', 'Check the page-wise OCR report for ChatGPT errors or missing text.');
+              }
+              return;
+            }
             const arrayBuf = await file.arrayBuffer();
             setImportProgress(29, 'Opening PDF…', 'Reading PDF page count.');
             const pdf = await window.pdfjsLib.getDocument({ data: arrayBuf }).promise;
