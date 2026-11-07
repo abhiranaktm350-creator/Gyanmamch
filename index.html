@@ -1837,6 +1837,50 @@ table{max-width:100%;border-collapse:collapse}
         };
       }
 
+      // Large PDF staging queues are stored in IndexedDB, not the small localStorage quota.
+      // This prevents 100+ question papers from appearing briefly and then vanishing on refresh.
+      let gmPdfQueueDbPromise = null;
+      function openGmPdfQueueDb() {
+        if (!window.indexedDB) return Promise.reject(new Error('This browser does not support IndexedDB storage.'));
+        if (!gmPdfQueueDbPromise) gmPdfQueueDbPromise = new Promise(function(resolve, reject) {
+          const request = window.indexedDB.open('GyanManchPdfQueueStore', 1);
+          request.onupgradeneeded = function() {
+            const database = request.result;
+            if (!database.objectStoreNames.contains('drafts')) database.createObjectStore('drafts');
+          };
+          request.onsuccess = function() { resolve(request.result); };
+          request.onerror = function() { reject(request.error || new Error('Could not open local question storage.')); };
+        });
+        return gmPdfQueueDbPromise;
+      }
+      function persistGmPdfQueueState(dbObj) {
+        return openGmPdfQueueDb().then(function(database) {
+          return new Promise(function(resolve, reject) {
+            const tx = database.transaction('drafts', 'readwrite');
+            tx.objectStore('drafts').put({ pdfImportQueue:Array.isArray(dbObj.pdfImportQueue) ? dbObj.pdfImportQueue : [], pdfImportDrafts:Array.isArray(dbObj.pdfImportDrafts) ? dbObj.pdfImportDrafts : [], savedAt:new Date().toISOString() }, 'active');
+            tx.oncomplete = function() { resolve(true); };
+            tx.onerror = function() { reject(tx.error || new Error('Question queue could not be saved.')); };
+            tx.onabort = function() { reject(tx.error || new Error('Question queue save was interrupted.')); };
+          });
+        });
+      }
+      async function hydrateGmPdfQueueState(dbObj) {
+        const database = await openGmPdfQueueDb();
+        const stored = await new Promise(function(resolve, reject) {
+          const tx = database.transaction('drafts', 'readonly');
+          const request = tx.objectStore('drafts').get('active');
+          request.onsuccess = function() { resolve(request.result || null); };
+          request.onerror = function() { reject(request.error || new Error('Could not restore saved questions.')); };
+        });
+        if (stored) {
+          dbObj.pdfImportQueue = Array.isArray(stored.pdfImportQueue) ? stored.pdfImportQueue : [];
+          dbObj.pdfImportDrafts = Array.isArray(stored.pdfImportDrafts) ? stored.pdfImportDrafts : [];
+        } else {
+          await persistGmPdfQueueState(dbObj); // migrate any queue from the older localStorage version
+        }
+        return dbObj;
+      }
+
       // Load or Initialize Database in LocalStorage safely
       function loadDatabase() {
         try {
@@ -1873,10 +1917,17 @@ table{max-width:100%;border-collapse:collapse}
       }
 
       function saveDatabase(dbObj) {
+        // Save the large question queue independently in IndexedDB (larger quota than localStorage).
+        persistGmPdfQueueState(dbObj).catch(function(err) {
+          console.error('PDF review queue persistence failed:', err);
+          if (typeof showToast === 'function') showToast('Review Queue save failed: ' + (err && err.message ? err.message : 'Browser storage unavailable. Do not refresh until you export/copy the questions.'), 'error');
+        });
         try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(dbObj));
+          const compactDb = Object.assign({}, dbObj, { pdfImportQueue:[], pdfImportDrafts:[] });
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(compactDb));
         } catch (err) {
           console.warn('LocalStorage write fallback:', err);
+          if (typeof showToast === 'function') showToast('App settings could not be saved in browser storage: ' + (err && err.message ? err.message : 'storage full'), 'error');
         }
         // Automatically sync to Official Library LAN Server if running on localhost/LAN
         if (window.location.protocol.startsWith('http') && window.location.port === '8080') {
@@ -9304,8 +9355,14 @@ Answer Key:
       }
 
       // Initialize App on Load
-      window.addEventListener('DOMContentLoaded', function() {
+      window.addEventListener('DOMContentLoaded', async function() {
         applyGmTheme();
+        try {
+          await hydrateGmPdfQueueState(db);
+        } catch (queueRestoreError) {
+          console.error('Could not restore PDF review queue:', queueRestoreError);
+          showToast('Saved Review Queue could not be restored: ' + (queueRestoreError.message || 'browser storage error'), 'error');
+        }
         const termsModal = document.getElementById('examTermsModal');
         const termsAgree = document.getElementById('examTermsAgree');
         const termsAccept = document.getElementById('examTermsAccept');
