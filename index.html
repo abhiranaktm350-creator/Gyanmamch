@@ -7624,6 +7624,22 @@ Answer Key:
         };
         document.getElementById('btnRunPdfExtraction').addEventListener('click', window.gyanManchRunPdfExtraction);
 
+        async function requestChatGptVisionOcr(canvas) {
+          const client = window.gyanManchSupabase;
+          if (!client) return "";
+          const sessionResult = await client.auth.getSession();
+          const session = sessionResult && sessionResult.data && sessionResult.data.session;
+          if (!session || !session.access_token) return "";
+          const response = await fetch('/api/ocr-page', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token, 'apikey': window.GYAN_MANCH_SUPABASE_KEY || '' },
+            body: JSON.stringify({ image: canvas.toDataURL('image/jpeg', 0.78) })
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(payload.error || 'ChatGPT Vision OCR is unavailable.');
+          return String(payload.text || '').trim();
+        }
+
         // Visual OCR Scanner for Scanned PDFs & Printed Exam Paper Photos (.pdf, .jpg, .png, .webp)
         async function runVisualOcrOnFile(file, targetExId, targetSubId) {
           const panel = document.getElementById('ocrVisualScannerPanel');
@@ -7678,28 +7694,21 @@ Answer Key:
                 const txtContent = await page.getTextContent();
                 const pageEmbedded = txtContent.items.map(i => i.str).join(' ').trim();
 
-                if (window.Tesseract) {
-                  const res = await window.Tesseract.recognize(canvas, 'eng+hin', {
-                    logger: function(m) {
-                      if (m.status === 'recognizing text' && pctEl && barEl) {
-                        const subPct = Math.min(99, Math.round(((p - 1 + (m.progress || 0)) / maxPages) * 100));
-                        pctEl.textContent = subPct + '%';
-                        barEl.style.width = subPct + '%';
-                      }
-                    }
-                  });
-                  const pageOcr = res && res.data && res.data.text ? String(res.data.text).trim() : '';
-                  const markerCount = function(value) {
-                    const matches = String(value || '').match(/(?:^|\n)\s*(?:(?:Q(?:uestion)?\.?\s*|प्रश्न(?:\s*संख्या)?\s*)?(?:\(\s*\d{1,3}\s*\)|\d{1,3}\s*[.):\-]))/gim);
-                    return matches ? matches.length : 0;
-                  };
-                  const useOcr = pageOcr.length > 15 && (markerCount(pageOcr) > markerCount(pageEmbedded) || pageOcr.length > pageEmbedded.length * 1.12);
-                  if (useOcr) fullOcrText += pageOcr + '\n';
-                  else if (pageEmbedded) fullOcrText += pageEmbedded + '\n';
-                  else if (pageOcr) fullOcrText += pageOcr + '\n';
-                } else if (pageEmbedded) {
-                  fullOcrText += pageEmbedded + '\n';
+                let pageOcr = '';
+                if (pageEmbedded.length < 30) {
+                  try {
+                    if (statusEl) statusEl.textContent = '🤖 ChatGPT Vision OCR: reading page ' + p + ' of ' + maxPages + '...';
+                    pageOcr = await requestChatGptVisionOcr(canvas);
+                  } catch (visionError) {
+                    if (statusEl) statusEl.textContent = 'ChatGPT OCR unavailable; using local OCR fallback...';
+                  }
+                  if (!pageOcr && window.Tesseract) {
+                    const res = await window.Tesseract.recognize(canvas, 'eng+hin');
+                    pageOcr = res && res.data && res.data.text ? String(res.data.text).trim() : '';
+                  }
                 }
+                if (pageOcr.length > 15) fullOcrText += pageOcr + '\n';
+                else if (pageEmbedded) fullOcrText += pageEmbedded + '\n';
               }
             } else {
               // Image file (.jpg, .png, .webp) of a Printed Question Paper
@@ -7728,20 +7737,15 @@ Answer Key:
                 img.src = dataUrl;
               });
 
-              if (window.Tesseract) {
-                if (statusEl) statusEl.textContent = '🔍 Running bilingual OCR (English + Hindi) on scanned paper...';
-                const res = await window.Tesseract.recognize(canvas, 'eng+hin', {
-                  logger: function(m) {
-                    if (m.status === 'recognizing text' && pctEl && barEl) {
-                      const p = Math.max(25, Math.round((m.progress || 0) * 100));
-                      pctEl.textContent = p + '%';
-                      barEl.style.width = p + '%';
-                    }
-                  }
-                });
-                if (res && res.data && res.data.text) {
-                  fullOcrText = res.data.text;
-                }
+              try {
+                if (statusEl) statusEl.textContent = '🤖 ChatGPT Vision OCR: reading scanned paper...';
+                fullOcrText = await requestChatGptVisionOcr(canvas);
+              } catch (visionError) {
+                if (statusEl) statusEl.textContent = 'ChatGPT OCR unavailable; using local OCR fallback...';
+              }
+              if (!fullOcrText && window.Tesseract) {
+                const res = await window.Tesseract.recognize(canvas, 'eng+hin');
+                if (res && res.data && res.data.text) fullOcrText = res.data.text;
               }
             }
 
