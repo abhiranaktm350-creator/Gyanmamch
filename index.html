@@ -7677,7 +7677,7 @@ Answer Key:
           const pageStats = [];
           let chatGptPageCount = 0, totalDetectedQuestions = 0, totalCapturedChars = 0;
           function countQuestionStarts(text) {
-            const lines = String(text || '').replace(/\\r/g, '').split('\\n');
+            const lines = String(text || '').replace(/\r/g, '').split('\n');
             const explicit = lines.some(line => /^(?:Q(?:uestion)?\\.?\\s*|प्रश्न(?:\\s*संख्या)?\\s*)\\d{1,4}\\s*[.):\\-]?\\s*\\S/i.test(line.trim()));
             const re = explicit
               ? /^(?:Q(?:uestion)?\\.?\\s*|प्रश्न(?:\\s*संख्या)?\\s*)(\\d{1,4})\\s*[.):\\-]?\\s*\\S/i
