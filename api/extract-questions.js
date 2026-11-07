@@ -89,12 +89,13 @@ export default async function handler(request, response) {
 
   const supabaseUrl = String(process.env.SUPABASE_URL || "").replace(/\/$/, "");
   const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY || "";
-  // Prefer ChatGPT/OpenAI when configured. Keys stay server-side in Vercel Preview.
+  // This route intentionally uses ChatGPT/OpenAI only. The API key remains server-side
+  // and must be configured in the Vercel Preview environment, never in browser code.
   const openAiApiKey = String(process.env.OPENAI_API_KEY || "").trim();
-  const geminiApiKey = openAiApiKey ? "" : String(process.env.GEMINI_API_KEY || "").trim();
-  const aiApiKey = openAiApiKey || process.env.AI_API_KEY || process.env.AI_GATEWAY_API_KEY || "";
-  const aiApiUrl = (process.env.AI_API_URL || (process.env.AI_GATEWAY_API_KEY && !openAiApiKey ? "https://ai-gateway.vercel.sh/v1/ai/chat/completions" : "https://api.openai.com/v1/chat/completions")).replace(/\/$/, "");
-  const aiModel = openAiApiKey ? String(process.env.OPENAI_MODEL || "gpt-4o-mini") : (geminiApiKey ? String(process.env.GEMINI_MODEL || "gemini-2.5-flash") : (process.env.AI_MODEL || "gpt-4o-mini"));
+  const geminiApiKey = "";
+  const aiApiKey = openAiApiKey;
+  const aiApiUrl = "https://api.openai.com/v1/chat/completions";
+  const aiModel = String(process.env.OPENAI_MODEL || "gpt-4o-mini");
 
   if (!supabaseUrl || !publishableKey) {
     return json(response, 503, { error: "Server authentication is not configured. Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY in Vercel." });
@@ -125,8 +126,8 @@ export default async function handler(request, response) {
     if (!profile || !["admin", "teacher"].includes(profile.role) || profile.approval_status !== "approved") {
       return json(response, 403, { error: "Only approved teaching staff can extract questions." });
     }
-    if (!geminiApiKey && !aiApiKey) {
-      return json(response, 503, { error: "AI is not connected yet. Add GEMINI_API_KEY to the Vercel Preview environment for this branch, then redeploy the Preview." });
+    if (!openAiApiKey) {
+      return json(response, 503, { error: "ChatGPT is not connected. Add OPENAI_API_KEY to this Vercel Preview environment only, then redeploy this Preview." });
     }
 
     let body = request.body;
@@ -221,8 +222,10 @@ export default async function handler(request, response) {
       for (let offset = 0; offset < translationTasks.length; offset += 20) {
         const batch = translationTasks.slice(offset, offset + 20);
         const prompt = [
-          "Translate each item faithfully. Preserve meaning, numbers, formulas, symbols, names and option wording. Do not answer or explain the questions.",
-          "Translate English to natural Hindi in Devanagari, or Hindi to clear English, according to the source language.",
+          "Translate every supplied item faithfully. Preserve the full meaning, numbers, formulas, symbols, names, units and option wording. Do not answer, solve, shorten or explain the questions.",
+          "For English-to-Hindi, use formal, standard Hindi in Devanagari suitable for official Indian government examination papers and the Government of India's Rajbhasha register. Prefer precise, widely accepted Hindi terminology; avoid colloquial, slang or Urdu-heavy vocabulary. Keep unavoidable technical names/terms unchanged or give the Hindi term followed by the English term in parentheses.",
+          "Translate the question stem, every non-empty option, and every explanation independently. Keep option order exactly unchanged. Never leave an English sentence copied into a Hindi field unless it is a proper name, formula or technical term that should remain in English.",
+          "For Hindi-to-English, use clear, faithful formal English. Do not change the source's facts or meaning.",
           "Return ONLY valid JSON in this shape: " + JSON.stringify({ translations: batch.map((item, index) => ({ index, translation: "" })) }),
           "Items: " + JSON.stringify(batch.map((item, index) => ({ index, text: item.text })))
         ].join("\n\n");
