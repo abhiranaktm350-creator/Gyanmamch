@@ -6,7 +6,7 @@ function json(response, status, body) {
 }
 
 function normalizeOptions(value) {
-  const list = Array.isArray(value) ? value.slice(0, 4).map(v => String(v || "").slice(0, 800)) : [];
+  const list = Array.isArray(value) ? value.slice(0, 4).map(v => String(v || "").slice(0, 3000)) : [];
   while (list.length < 4) list.push("");
   return list;
 }
@@ -35,8 +35,8 @@ function parseQuestions(raw) {
   if (!parsed || !Array.isArray(parsed.questions)) return null;
   return parsed.questions.map(q => ({
     source_question_number: Number.isInteger(Number(q && q.source_question_number)) && Number(q.source_question_number) >= 1 ? Number(q.source_question_number) : null,
-    question_en: String(q && q.question_en || "").slice(0, 3000),
-    question_hi: String(q && q.question_hi || "").slice(0, 3000),
+    question_en: String(q && q.question_en || "").slice(0, 12000),
+    question_hi: String(q && q.question_hi || "").slice(0, 12000),
     options_en: normalizeOptions(q && q.options_en),
     options_hi: normalizeOptions(q && q.options_hi),
     correct_option: Number.isInteger(q && q.correct_option) && q.correct_option >= 0 && q.correct_option <= 3 ? q.correct_option : -1,
@@ -61,7 +61,7 @@ async function requestAiText({ prompt, system, geminiKey, apiKey, apiUrl, model 
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         contents: [{ role: "user", parts: [{ text: system + "\n\n" + prompt }] }],
-        generationConfig: { temperature: 0.1, responseMimeType: "application/json", maxOutputTokens: 6000 }
+        generationConfig: { temperature: 0.1, responseMimeType: "application/json", maxOutputTokens: 12000 }
       })
     });
     const data = await response.json().catch(() => ({}));
@@ -72,7 +72,7 @@ async function requestAiText({ prompt, system, geminiKey, apiKey, apiUrl, model 
     method: "POST",
     headers: { authorization: "Bearer " + apiKey, "content-type": "application/json" },
     body: JSON.stringify({
-      model, temperature: 0.1, max_tokens: 6000, response_format: { type: "json_object" },
+      model, temperature: 0.1, max_tokens: 12000, response_format: { type: "json_object" },
       messages: [{ role: "system", content: system }, { role: "user", content: prompt }]
     })
   });
@@ -141,7 +141,7 @@ export default async function handler(request, response) {
     const expectedNumbers = Array.isArray(body.expected_numbers) ? Array.from(new Set(body.expected_numbers.map(Number).filter(value => Number.isInteger(value) && value >= 1 && value <= 10000))) : [];
     const answerKey = String(body.answer_key || "").trim().slice(0, 12000);
     if (text.length < 40) return json(response, 400, { error: "The document text is too short. Try a clearer PDF or paste its text." });
-    if (text.length > 24000) return json(response, 413, { error: "This section is too long to process at once. Split the paper into smaller parts and try again." });
+    if (text.length > 40000) return json(response, 413, { error: "This section is too long to process at once. Split the paper into smaller parts and try again." });
 
     const prompt = [
       "You extract competitive-exam questions from source documents. Return ONLY valid JSON, no Markdown or commentary.",
