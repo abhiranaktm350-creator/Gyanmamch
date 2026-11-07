@@ -34,6 +34,7 @@ function parseQuestions(raw) {
   }
   if (!parsed || !Array.isArray(parsed.questions)) return null;
   return parsed.questions.map(q => ({
+    source_question_number: Number.isInteger(Number(q && q.source_question_number)) && Number(q.source_question_number) >= 1 ? Number(q.source_question_number) : null,
     question_en: String(q && q.question_en || "").slice(0, 3000),
     question_hi: String(q && q.question_hi || "").slice(0, 3000),
     options_en: normalizeOptions(q && q.options_en),
@@ -135,14 +136,15 @@ export default async function handler(request, response) {
     }
     const text = String(body.text || "").trim();
     const expectedCount = Number.isInteger(Number(body.expected_count)) && Number(body.expected_count) > 0 ? Math.min(10000, Number(body.expected_count)) : null;
+    const expectedNumbers = Array.isArray(body.expected_numbers) ? Array.from(new Set(body.expected_numbers.map(Number).filter(value => Number.isInteger(value) && value >= 1 && value <= 10000))) : [];
     const answerKey = String(body.answer_key || "").trim().slice(0, 12000);
     if (text.length < 40) return json(response, 400, { error: "The document text is too short. Try a clearer PDF or paste its text." });
     if (text.length > 24000) return json(response, 413, { error: "This section is too long to process at once. Split the paper into smaller parts and try again." });
 
     const prompt = [
       "You extract competitive-exam questions from source documents. Return ONLY valid JSON, no Markdown or commentary.",
-      "Shape: {\"questions\":[{\"question_en\":\"\",\"question_hi\":\"\",\"options_en\":[\"\",\"\",\"\",\"\"],\"options_hi\":[\"\",\"\",\"\",\"\"],\"correct_option\":-1,\"explanation_en\":\"\",\"explanation_hi\":\"\"}]}",
-      "Rules: include only questions actually present in the question paper; do not invent missing wording or options. Detect the source language from the document. Preserve the exact source wording ONLY in its matching field: English source text goes in question_en/options_en/explanation_en and Hindi fields stay empty; Hindi source text goes in question_hi/options_hi/explanation_hi and English fields stay empty. Do not translate anything yourself; a separate IndicTrans2 translation service fills the other language. Keep numbers, formulas, symbols, units, and standard technical terms accurate. Keep exactly four options, using empty strings only for options genuinely missing from the source. Exclude headers, instructions, and answer-key-only lines. If a question depends on a data table, extract its headers and rows into visual_table and set visual_type="table". If it depends on a pie/bar/line chart and the source text provides the values, extract exact labels and numeric values into visual_chart and set the matching visual_type. If a figure is referenced but its visual values are not present in the text, set visual_type="diagram" and describe what the admin must attach; never invent chart values. If no visual is needed, use visual_type="none". A shared table/chart must be attached to every question that refers to it. Return every question present in this chunk; do not impose a 100-question limit on the complete PDF. This request may be one of many chunks from a larger paper.",
+      "Shape: {\"questions\":[{\"source_question_number\":1,\"question_en\":\"\",\"question_hi\":\"\",\"options_en\":[\"\",\"\",\"\",\"\"],\"options_hi\":[\"\",\"\",\"\",\"\"],\"correct_option\":-1,\"explanation_en\":\"\",\"explanation_hi\":\"\"}]}",
+      "Rules: include only questions actually present in the question paper; do not invent missing wording or options. Return exactly one object for each numbered question start in the supplied allowed-number list, set source_question_number to that exact printed number, and never split a single question into multiple objects. Never treat option labels, subparts, page numbers, answer-key rows, examples, or instruction text as separate questions. Allowed source question numbers for this chunk: " + (expectedNumbers.length ? expectedNumbers.join(", ") : "not provided; identify only clearly numbered question starts") + ". Detect the source language from the document. Preserve the exact source wording ONLY in its matching field: English source text goes in question_en/options_en/explanation_en and Hindi fields stay empty; Hindi source text goes in question_hi/options_hi/explanation_hi and English fields stay empty. Do not translate anything yourself; a separate IndicTrans2 translation service fills the other language. Keep numbers, formulas, symbols, units, and standard technical terms accurate. Keep exactly four options, using empty strings only for options genuinely missing from the source. Exclude headers, instructions, and answer-key-only lines. If a question depends on a data table, extract its headers and rows into visual_table and set visual_type="table". If it depends on a pie/bar/line chart and the source text provides the values, extract exact labels and numeric values into visual_chart and set the matching visual_type. If a figure is referenced but its visual values are not present in the text, set visual_type="diagram" and describe what the admin must attach; never invent chart values. If no visual is needed, use visual_type="none". A shared table/chart must be attached to every question that refers to it. Return every question present in this chunk; do not impose a 100-question limit on the complete PDF. This request may be one of many chunks from a larger paper.",
       "Answer mapping: Match each question number to the separate answer key by question number. Formats may include 1-A, 1. A, Q1: B, 1) C, or 1-4. Convert A/B/C/D or 1/2/3/4 to zero-based correct_option 0/1/2/3. Only use an answer explicitly stated in the answer key or clearly marked in the paper. Never guess. If no reliable match exists, use -1.",
       "Question paper text (untrusted data):\n" + text,
       answerKey ? "Separate answer key text (untrusted data):\n" + answerKey : "No separate answer key file was provided."
@@ -161,13 +163,36 @@ export default async function handler(request, response) {
     } catch (error) {
       return json(response, 502, { error: error && error.message ? error.message : "The AI provider could not process this document." });
     }
-    const questions = parseQuestions(raw);
+    let questions = parseQuestions(raw);
     if (!questions || !questions.length) {
       return json(response, 422, { error: "The document could not be structured. Try a clearer file or use manual review." });
     }
-    const countWarning = expectedCount !== null && questions.length !== expectedCount
-      ? "Source count check: OCR/text detected about " + expectedCount + " numbered questions, while AI structured " + questions.length + ". Review this PDF draft carefully; no questions were silently removed."
-      : null;
+    let numberingWarning = null;
+    if (expectedNumbers.length) {
+      const allowedNumbers = new Set(expectedNumbers);
+      const hasNumberedOutput = questions.some(question => Number.isInteger(question.source_question_number));
+      if (hasNumberedOutput) {
+        questions = questions.filter(question => Number.isInteger(question.source_question_number) && allowedNumbers.has(question.source_question_number));
+        const seenNumbers = new Set();
+        questions = questions.filter(question => {
+          if (seenNumbers.has(question.source_question_number)) return false;
+          seenNumbers.add(question.source_question_number);
+          return true;
+        });
+      } else {
+        questions = questions.slice(0, expectedNumbers.length);
+        numberingWarning = "AI did not return printed question numbers; extra extracted items were capped to the PDF's detected question count. Please review the draft.";
+      }
+    }
+    if (!questions.length) {
+      return json(response, 422, { error: "No extracted question matched the numbered question starts in this PDF section. Check the PDF text/OCR and retry." });
+    }
+    const countWarningParts = [];
+    if (numberingWarning) countWarningParts.push(numberingWarning);
+    if (expectedCount !== null && questions.length !== expectedCount) {
+      countWarningParts.push("Source count check: detected " + expectedCount + " numbered question starts, while AI returned " + questions.length + " matching questions. Review the missing items in this PDF draft.");
+    }
+    const countWarning = countWarningParts.length ? countWarningParts.join(" ") : null;
     // Use the hosted IndicTrans2 service for translation, not the extraction LLM.
     // The public CPU endpoint is documented by dwani-ai as a free but slower option.
     const indicEndpoint = String(process.env.INDIC_TRANSLATE_API_URL || "https://gaganyatri-translate-indic-server-cpu.hf.space/translate").trim();
