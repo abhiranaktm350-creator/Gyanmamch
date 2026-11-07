@@ -6879,7 +6879,8 @@ function syncCbtSideDrawerUI() {
         const activeDraftId = window.gyanManchActivePdfDraftId || (latestDraftRecord && latestDraftRecord.id) || (latestQueueItem && (latestQueueItem.draftId || latestQueueItem.fileName));
         const activeDraftItems = activeDraftId ? db.pdfImportQueue.filter(function(item) { return (item.draftId || item.fileName) === activeDraftId; }) : [];
         const activeDraftRecord = (db.pdfImportDrafts || []).find(function(draft) { return draft.id === activeDraftId; });
-        const activeApprovedCount = activeDraftItems.filter(function(item) { return item.reviewStatus === 'approved' && !item.published; }).length;
+        const activeApprovedCount = activeDraftItems.filter(function(item) { return item.reviewStatus === 'approved' && !item.published && (!item.isDuplicate || item.duplicateApproved); }).length;
+        const activeDuplicateCount = activeDraftItems.filter(function(item) { return !!item.isDuplicate && !item.published; }).length;
         const activeUnapprovedCount = activeDraftItems.filter(function(item) { return item.reviewStatus === 'unapproved' && !item.published; }).length;
         const activeReviewCount = activeDraftItems.filter(function(item) { return item.reviewStatus === 'review_required' && !item.published; }).length;
         pane.innerHTML = `
@@ -7005,16 +7006,17 @@ function syncCbtSideDrawerUI() {
                     <div class="font-bold text-indigo-950 text-sm">Draft PDF: ${escapeHtml(activeDraftRecord ? activeDraftRecord.fileName : (activeDraftItems[0].fileName || 'Imported PDF'))}</div>
                     ${(db.pdfImportDrafts || []).length > 1 ? '<select id="pdfDraftPicker" class="rounded-lg border border-indigo-200 bg-white px-2 py-1 text-xs">' + db.pdfImportDrafts.slice().sort(function(a,b) { return String(b.createdAt || '').localeCompare(String(a.createdAt || '')); }).map(function(draft) { return '<option value="' + escapeHtml(draft.id) + '" ' + (draft.id === activeDraftId ? 'selected' : '') + '>' + escapeHtml(draft.fileName) + ' · ' + Number(draft.totalQuestions || 0) + ' Q</option>'; }).join('') + '</select>' : ''}
                   </div>
-                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 text-xs">
+                  <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-2 text-xs">
                     <div class="rounded-lg bg-white p-2"><div class="text-slate-500">Total</div><strong>${activeDraftItems.length}</strong></div>
                     <div class="rounded-lg bg-white p-2"><div class="text-slate-500">Approved</div><strong class="text-emerald-700">${activeApprovedCount}</strong></div>
                     <div class="rounded-lg bg-white p-2"><div class="text-slate-500">Unapproved</div><strong>${activeUnapprovedCount}</strong></div>
                     <div class="rounded-lg bg-white p-2"><div class="text-slate-500">Review required</div><strong class="text-rose-700">${activeReviewCount}</strong></div>
+                    <div class="rounded-lg bg-amber-50 p-2"><div class="text-amber-800">Duplicates</div><strong class="text-amber-900">${activeDuplicateCount}</strong></div>
                   </div>
                   <div class="text-[11px] text-slate-600 mt-2">${activeDraftRecord && activeDraftRecord.processingComplete ? 'PDF extraction complete. You can review now.' : 'PDF processing is not complete yet. Submit is unavailable.'}</div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                  <button id="btnApproveAllStaged" type="button" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow transition">✓ Mark all in this PDF approved</button>
+                  <button id="btnApproveAllStaged" type="button" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow transition">✓ Approve all (including duplicates)</button>
                   ${activeDraftRecord && activeDraftRecord.processingComplete && activeApprovedCount > 0 ? '<button id="btnSubmitApprovedDraft" type="button" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow transition">Submit & Create Mock Test</button>' : ''}
                   <button id="btnClearAllStaged" type="button" class="px-3 py-2 rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-semibold transition">Clear Queue</button>
                 </div>
@@ -7036,6 +7038,7 @@ function syncCbtSideDrawerUI() {
                           <span class="px-2 py-0.5 rounded ${item.reviewStatus === 'approved' ? 'bg-emerald-100 text-emerald-800' : item.reviewStatus === 'review_required' ? 'bg-rose-100 text-rose-800' : item.published ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-700'} text-[11px] font-bold">${item.published ? 'Submitted' : (item.reviewStatus || 'Unapproved').replace('_',' ')}</span>
                           <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 text-xs font-bold">${escapeHtml(item.fileName)}</span>
                           <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-xs font-bold">+${item.marks} / -${item.negativeMarks}</span>
+                          ${item.isDuplicate ? '<span class="px-2 py-0.5 rounded bg-amber-200 text-amber-950 text-xs font-bold">⚠ Duplicate found · Admin approval required</span>' : ''}
                           ${item.extractionWarning ? `<span class="px-2 py-0.5 rounded bg-rose-200 text-rose-900 text-xs font-bold">❗ ${escapeHtml(item.extractionWarning)}</span>` : ''}
                         </div>
                         <span class="text-xs font-bold uppercase text-slate-600">${escapeHtml(item.status)}</span>
@@ -7103,7 +7106,7 @@ function syncCbtSideDrawerUI() {
                           Discard
                         </button>
                         <button type="button" data-approve-stg="${item.id}" class="btn-approve-stg px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow">
-                          ✓ Approve & Save Question
+                          ${item.isDuplicate ? '✓ Approve Duplicate for Mock' : '✓ Approve Question for Mock'}
                         </button>
                       </div>
                     </div>
@@ -7877,7 +7880,7 @@ Answer Key:
             const batchFileName = activeDraftItems[0] ? activeDraftItems[0].fileName : 'Imported PDF Paper';
             // Keep one uploaded paper as one test. Do not accidentally merge staged questions from other PDFs.
             const currentPaperItems = activeDraftItems.filter(item => item.fileName === batchFileName && (!item.examId || item.examId === exam.id));
-            const approvedPaperItems = currentPaperItems.filter(item => item.reviewStatus === 'approved' && !item.published);
+            const approvedPaperItems = currentPaperItems.filter(item => item.reviewStatus === 'approved' && !item.published && (!item.isDuplicate || item.duplicateApproved));
             if (!approvedPaperItems.length) { showToast('Is PDF draft mein abhi koi approved, unpublished question nahi hai.', 'warning'); return; }
             const missingHindiOptionItem = approvedPaperItems.find(item => {
               const questionEn = String(item.text_en || '').trim();
@@ -8003,6 +8006,7 @@ Answer Key:
               showToast('Answer key missing. Question stays in Review Required.', 'warning'); return;
             }
             item.reviewStatus = 'approved';
+            if (item.isDuplicate) item.duplicateApproved = true;
             item.reviewedAt = new Date().toISOString();
             saveDatabase(db);
             showToast('Question draft mein approved mark ho gaya. Submit se pehle Question Bank mein nahi jayega.', 'success');
@@ -8029,11 +8033,26 @@ Answer Key:
           activeDraftItems.forEach(function(item) {
             if (item.published) return;
             item.reviewStatus = (item.correctOption === null || item.correctOption < 0 || item.correctOption > 4) ? 'review_required' : 'approved';
+            if (item.isDuplicate && item.reviewStatus === 'approved') item.duplicateApproved = true;
           });
           saveDatabase(db);
           showToast('Is PDF ke questions review status ke saath save ho gaye. Submit button se sirf approved questions publish honge.', 'success');
           renderAdminDashboardView(document.getElementById('appMain'));
         });
+      }
+
+      // Match normalized question stems against the existing Question Bank and this PDF's staging queue.
+      function normalizeDuplicateQuestionText(value) {
+        return String(value || '').toLocaleLowerCase().replace(/[^\w\u0900-\u097f]+/g, ' ').replace(/\s+/g, ' ').trim();
+      }
+      function isQuestionAlreadyImported(textEn, textHi) {
+        const candidates = [normalizeDuplicateQuestionText(textEn), normalizeDuplicateQuestionText(textHi)].filter(Boolean);
+        if (!candidates.length) return false;
+        const matches = function(question) {
+          const existing = [normalizeDuplicateQuestionText(question.text_en), normalizeDuplicateQuestionText(question.text_hi)].filter(Boolean);
+          return candidates.some(function(candidate) { return existing.includes(candidate); });
+        };
+        return db.questions.some(matches) || db.pdfImportQueue.some(matches);
       }
 
       // Lightweight offline subject suggestion for PDF imports. This uses keyword matching; the administrator can correct every suggestion before approval.
@@ -8155,7 +8174,7 @@ Answer Key:
             const optionsHi = Array.isArray(item.options_hi) ? item.options_hi.slice(0,4) : [];
             while (optionsEn.length < 4) optionsEn.push('');
             while (optionsHi.length < 4) optionsHi.push('');
-            const duplicate = false; // Re-imports are allowed even when a question already exists in the bank.
+            const duplicate = isQuestionAlreadyImported(textEn, textHi); // Flag only; never block re-imports.
             const suggested = suggestSubjectForQuestion(textEn + ' ' + textHi);
             const correctOption = Number.isInteger(item.correct_option) && item.correct_option >= 0 && item.correct_option <= 3 ? item.correct_option : -1;
             db.pdfImportQueue.unshift({
@@ -8316,7 +8335,7 @@ Answer Key:
           const textEn = (qParts[0] || fullStem).trim();
           const textHi = (qParts[1] || qParts[0] || fullStem).trim();
 
-          const isDup = false; // Existing database questions can be re-imported.
+          const isDup = isQuestionAlreadyImported(textEn, textHi); // Flag only; Admin decides whether to include it.
 
           const warning = (ansIdx === -1 || ansIdx === undefined)
             ? 'Select Answer Key (A/B/C/D) before approving'
