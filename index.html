@@ -7038,6 +7038,22 @@ function syncCbtSideDrawerUI() {
                     <div class="rounded-lg bg-amber-50 p-2"><div class="text-amber-800">Duplicates</div><strong class="text-amber-900">${activeDuplicateCount}</strong></div>
                   </div>
                   <div class="text-[11px] text-slate-600 mt-2">${activeDraftRecord && activeDraftRecord.processingComplete ? 'PDF extraction complete. You can review now.' : 'PDF processing is not complete yet. Submit is unavailable.'}</div>
+                  <div class="mt-3 rounded-lg border border-sky-200 bg-white p-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <div><strong class="text-sm text-slate-900">AI Quality Checker Agent</strong><p class="text-[11px] text-slate-600">Checks Hindi translation, option matching, question formatting, missing answers and duplicates. It never auto-approves questions.</p></div>
+                      <button id="btnRunQualityAudit" type="button" class="px-3 py-2 rounded-lg bg-sky-700 hover:bg-sky-800 text-white text-xs font-bold">Run AI Quality Check</button>
+                    </div>
+                    ${activeDraftRecord && activeDraftRecord.qualityAudit ? (function(audit) {
+                      const issues = Array.isArray(audit.issues) ? audit.issues : [];
+                      const errors = issues.filter(function(issue) { return issue.severity === 'error'; }).length;
+                      const warnings = issues.length - errors;
+                      return '<div class="mt-3 text-xs"><strong>' + (issues.length ? 'Review needed' : 'No obvious issues found') + '</strong> · ' + Number(audit.checkedCount || activeDraftItems.length) + ' checked · ' + errors + ' errors · ' + warnings + ' warnings' +
+                        (issues.length ? '<ul class="mt-2 space-y-2">' + issues.slice(0, 40).map(function(issue) {
+                          return '<li class="rounded-md border border-slate-200 p-2"><strong>Q.' + escapeHtml(issue.sourceNumber || issue.questionNumber || '?') + ' · ' + escapeHtml(issue.category || 'review') + '</strong><div>' + escapeHtml(issue.reason || '') + '</div>' + (issue.suggestion ? '<div class="text-slate-500 mt-1">सुझाव: ' + escapeHtml(issue.suggestion) + '</div>' : '') + '</li>';
+                        }).join('') + '</ul>' : '<p class="text-slate-500 mt-1">यह केवल उपलब्ध प्रश्न डेटा की जाँच है; मूल PDF की Answer Key से सही उत्तर का अंतिम मिलान Admin को करना होगा।</p>') +
+                        '<p class="text-[10px] text-slate-500 mt-2">Last checked: ' + escapeHtml(audit.checkedAt || '') + '. AI report is advisory, not automatic approval.</p></div>';
+                    })(activeDraftRecord.qualityAudit) : ''}
+                  </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                   <button id="btnApproveAllStaged" type="button" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow transition">✓ Approve all (including duplicates)</button>
@@ -8096,6 +8112,81 @@ Answer Key:
             navigateTo('exam-detail', { examId: exam.id });
           });
         }
+
+        const qualityAuditButton = document.getElementById('btnRunQualityAudit');
+        if (qualityAuditButton) qualityAuditButton.addEventListener('click', async function() {
+          if (!activeDraftItems.length || !activeDraftRecord) {
+            showToast('पहले PDF के प्रश्न Review Queue में डालें।', 'warning');
+            return;
+          }
+          const client = window.gyanManchSupabase;
+          if (!client) { showToast('Secure sign-in is unavailable. Refresh and sign in again.', 'error'); return; }
+          qualityAuditButton.disabled = true;
+          qualityAuditButton.textContent = 'Agent जाँच रहा है…';
+          const localIssues = [];
+          const payload = activeDraftItems.map(function(item, index) {
+            const qNo = Number.isInteger(Number(item.sourceQuestionNumber)) ? Number(item.sourceQuestionNumber) : null;
+            const enOptions = Array.isArray(item.options_en) ? item.options_en : [];
+            const hiOptions = Array.isArray(item.options_hi) ? item.options_hi : [];
+            function add(severity, category, reason, suggestion) {
+              localIssues.push({ index:index, sourceNumber:qNo || (index + 1), severity:severity, category:category, reason:reason, suggestion:suggestion });
+            }
+            if (!String(item.text_en || item.text_hi || '').trim()) add('error','question','प्रश्न का मुख्य पाठ खाली है।','मूल PDF से प्रश्न दोबारा निकालें।');
+            if (enOptions.filter(function(x) { return String(x || '').trim(); }).length !== 4 && String(item.text_en || '').trim()) add('error','options','English में चार पूर्ण विकल्प नहीं मिले।','मूल PDF से चारों विकल्प मिलाएँ।');
+            if (item.correctOption === null || item.correctOption === undefined || Number(item.correctOption) < 0 || Number(item.correctOption) > 3) add('warning','answer','सही उत्तर चयनित नहीं है।','PDF की Answer Key से उत्तर मिलाकर चुनें।');
+            if (item.isDuplicate) add('warning','duplicate','यह प्रश्न पहले से मौजूद प्रश्न जैसा है।','Duplicate को मूल प्रश्न से मिलाकर निर्णय लें।');
+            return {
+              index:index, source_number:qNo, question_en:item.text_en || '', question_hi:item.text_hi || '',
+              options_en:enOptions, options_hi:hiOptions, correct_option:Number(item.correctOption)
+            };
+          });
+          const aiIssues = [];
+          try {
+            const session = await client.auth.getSession();
+            const token = session && session.data && session.data.session && session.data.session.access_token;
+            if (!token) throw new Error('Session expired. Please sign in again.');
+            for (let start = 0; start < payload.length; start += 20) {
+              const response = await fetch('/api/quality-check', {
+                method:'POST',
+                headers:{'content-type':'application/json','authorization':'Bearer ' + token},
+                body:JSON.stringify({questions:payload.slice(start,start + 20)})
+              });
+              const result = await response.json().catch(function() { return {}; });
+              if (!response.ok) throw new Error(result.error || 'AI quality check failed.');
+              (result.issues || []).forEach(function(issue) {
+                aiIssues.push({
+                  index:issue.index, sourceNumber:payload[issue.index] && payload[issue.index].source_number || (issue.index + 1),
+                  severity:issue.severity, category:issue.category, reason:issue.reason_hi, suggestion:issue.suggestion_hi
+                });
+              });
+            }
+            const allIssues = localIssues.concat(aiIssues);
+            const uniqueIssues = [];
+            const seenIssues = new Set();
+            allIssues.forEach(function(issue) {
+              const key = [issue.index,issue.category,issue.reason].join('|');
+              if (!seenIssues.has(key)) { seenIssues.add(key); uniqueIssues.push(issue); }
+            });
+            activeDraftRecord.qualityAudit = {
+              status:uniqueIssues.length ? 'review_required' : 'no_obvious_issues',
+              checkedCount:payload.length, issues:uniqueIssues, checkedAt:new Date().toLocaleString()
+            };
+            uniqueIssues.forEach(function(issue) {
+              const item = activeDraftItems[issue.index];
+              if (item && !item.published && item.reviewStatus !== 'approved') {
+                item.aiQualityIssues = (item.aiQualityIssues || []).concat([issue.reason]);
+                if (issue.severity === 'error') item.reviewStatus = 'review_required';
+              }
+            });
+            saveDatabase(db);
+            showToast(uniqueIssues.length ? 'Quality check complete: ' + uniqueIssues.length + ' issue(s) need review.' : 'Quality check complete. No obvious issues found.', uniqueIssues.length ? 'warning' : 'success');
+            renderAdminDashboardView(document.getElementById('appMain'));
+          } catch (error) {
+            showToast('Quality checker: ' + (error.message || 'Please retry.'), 'error');
+            qualityAuditButton.disabled = false;
+            qualityAuditButton.textContent = 'Run AI Quality Check';
+          }
+        });
 
         const btnClearAll = document.getElementById('btnClearAllStaged');
         if (btnClearAll) {
