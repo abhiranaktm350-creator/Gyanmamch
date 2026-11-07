@@ -8081,7 +8081,7 @@ Answer Key:
           // Split only between numbered question blocks. This prevents a long paper
           // from cutting a question in half and asking the AI to reconstruct it.
           const sourceLines = String(rawText || '').replace(/\r/g, '').split('\n');
-          const questionStart = /^(?:(?:Q(?:uestion)?\.?\s*|प्रश्न(?:\s*संख्या)?\s*)?(?:\(\s*\d{1,3}\s*\)|\d{1,3}\s*[.):\-]))\s*\S/i;
+          const questionStart = /^(?:(?:Q(?:uestion)?\.?\s*|प्रश्न(?:\s*संख्या)?\s*)?(?:\(\s*\d{1,5}\s*\)|\d{1,5}\s*[.):\-]))\s*\S/i;
           const chunks = [];
           let chunkLines = [];
           let chunkLength = 0;
@@ -8137,6 +8137,7 @@ Answer Key:
             }
             extractedItems.push(...payload.questions);
             if (payload.count_warning) extractionCountWarnings.push(String(payload.count_warning));
+            if (payload.translation_warning) extractionCountWarnings.push(String(payload.translation_warning));
           }
 
           // Preserve every source question, including repeated questions in the paper.
