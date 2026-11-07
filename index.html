@@ -7708,7 +7708,10 @@ Answer Key:
                 const pageEmbedded = embeddedLines.join('\\n').trim();
 
                 let pageOcr = '';
-                if (pageEmbedded.length < 30) {
+                const embeddedQuestionStarts = (pageEmbedded.match(/(?:^|\\n)\\s*(?:Q(?:uestion)?\\.?\\s*\\d{1,4}|\\d{1,4}\\s*[.):])\\s*/gim) || []).length;
+                // A partial/poor text layer (for example, only page headers or one
+                // detected question) must not suppress the ChatGPT Vision OCR pass.
+                if (pageEmbedded.length < 30 || embeddedQuestionStarts < 2) {
                   try {
                     if (statusEl) statusEl.textContent = '🤖 ChatGPT Vision OCR: reading page ' + p + ' of ' + maxPages + '...';
                     pageOcr = await requestChatGptVisionOcr(canvas);
