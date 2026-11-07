@@ -7293,10 +7293,10 @@ Answer Key:
             while (optionsHi.length < 4) optionsHi.push('');
             const normalizedEn = normalizeImportedQuestion(textEn);
             const normalizedHi = normalizeImportedQuestion(textHi);
-            const duplicate = false || (
-              (normalizedEn && [normalizeImportedQuestion(q.text_en), normalizeImportedQuestion(q.text_hi)].includes(normalizedEn)) ||
-              (normalizedHi && [normalizeImportedQuestion(q.text_en), normalizeImportedQuestion(q.text_hi)].includes(normalizedHi))
-            )) || db.pdfImportQueue.some(q => {
+            const duplicate = db.questions.some(q => {
+              const qEn = normalizeImportedQuestion(q.text_en), qHi = normalizeImportedQuestion(q.text_hi);
+              return (normalizedEn && (normalizedEn === qEn || normalizedEn === qHi)) || (normalizedHi && (normalizedHi === qEn || normalizedHi === qHi));
+            }) || db.pdfImportQueue.some(q => {
               const qEn = normalizeImportedQuestion(q.text_en), qHi = normalizeImportedQuestion(q.text_hi);
               return (normalizedEn && (normalizedEn === qEn || normalizedEn === qHi)) || (normalizedHi && (normalizedHi === qEn || normalizedHi === qHi));
             });
