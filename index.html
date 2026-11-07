@@ -4252,6 +4252,11 @@ function syncCbtSideDrawerUI() {
           `;
         }
 
+        // Render any linked source table, chart, or diagram in the same question card.
+        if (window.gmRenderQuestionMedia) {
+          stemContainer.insertAdjacentHTML('beforeend', window.gmRenderQuestionMedia(q));
+        }
+
         // Render 4 Options with strong visual highlight (background fill + border + checkmark badge)
         const optContainer = document.getElementById('cbtOptionsContainer');
         const letters = ['A', 'B', 'C', 'D', 'E'];
@@ -8108,21 +8113,9 @@ Answer Key:
             extractedItems.push(...payload.questions);
           }
 
-          // Remove repeated questions returned by the model before they enter the review queue.
-          const seenQuestionKeys = new Set();
-          const uniqueExtractedItems = extractedItems.filter(function(item) {
-            const keyEn = normalizeImportedQuestion(String(item.question_en || ''));
-            const keyHi = normalizeImportedQuestion(String(item.question_hi || ''));
-            const key = keyEn || keyHi;
-            if (!key) return false;
-            if (seenQuestionKeys.has(key) || (keyHi && seenQuestionKeys.has(keyHi))) return false;
-            seenQuestionKeys.add(key);
-            if (keyHi) seenQuestionKeys.add(keyHi);
-            return true;
-          });
-          const removedWithinPdf = extractedItems.length - uniqueExtractedItems.length;
-          extractedItems.length = 0;
-          extractedItems.push(...uniqueExtractedItems);
+          // Preserve every source question, including repeated questions in the paper.
+          // Duplicates are flagged for admin review later; never silently drop them,
+          // because the staged question count must match the source paper count.
 
           if (!extractedItems.length) {
             showToast('No questions were recognized. If this is a scanned PDF, try a clearer scan or OCR.', 'warning');
