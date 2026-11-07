@@ -3795,9 +3795,14 @@ function syncCbtSideDrawerUI() {
         // Start at the first question belonging to the first configured section,
         // even when the admin uploaded questions in a different subject order.
         if (state.activeCbt.hasSectionalTiming) {
-          const firstSectionIds = getCbtSectionSubjectIds(state.activeCbt.test.sections[0]);
+          const firstSectionIds = getCbtSectionSubjectIds((state.activeCbt.test.sections || [])[0]);
           const firstSectionQuestion = questionsList.findIndex(q => !firstSectionIds.length || firstSectionIds.includes(q.subjectId));
-          if (firstSectionQuestion >= 0) state.activeCbt.currentIndex = firstSectionQuestion;
+          if (firstSectionQuestion >= 0) {
+            state.activeCbt.currentIndex = firstSectionQuestion;
+          } else if (questionsList.length) {
+            const firstQuestionSection = getCbtQuestionSectionIndex(state.activeCbt, questionsList[0]);
+            if (firstQuestionSection >= 0) state.activeCbt.activeSectionIndex = firstQuestionSection;
+          }
         }
 
         // Start the clock immediately after the attempt exists, before any UI rendering.
@@ -4008,8 +4013,14 @@ function syncCbtSideDrawerUI() {
 
       function getCbtNextAllowedQuestionIndex(cbt, fromIndex, direction) {
         if (!cbt || !Array.isArray(cbt.questions)) return -1;
+        const hasQuestionsInActiveSection = Boolean(cbt.hasSectionalTiming) &&
+          cbt.questions.some(function(question) {
+            return getCbtQuestionSectionIndex(cbt, question) === cbt.activeSectionIndex;
+          });
         for (let i = fromIndex + direction; i >= 0 && i < cbt.questions.length; i += direction) {
-          if (!cbt.hasSectionalTiming || getCbtQuestionSectionIndex(cbt, cbt.questions[i]) === cbt.activeSectionIndex) return i;
+          if (!cbt.hasSectionalTiming || !hasQuestionsInActiveSection) return i;
+          const questionSection = getCbtQuestionSectionIndex(cbt, cbt.questions[i]);
+          if (questionSection === cbt.activeSectionIndex || questionSection === -1) return i;
         }
         return -1;
       }
@@ -8081,30 +8092,37 @@ Answer Key:
           // Split only between numbered question blocks. This prevents a long paper
           // from cutting a question in half and asking the AI to reconstruct it.
           const sourceLines = String(rawText || '').replace(/\r/g, '').split('\n');
-          const questionStart = /^(?:(?:Q(?:uestion)?\.?\s*|प्रश्न(?:\s*संख्या)?\s*)?(?:\(\s*\d{1,5}\s*\)|\d{1,5}\s*[.):\-]))\s*\S/i;
+          const questionStart = /^(?:(?:Q(?:uestion)?\.?\s*|प्रश्न(?:\s*संख्या)?\s*)?(?:\(\s*(\d{1,5})\s*\)|(\d{1,5})\s*[.):\-]))\s*\S/i;
           const chunks = [];
           let chunkLines = [];
+          let chunkQuestionNumbers = [];
           let chunkLength = 0;
-          let chunkQuestionCount = 0;
+          let lastQuestionNumber = null;
           let inAnswerKey = false;
           const maxChunkChars = 8000;
           const maxQuestionsPerChunk = 20;
           sourceLines.forEach(function(line) {
             const trimmedLine = line.trim();
-            if (/^(?:answer\\s*key|answers|उत्तर\\s*कुंजी)\\b/i.test(trimmedLine)) inAnswerKey = true;
-            const isQuestion = !inAnswerKey && questionStart.test(trimmedLine);
+            if (/^(?:answer\s*key|answers?|correct\s*answers?|solutions?|उत्तर\s*कुंजी)\b/i.test(trimmedLine)) inAnswerKey = true;
+            const match = !inAnswerKey ? questionStart.exec(trimmedLine) : null;
+            const questionNumber = match ? Number(match[1] || match[2]) : NaN;
+            const isQuestion = Boolean(match) && Number.isInteger(questionNumber) && questionNumber >= 1 &&
+              (lastQuestionNumber === null || questionNumber === lastQuestionNumber + 1);
             const lineLength = line.length + 1;
-            if (isQuestion && chunkQuestionCount > 0 && (chunkLength >= maxChunkChars || chunkQuestionCount >= maxQuestionsPerChunk)) {
-              chunks.push({ text: chunkLines.join('\n'), expectedCount: chunkQuestionCount });
+            if (isQuestion && chunkQuestionNumbers.length > 0 && (chunkLength >= maxChunkChars || chunkQuestionNumbers.length >= maxQuestionsPerChunk)) {
+              chunks.push({ text: chunkLines.join('\n'), expectedCount: chunkQuestionNumbers.length, expectedNumbers: chunkQuestionNumbers.slice() });
               chunkLines = [];
+              chunkQuestionNumbers = [];
               chunkLength = 0;
-              chunkQuestionCount = 0;
             }
             chunkLines.push(line);
             chunkLength += lineLength;
-            if (isQuestion) chunkQuestionCount++;
+            if (isQuestion) {
+              chunkQuestionNumbers.push(questionNumber);
+              lastQuestionNumber = questionNumber;
+            }
           });
-          if (chunkLines.length) chunks.push({ text: chunkLines.join('\n'), expectedCount: chunkQuestionCount || null });
+          if (chunkLines.length) chunks.push({ text: chunkLines.join('\n'), expectedCount: chunkQuestionNumbers.length || null, expectedNumbers: chunkQuestionNumbers.slice() });
           if (!chunks.length) return false;
 
           const extractedItems = [];
@@ -8119,6 +8137,7 @@ Answer Key:
               body: JSON.stringify({
                 text: chunks[chunkIndex].text.slice(0, 18000),
                 expected_count: chunks[chunkIndex].expectedCount,
+                expected_numbers: chunks[chunkIndex].expectedNumbers,
                 answer_key: String(answerKeyText || '').slice(0, 12000),
                 chunk_number: chunkIndex + 1,
                 total_chunks: chunks.length
