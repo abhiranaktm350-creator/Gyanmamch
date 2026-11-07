@@ -7614,8 +7614,8 @@ Answer Key:
             const queueBefore = db.pdfImportQueue.length;
             const backgroundExtracted = await tryBackgroundExtractQuestions(combinedText, file.name, targetExId, targetSubId, '');
             if (!backgroundExtracted) {
-              setImportProgress(82, 'Using built-in question parser…', 'Reading question numbers, options and inline answer labels from the same PDF.');
-              parseAllQuestionsFromText(combinedText, file.name, targetExId, targetSubId);
+              setImportProgress(0, 'ChatGPT extraction did not complete', 'No fallback question parser was run, to prevent numbered passage items or option labels from becoming extra questions. Retry after checking the ChatGPT Preview configuration.');
+              return;
             }
             let addedCount = Math.max(0, db.pdfImportQueue.length - queueBefore);
             const newlyStaged = function() { return db.pdfImportQueue.filter(function(item) { return !queueIdsBeforeUpload.has(item.id); }); };
@@ -7861,7 +7861,7 @@ Answer Key:
               const rawBox = document.getElementById('inpRawBlockExtract');
               if (rawBox) rawBox.value = fullOcrText.trim();
               const backgroundExtracted = await tryBackgroundExtractQuestions(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId, '');
-              if (!backgroundExtracted) parseAllQuestionsFromText(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId);
+              if (!backgroundExtracted && extractionSummaryEl) extractionSummaryEl.textContent = 'ChatGPT question extraction did not complete. No fallback parser was run, to avoid staging extra questions.';
               const finalQueueCount = db.pdfImportQueue.filter(item => item.fileName === 'Scanned_' + file.name).length;
               if (extractionSummaryEl) extractionSummaryEl.textContent = 'Final report: ' + pageStats.length + ' pages scanned • ' + chatGptPageCount + ' by ChatGPT Vision • ' + totalDetectedQuestions + ' question headers detected • ' + finalQueueCount + ' questions staged for review.';
               if (statusEl) statusEl.textContent = '✓ Scan + extraction complete • ' + finalQueueCount + ' questions staged.';
