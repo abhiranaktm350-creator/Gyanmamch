@@ -7678,10 +7678,10 @@ Answer Key:
           let chatGptPageCount = 0, totalDetectedQuestions = 0, totalCapturedChars = 0;
           function countQuestionStarts(text) {
             const lines = String(text || '').replace(/\r/g, '').split('\n');
-            const explicit = lines.some(line => /^(?:Q(?:uestion)?\\.?\\s*|प्रश्न(?:\\s*संख्या)?\\s*)\\d{1,4}\\s*[.):\\-]?\\s*\\S/i.test(line.trim()));
+            const explicit = lines.some(line => /^(?:Q(?:uestion)?\.?\s*|प्रश्न(?:\s*संख्या)?\s*)\d{1,4}\s*[.):\-]?\s*\S/i.test(line.trim()));
             const re = explicit
-              ? /^(?:Q(?:uestion)?\\.?\\s*|प्रश्न(?:\\s*संख्या)?\\s*)(\\d{1,4})\\s*[.):\\-]?\\s*\\S/i
-              : /^(?:\\(\\s*(\\d{1,4})\\s*\\)|(\\d{1,4})\\s*[.):\\-])\\s*\\S/i;
+              ? /^(?:Q(?:uestion)?\.?\s*|प्रश्न(?:\s*संख्या)?\s*)(\d{1,4})\s*[.):\-]?\s*\S/i
+              : /^(?:\(\s*(\d{1,4})\s*\)|(\d{1,4})\s*[.):\-])\s*\S/i;
             return lines.filter(line => re.test(line.trim())).length;
           }
           function renderOcrReport(totalPages) {
