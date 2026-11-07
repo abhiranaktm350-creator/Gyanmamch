@@ -1706,6 +1706,11 @@ table{max-width:100%;border-collapse:collapse}
           console.warn('LocalStorage read fallback:', err);
         }
         const fresh = createDefaultDatabase();
+        // Even if the main app state is missing or corrupted, recover staged PDF questions from their separate backup.
+        try {
+          const savedQueue = JSON.parse(localStorage.getItem('GYAN_MANCH_PDF_IMPORT_QUEUE_V1') || '[]');
+          if (Array.isArray(savedQueue)) fresh.pdfImportQueue = savedQueue.filter(item => item && item.id);
+        } catch (queueRestoreError) { console.warn('PDF queue backup recovery:', queueRestoreError); }
         saveDatabase(fresh);
         return fresh;
       }
