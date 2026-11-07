@@ -7029,7 +7029,7 @@ function syncCbtSideDrawerUI() {
               <div class="space-y-4">
                 ${db.pdfImportQueue.map(function(item, qIdx) {
                   return `
-                    <div class="p-4 rounded-xl border-2 ${item.isDuplicate ? 'border-amber-400 bg-amber-50/40' : item.extractionWarning ? 'border-rose-300 bg-rose-50/30' : 'border-indigo-200 bg-slate-50'}">
+                    <div class="p-4 rounded-xl border-2 ${item.extractionWarning ? 'border-rose-300 bg-rose-50/30' : 'border-indigo-200 bg-slate-50'}">
                       <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
                         <div class="flex items-center gap-2">
                           <span class="px-2 py-0.5 rounded bg-slate-900 text-white text-xs font-bold">Staged Q.${qIdx + 1}</span>
@@ -7568,10 +7568,22 @@ Answer Key:
               parseAllQuestionsFromText(combinedText, file.name, targetExId, targetSubId);
             }
             let addedCount = Math.max(0, db.pdfImportQueue.length - queueBefore);
-            if (addedCount === 0 && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
-              setImportProgress(76, 'Text extraction incomplete — retrying with visual OCR…', 'Rendering every PDF page at higher resolution and recognizing English + Hindi text.');
+            const newlyStaged = function() { return db.pdfImportQueue.filter(function(item) { return !queueIdsBeforeUpload.has(item.id); }); };
+            const sourceQuestionCount = combinedText.split(/\\r?\\n/).filter(function(line) {
+              return /^(?:(?:Q(?:uestion)?\\.?\\s*|प्रश्न(?:\\s*संख्या)?\\s*)?(?:\\(\\s*\\d{1,3}\\s*\\)|\\d{1,3}\\s*[.):\\-]))\\s*\\S/i.test(String(line || '').trim());
+            }).length;
+            if ((addedCount === 0 || (sourceQuestionCount > 0 && addedCount < sourceQuestionCount)) && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
+              const firstPassItems = newlyStaged();
+              firstPassItems.forEach(function(item) { db.pdfImportQueue = db.pdfImportQueue.filter(function(q) { return q.id !== item.id; }); });
+              saveDatabase(db);
+              setImportProgress(76, 'Checking every page with visual OCR…', 'AI extraction was incomplete or the detected question count did not match. Re-reading pages at higher resolution.');
               await runVisualOcrOnFile(file, targetExId, targetSubId);
-              addedCount = Math.max(0, db.pdfImportQueue.length - queueBefore);
+              const ocrPassItems = newlyStaged();
+              if (ocrPassItems.length < firstPassItems.length) {
+                ocrPassItems.forEach(function(item) { db.pdfImportQueue = db.pdfImportQueue.filter(function(q) { return q.id !== item.id; }); });
+                db.pdfImportQueue.unshift(...firstPassItems);
+              }
+              addedCount = newlyStaged().length;
             }
             await finalizeImportJob();
             if (addedCount === 0) {
@@ -7951,7 +7963,9 @@ Answer Key:
             }
             try {
               const result = await persistApprovedPdfBatchToSupabase(exam, newTest, createdQIds, batchFileName, currentPaperItems);
-              showToast('Saved ' + result.questionCount + ' reviewed questions and the test to the shared database.', 'success');
+              showToast(result.previewOnly
+                ? 'Preview only: ' + result.questionCount + ' approved questions and the mock test were created in this browser preview. Live database untouched.'
+                : 'Saved ' + result.questionCount + ' reviewed questions and the test to the shared database.', 'success');
             } catch (backendError) {
               showToast('Could not publish to the shared database: ' + (backendError.message || 'Please retry.'), 'error');
               return;
