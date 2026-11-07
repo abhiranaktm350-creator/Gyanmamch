@@ -7343,8 +7343,11 @@ function syncCbtSideDrawerUI() {
           syncPdfChapDropdown();
         }
 
-        // Parse Raw Text / CSV Block (Multi-Question)
-        document.getElementById('btnParseRawBlock').addEventListener('click', function() {
+        // Parse the complete pasted paper through the same ChatGPT extraction + translation
+        // pipeline as PDF uploads. Do not use the legacy line parser here: it mistakes
+        // numbered sub-parts, passage lists and option labels for extra questions.
+        document.getElementById('btnParseRawBlock').addEventListener('click', async function() {
+          const button = document.getElementById('btnParseRawBlock');
           const rawText = document.getElementById('inpRawBlockExtract').value.trim();
           if (!rawText) {
             showToast('Please paste question text or CSV content first.', 'warning');
@@ -7352,8 +7355,13 @@ function syncCbtSideDrawerUI() {
           }
           const targetExId = document.getElementById('pdfTargetExamSelect').value;
           const targetSubId = document.getElementById('pdfTargetSubjectSelect').value;
-          parseAllQuestionsFromText(rawText, 'Bulk_Paper_Import.pdf', targetExId, targetSubId);
-          renderAdminDashboardView(document.getElementById('appMain'));
+          if (button) { button.disabled = true; button.textContent = 'ChatGPT is extracting and translating…'; }
+          try {
+            const added = await tryBackgroundExtractQuestions(rawText, 'Bulk_Paper_Import.pdf', targetExId, targetSubId, '');
+            if (!added) showToast('No questions were added. Check the detected question numbering and try again.', 'warning');
+          } finally {
+            renderAdminDashboardView(document.getElementById('appMain'));
+          }
         });
 
         // Load 5-Question Multi-Page Sample Paper with End-of-Paper Answer Key
@@ -8282,13 +8290,21 @@ Answer Key:
             }
           });
           const orderedNumberedItems = Array.from(numberedItems.entries()).sort(function(a,b) { return a[0]-b[0]; }).map(function(entry) { return entry[1]; });
-          const finalExtractedItems = orderedNumberedItems.length ? orderedNumberedItems : unnumberedItems;
+          // When the source parser detected printed question numbers, never fall back
+          // to unnumbered model output: that is the main source of phantom questions.
+          const expectedSet = new Set(chunks.flatMap(function(chunk) { return chunk.expectedNumbers || []; }));
+          const finalExtractedItems = expectedSet.size
+            ? orderedNumberedItems.filter(function(item) { return expectedSet.has(Number(item.source_question_number)); })
+            : (orderedNumberedItems.length ? orderedNumberedItems : unnumberedItems);
           extractedItems.length = 0;
           extractedItems.push(...finalExtractedItems);
 
           if (!extractedItems.length) {
-            showToast('No questions were recognized. If this is a scanned PDF, try a clearer scan or OCR.', 'warning');
+            showToast('ChatGPT did not return questions with the PDF’s printed question numbers. No extra or unnumbered questions were added. Check OCR numbering and retry.', 'warning');
             return false;
+          }
+          if (expectedSet.size && extractedItems.length !== expectedSet.size) {
+            extractionCountWarnings.push('Detected ' + expectedSet.size + ' printed question starts; ChatGPT matched ' + extractedItems.length + '. Only matched printed question numbers were staged.');
           }
 
           const countWarning = extractionCountWarnings.length ? extractionCountWarnings.join(' ') : null;
@@ -8317,6 +8333,7 @@ Answer Key:
               subjectId: mode === 'full_mock' ? suggested.subjectId : (targetSubjectId || suggested.subjectId),
               subjectSuggestion: suggested.subjectId, subjectConfidence: suggested.confidence, chapterId: 'ch_polity',
               text_en: textEn, text_hi: textHi, options_en: optionsEn, options_hi: optionsHi,
+              sourceQuestionNumber: Number.isInteger(Number(item.source_question_number)) ? Number(item.source_question_number) : null,
               correctOption,
               marks, negativeMarks: negative,
               explanation_en: String(item.explanation_en || ''), explanation_hi: String(item.explanation_hi || ''),
