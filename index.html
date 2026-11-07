@@ -6228,9 +6228,6 @@ table{max-width:100%;border-collapse:collapse}
                   <button id="btnApproveAllStaged" type="button" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow transition">
                     ✓ Approve ALL (${pendingPdfQueue.length}) & Create Official Mock Test
                   </button>
-                  <button id="btnClearAllStaged" type="button" class="px-3 py-2 rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-semibold transition">
-                    Clear Queue
-                  </button>
                 </div>
               ` : ''}
             </div>
@@ -7465,7 +7462,7 @@ Answer Key:
           const normalizeImportedQuestion = (value) => String(value || '').toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
           const normalizedImportedEn = normalizeImportedQuestion(textEn);
           const normalizedImportedHi = normalizeImportedQuestion(textHi);
-          const isDup = false || (
+          const isDup = db.questions.some(q => {
             const qEn = normalizeImportedQuestion(q.text_en);
             const qHi = normalizeImportedQuestion(q.text_hi);
             return (normalizedImportedEn && (normalizedImportedEn === qEn || normalizedImportedEn === qHi)) ||
