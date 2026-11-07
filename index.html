@@ -7662,10 +7662,10 @@ Answer Key:
 
         async function requestChatGptVisionOcr(canvas) {
           const client = window.gyanManchSupabase;
-          if (!client) return "";
+          if (!client) throw new Error('Supabase session client is unavailable; ChatGPT OCR request was not sent.');
           const sessionResult = await client.auth.getSession();
           const session = sessionResult && sessionResult.data && sessionResult.data.session;
-          if (!session || !session.access_token) return "";
+          if (!session || !session.access_token) throw new Error('No signed-in session; ChatGPT OCR request was not sent. Please sign in again.');
           const response = await fetch('/api/ocr-page', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token, 'apikey': window.GYAN_MANCH_SUPABASE_KEY || '' },
