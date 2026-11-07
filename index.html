@@ -7569,8 +7569,8 @@ Answer Key:
             }
             let addedCount = Math.max(0, db.pdfImportQueue.length - queueBefore);
             const newlyStaged = function() { return db.pdfImportQueue.filter(function(item) { return !queueIdsBeforeUpload.has(item.id); }); };
-            const sourceQuestionCount = combinedText.split(/\\r?\\n/).filter(function(line) {
-              return /^(?:(?:Q(?:uestion)?\\.?\\s*|प्रश्न(?:\\s*संख्या)?\\s*)?(?:\\(\\s*\\d{1,3}\\s*\\)|\\d{1,3}\\s*[.):\\-]))\\s*\\S/i.test(String(line || '').trim());
+            const sourceQuestionCount = combinedText.split(/\r?\n/).filter(function(line) {
+              return /^(?:(?:Q(?:uestion)?\.?\s*|प्रश्न(?:\s*संख्या)?\s*)?(?:\(\s*\d{1,3}\s*\)|\d{1,3}\s*[.):\-]))\s*\S/i.test(String(line || '').trim());
             }).length;
             if ((addedCount === 0 || (sourceQuestionCount > 0 && addedCount < sourceQuestionCount)) && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
               const firstPassItems = newlyStaged();
