@@ -8112,15 +8112,20 @@ Answer Key:
           // Split only between numbered question blocks. This prevents a long paper
           // from cutting a question in half and asking the AI to reconstruct it.
           const sourceLines = String(rawText || '').replace(/\r/g, '').split('\n');
-          const questionStart = /^(?:(?:Q(?:uestion)?\.?\s*|प्रश्न(?:\s*संख्या)?\s*)?(?:\(\s*(\d{1,5})\s*\)|(\d{1,5})\s*[.):\-]))\s*\S/i;
+          // Prefer explicit Q/Question/प्रश्न markers when present. This avoids
+          // mistaking numbered lists inside long reading passages (1., 2., 3.) for questions.
+          const hasExplicitQuestionMarkers = sourceLines.some(line => /^(?:Q(?:uestion)?\.?\s*|प्रश्न(?:\s*संख्या)?\s*)\d{1,5}\s*[.):\-]?\s*\S/i.test(line.trim()));
+          const questionStart = hasExplicitQuestionMarkers
+            ? /^(?:Q(?:uestion)?\.?\s*|प्रश्न(?:\s*संख्या)?\s*)(\d{1,5})\s*[.):\-]?\s*\S/i
+            : /^(?:\(\s*(\d{1,5})\s*\)|(\d{1,5})\s*[.):\-])\s*\S/i;
           const chunks = [];
           let chunkLines = [];
           let chunkQuestionNumbers = [];
           let chunkLength = 0;
           let lastQuestionNumber = null;
           let inAnswerKey = false;
-          const maxChunkChars = 8000;
-          const maxQuestionsPerChunk = 20;
+          const maxChunkChars = 16000;
+          const maxQuestionsPerChunk = 8;
           sourceLines.forEach(function(line) {
             const trimmedLine = line.trim();
             if (/^(?:answer\s*key|answers?|correct\s*answers?|solutions?|उत्तर\s*कुंजी)\b/i.test(trimmedLine)) inAnswerKey = true;
@@ -8155,7 +8160,7 @@ Answer Key:
                 'authorization': 'Bearer ' + accessToken
               },
               body: JSON.stringify({
-                text: chunks[chunkIndex].text.slice(0, 18000),
+                text: chunks[chunkIndex].text,
                 expected_count: chunks[chunkIndex].expectedCount,
                 expected_numbers: chunks[chunkIndex].expectedNumbers,
                 answer_key: String(answerKeyText || '').slice(0, 12000),
