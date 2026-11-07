@@ -8125,7 +8125,8 @@ Answer Key:
           qualityAuditButton.textContent = 'Agent जाँच रहा है…';
           const localIssues = [];
           const payload = activeDraftItems.map(function(item, index) {
-            const qNo = Number.isInteger(Number(item.sourceQuestionNumber)) ? Number(item.sourceQuestionNumber) : null;
+            const qNoValue = Number(item.sourceQuestionNumber);
+            const qNo = Number.isInteger(qNoValue) && qNoValue >= 1 ? qNoValue : null;
             const enOptions = Array.isArray(item.options_en) ? item.options_en : [];
             const hiOptions = Array.isArray(item.options_hi) ? item.options_hi : [];
             function add(severity, category, reason, suggestion) {
@@ -8140,6 +8141,15 @@ Answer Key:
               options_en:enOptions, options_hi:hiOptions, correct_option:Number(item.correctOption)
             };
           });
+          // Flag gaps in the printed question numbering as possible missed questions.
+          const printedNumbers = Array.from(new Set(payload.map(function(item) { return item.source_number; }).filter(function(n) { return Number.isInteger(n) && n >= 1; }))).sort(function(a,b) { return a-b; });
+          if (printedNumbers.length > 1) {
+            for (let n = printedNumbers[0]; n < printedNumbers[printedNumbers.length - 1]; n++) {
+              if (!printedNumbers.includes(n)) {
+                localIssues.push({ index:0, sourceNumber:n, severity:'warning', category:'question_count', reason:'मुद्रित प्रश्न क्रमांक ' + n + ' Review Queue में नहीं मिला; प्रश्न छूटने की संभावना जाँचें।', suggestion:'मूल PDF के प्रश्न क्रमांक से मिलान करें।' });
+              }
+            }
+          }
           const aiIssues = [];
           try {
             const session = await client.auth.getSession();
