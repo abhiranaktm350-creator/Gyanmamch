@@ -4790,11 +4790,13 @@ function syncCbtSideDrawerUI() {
                       }).join('')}
                     </div>
 
-                    <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-100 text-xs space-y-1">
-                      <div class="font-bold text-indigo-950">Explanation / व्याख्या:</div>
-                      <p class="text-slate-700">${escapeHtml(explanationEn || 'Verified answer key explanation pending.')}</p>
-                      <p class="text-slate-700 hindi-text">${escapeHtml(explanationHi || '')}</p>
-                    </div>
+                    <details class="rounded-xl border border-indigo-100 bg-indigo-50/70 text-xs">
+                      <summary class="cursor-pointer select-none p-3.5 font-bold text-indigo-950">💡 Solution / यह प्रश्न कैसे हल हुआ? — देखें</summary>
+                      <div class="px-3.5 pb-3.5 space-y-1">
+                        <p class="text-slate-700">${escapeHtml(explanationEn || 'Step-by-step solution is not available for this question yet.')}</p>
+                        <p class="text-slate-700 hindi-text">${escapeHtml(explanationHi || '')}</p>
+                      </div>
+                    </details>
                   </div>
                 `;
               }).join('')}
@@ -7566,7 +7568,8 @@ Answer Key:
                 state.adminActiveTab = 'pdf-import';
                 saveDatabase(db);
                 renderAdminDashboardView(document.getElementById('appMain'));
-                setImportProgress(100, 'Processing complete — ' + imageAddedCount + ' questions added', 'Open the PDF review queue and check answers before approving.');
+                setImportProgress(100, 'Scan complete — ' + imageAddedCount + ' questions staged', 'Review Queue is ready. AI Quality Checker will run automatically; inspect flagged questions before approval.');
+                setTimeout(function(){ var agentButton=document.getElementById('btnRunQualityAudit'); if(agentButton) agentButton.click(); }, 700);
               } else {
                 setImportProgress(0, 'No questions were extracted from this image', 'The image was uploaded, but OCR found no usable question text. Use a clearer scan or PDF with selectable text.');
               }
@@ -7581,7 +7584,9 @@ Answer Key:
               if (chatGptAddedCount > 0) {
                 state.adminActiveTab = 'pdf-import';
                 saveDatabase(db);
-                setImportProgress(100, 'ChatGPT OCR complete — ' + chatGptAddedCount + ' questions staged', 'The page-wise scan report remains visible. Refresh the Review Queue after noting it.');
+                renderAdminDashboardView(document.getElementById('appMain'));
+                setImportProgress(100, 'Scan complete — ' + chatGptAddedCount + ' questions staged', 'Review Queue is ready. AI Quality Checker will run automatically; inspect flagged questions before approval.');
+                setTimeout(function(){ var agentButton=document.getElementById('btnRunQualityAudit'); if(agentButton) agentButton.click(); }, 700);
               } else {
                 setImportProgress(0, 'OCR scan completed but no questions were staged', 'The page-wise report remains visible. Check page engines and request errors.');
               }
@@ -7620,7 +7625,8 @@ Answer Key:
                 state.adminActiveTab = 'pdf-import';
                 saveDatabase(db);
                 renderAdminDashboardView(document.getElementById('appMain'));
-                setImportProgress(100, 'Processing complete — ' + scannedAddedCount + ' questions added', 'Open the PDF review queue and check answers before approving.');
+                setImportProgress(100, 'Scan complete — ' + scannedAddedCount + ' questions staged', 'Review Queue is ready. AI Quality Checker will run automatically; inspect flagged questions before approval.');
+                setTimeout(function(){ var agentButton=document.getElementById('btnRunQualityAudit'); if(agentButton) agentButton.click(); }, 700);
               } else {
                 setImportProgress(0, 'No questions were extracted from this scanned PDF', 'The PDF was uploaded, but OCR found no usable text. Try a clearer scan or text-based PDF.');
               }
@@ -7665,8 +7671,9 @@ Answer Key:
             }
             state.adminActiveTab = 'pdf-import';
             saveDatabase(db);
-            setImportProgress(100, 'Processing complete — ' + addedCount + ' questions added', 'Open the review queue below. Check options and answers before approving.');
+            setImportProgress(100, 'Scan complete — ' + addedCount + ' questions staged', 'Review Queue is ready. AI Quality Checker will run automatically; inspect flagged questions before approval.');
             renderAdminDashboardView(document.getElementById('appMain'));
+            setTimeout(function(){ var agentButton=document.getElementById('btnRunQualityAudit'); if(agentButton) agentButton.click(); }, 700);
           } catch (err) {
             const errorMessage = err && err.message ? err.message : 'Please try another PDF.';
             if (importJobId && window.gyanManchSupabase) {
