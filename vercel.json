@@ -6,6 +6,9 @@
   "functions": {
     "api/extract-questions.js": {
       "maxDuration": 60
+    },
+    "api/ocr-page.js": {
+      "maxDuration": 60
     }
   },
   "headers": [
