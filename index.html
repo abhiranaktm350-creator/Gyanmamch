@@ -7567,7 +7567,12 @@ Answer Key:
               if (imageAddedCount > 0) {
                 state.adminActiveTab = 'pdf-import';
                 saveDatabase(db);
+                const scanPanelSnapshot = document.getElementById('ocrVisualScannerPanel') ? document.getElementById('ocrVisualScannerPanel').innerHTML : '';
                 renderAdminDashboardView(document.getElementById('appMain'));
+                const restoredScanPanel = document.getElementById('ocrVisualScannerPanel');
+                if (restoredScanPanel && scanPanelSnapshot) { restoredScanPanel.innerHTML = scanPanelSnapshot; restoredScanPanel.classList.remove('hidden'); }
+                const progressPctNow = document.getElementById('pdfImportProgressPercent'); if (progressPctNow) progressPctNow.textContent = '100%';
+                const progressBarNow = document.getElementById('pdfImportProgressBar'); if (progressBarNow) progressBarNow.style.width = '100%';
                 setImportProgress(100, 'Scan complete — ' + imageAddedCount + ' questions staged', 'Review Queue is ready. AI Quality Checker will run automatically; inspect flagged questions before approval.');
                 setTimeout(function(){ var agentButton=document.getElementById('btnRunQualityAudit'); if(agentButton) agentButton.click(); }, 700);
               } else {
@@ -7624,7 +7629,12 @@ Answer Key:
               if (scannedAddedCount > 0) {
                 state.adminActiveTab = 'pdf-import';
                 saveDatabase(db);
+                const scanPanelSnapshot = document.getElementById('ocrVisualScannerPanel') ? document.getElementById('ocrVisualScannerPanel').innerHTML : '';
                 renderAdminDashboardView(document.getElementById('appMain'));
+                const restoredScanPanel = document.getElementById('ocrVisualScannerPanel');
+                if (restoredScanPanel && scanPanelSnapshot) { restoredScanPanel.innerHTML = scanPanelSnapshot; restoredScanPanel.classList.remove('hidden'); }
+                const progressPctNow = document.getElementById('pdfImportProgressPercent'); if (progressPctNow) progressPctNow.textContent = '100%';
+                const progressBarNow = document.getElementById('pdfImportProgressBar'); if (progressBarNow) progressBarNow.style.width = '100%';
                 setImportProgress(100, 'Scan complete — ' + scannedAddedCount + ' questions staged', 'Review Queue is ready. AI Quality Checker will run automatically; inspect flagged questions before approval.');
                 setTimeout(function(){ var agentButton=document.getElementById('btnRunQualityAudit'); if(agentButton) agentButton.click(); }, 700);
               } else {
@@ -7671,8 +7681,13 @@ Answer Key:
             }
             state.adminActiveTab = 'pdf-import';
             saveDatabase(db);
-            setImportProgress(100, 'Scan complete — ' + addedCount + ' questions staged', 'Review Queue is ready. AI Quality Checker will run automatically; inspect flagged questions before approval.');
+            const scanPanelSnapshot = document.getElementById('ocrVisualScannerPanel') ? document.getElementById('ocrVisualScannerPanel').innerHTML : '';
             renderAdminDashboardView(document.getElementById('appMain'));
+            const restoredScanPanel = document.getElementById('ocrVisualScannerPanel');
+            if (restoredScanPanel && scanPanelSnapshot) { restoredScanPanel.innerHTML = scanPanelSnapshot; restoredScanPanel.classList.remove('hidden'); }
+            const progressPctNow = document.getElementById('pdfImportProgressPercent'); if (progressPctNow) progressPctNow.textContent = '100%';
+            const progressBarNow = document.getElementById('pdfImportProgressBar'); if (progressBarNow) progressBarNow.style.width = '100%';
+            setImportProgress(100, 'Scan complete — ' + addedCount + ' questions staged', 'Review Queue is ready. AI Quality Checker will run automatically; inspect flagged questions before approval.');
             setTimeout(function(){ var agentButton=document.getElementById('btnRunQualityAudit'); if(agentButton) agentButton.click(); }, 700);
           } catch (err) {
             const errorMessage = err && err.message ? err.message : 'Please try another PDF.';
