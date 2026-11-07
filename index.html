@@ -6984,6 +6984,19 @@ function syncCbtSideDrawerUI() {
                     <canvas id="ocrScanPreviewCanvas" class="max-w-full h-auto block"></canvas>
                     <div id="ocrLaserBeam" class="ocr-laser-line"></div>
                   </div>
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+                    <div class="rounded-lg bg-slate-800 p-2"><div class="text-slate-400">Pages scanned</div><b id="ocrPagesScanned" class="text-white text-base">0 / 0</b></div>
+                    <div class="rounded-lg bg-slate-800 p-2"><div class="text-slate-400">ChatGPT pages</div><b id="ocrChatGptPages" class="text-emerald-300 text-base">0</b></div>
+                    <div class="rounded-lg bg-slate-800 p-2"><div class="text-slate-400">Questions detected</div><b id="ocrQuestionsDetected" class="text-white text-base">0</b></div>
+                    <div class="rounded-lg bg-slate-800 p-2"><div class="text-slate-400">Text captured</div><b id="ocrCharsCaptured" class="text-white text-base">0</b></div>
+                  </div>
+                  <div class="rounded-lg border border-slate-700 overflow-hidden">
+                    <div class="px-2.5 py-2 bg-slate-800 text-[11px] font-bold">Page-wise OCR report</div>
+                    <div id="ocrPageReport" class="max-h-44 overflow-y-auto divide-y divide-slate-700 text-[11px]">
+                      <div class="p-2 text-slate-400">Page scan details will appear here.</div>
+                    </div>
+                  </div>
+                  <p id="ocrExtractionSummary" class="text-[11px] text-slate-300">AI question extraction: waiting for OCR text.</p>
                 </div>
               </div>
             </div>
