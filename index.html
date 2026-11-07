@@ -7668,6 +7668,34 @@ Answer Key:
           const barEl = document.getElementById('ocrScanProgressBar');
           const laserEl = document.getElementById('ocrLaserBeam');
           const canvas = document.getElementById('ocrScanPreviewCanvas');
+          const pagesScannedEl = document.getElementById('ocrPagesScanned');
+          const chatGptPagesEl = document.getElementById('ocrChatGptPages');
+          const questionsDetectedEl = document.getElementById('ocrQuestionsDetected');
+          const charsCapturedEl = document.getElementById('ocrCharsCaptured');
+          const pageReportEl = document.getElementById('ocrPageReport');
+          const extractionSummaryEl = document.getElementById('ocrExtractionSummary');
+          const pageStats = [];
+          let chatGptPageCount = 0, totalDetectedQuestions = 0, totalCapturedChars = 0;
+          function countQuestionStarts(text) {
+            const lines = String(text || '').replace(/\\r/g, '').split('\\n');
+            const explicit = lines.some(line => /^(?:Q(?:uestion)?\\.?\\s*|प्रश्न(?:\\s*संख्या)?\\s*)\\d{1,4}\\s*[.):\\-]?\\s*\\S/i.test(line.trim()));
+            const re = explicit
+              ? /^(?:Q(?:uestion)?\\.?\\s*|प्रश्न(?:\\s*संख्या)?\\s*)(\\d{1,4})\\s*[.):\\-]?\\s*\\S/i
+              : /^(?:\\(\\s*(\\d{1,4})\\s*\\)|(\\d{1,4})\\s*[.):\\-])\\s*\\S/i;
+            return lines.filter(line => re.test(line.trim())).length;
+          }
+          function renderOcrReport(totalPages) {
+            if (pagesScannedEl) pagesScannedEl.textContent = pageStats.length + ' / ' + totalPages;
+            if (chatGptPagesEl) chatGptPagesEl.textContent = String(chatGptPageCount);
+            if (questionsDetectedEl) questionsDetectedEl.textContent = String(totalDetectedQuestions);
+            if (charsCapturedEl) charsCapturedEl.textContent = totalCapturedChars.toLocaleString('en-IN');
+            if (pageReportEl) pageReportEl.innerHTML = pageStats.map(row =>
+              '<div class="grid grid-cols-[42px_1fr_auto_auto] gap-2 items-center px-2.5 py-2"><b class="text-white">P' + row.page +
+              '</b><span class="text-slate-300">' + row.engine + '</span><span class="text-slate-200">' + row.questions +
+              ' Q</span><span class="text-slate-400">' + row.chars.toLocaleString('en-IN') + ' ch</span></div>'
+            ).join('') || '<div class="p-2 text-slate-400">Waiting for first page...</div>';
+          }
+
           const enhance = document.getElementById('chkEnhanceScannedPaper') && document.getElementById('chkEnhanceScannedPaper').checked;
 
           if (panel) panel.classList.remove('hidden');
@@ -7728,23 +7756,31 @@ Answer Key:
                 const pageEmbedded = embeddedLines.join('\n').trim();
 
                 let pageOcr = '';
-                const embeddedQuestionStarts = (pageEmbedded.match(/(?:^|\n)\s*(?:Q(?:uestion)?\.?\s*\d{1,4}|\d{1,4}\s*[.):])\s*/gim) || []).length;
-                // A partial/poor text layer (for example, only page headers or one
-                // detected question) must not suppress the ChatGPT Vision OCR pass.
-                if (pageEmbedded.length < 30 || embeddedQuestionStarts < 2) {
+                let engine = 'PDF text layer';
+                // ChatGPT Vision scans every rendered PDF page, not just image-only pages.
+                try {
+                  if (statusEl) statusEl.textContent = '🤖 ChatGPT Vision: scanning page ' + p + ' of ' + maxPages + '...';
+                  pageOcr = await requestChatGptVisionOcr(canvas);
+                  if (pageOcr && pageOcr.length > 15) engine = 'ChatGPT Vision';
+                } catch (visionError) {
+                  if (statusEl) statusEl.textContent = 'ChatGPT OCR unavailable on page ' + p + '; using fallback...';
+                }
+                if (!pageOcr && window.Tesseract) {
                   try {
-                    if (statusEl) statusEl.textContent = '🤖 ChatGPT Vision OCR: reading page ' + p + ' of ' + maxPages + '...';
-                    pageOcr = await requestChatGptVisionOcr(canvas);
-                  } catch (visionError) {
-                    if (statusEl) statusEl.textContent = 'ChatGPT OCR unavailable; using local OCR fallback...';
-                  }
-                  if (!pageOcr && window.Tesseract) {
                     const res = await window.Tesseract.recognize(canvas, 'eng+hin');
                     pageOcr = res && res.data && res.data.text ? String(res.data.text).trim() : '';
-                  }
+                    if (pageOcr) engine = 'Tesseract fallback';
+                  } catch (_) {}
                 }
-                if (pageOcr.length > 15) fullOcrText += pageOcr + '\n';
-                else if (pageEmbedded) fullOcrText += pageEmbedded + '\n';
+                const chosenPageText = pageOcr.length > 15 ? pageOcr : pageEmbedded;
+                if (chosenPageText) fullOcrText += chosenPageText + '\n';
+                const pageQuestionCount = countQuestionStarts(chosenPageText);
+                totalDetectedQuestions += pageQuestionCount;
+                totalCapturedChars += chosenPageText.length;
+                if (engine === 'ChatGPT Vision') chatGptPageCount++;
+                pageStats.push({ page: p, engine, questions: pageQuestionCount, chars: chosenPageText.length });
+                renderOcrReport(maxPages);
+                if (statusEl) statusEl.textContent = 'Scanned page ' + p + '/' + maxPages + ' • ' + engine + ' • ' + pageQuestionCount + ' question headers detected';
               }
             } else {
               // Image file (.jpg, .png, .webp) of a Printed Question Paper
