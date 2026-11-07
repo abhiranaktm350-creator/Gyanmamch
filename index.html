@@ -6206,6 +6206,13 @@ table{max-width:100%;border-collapse:collapse}
               <button id="btnParseRawBlock" type="button" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow transition">
                 Parse All Questions into Review Queue
               </button>
+              <div class="mt-4 rounded-xl border border-indigo-200 bg-indigo-50/40 p-3">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                  <h4 class="text-xs font-extrabold text-slate-800">Step 2 — Parsed Questions (kept visible)</h4>
+                  <span class="rounded bg-indigo-100 px-2 py-1 text-[11px] font-bold text-indigo-800">${db.pdfImportQueue.length} Questions</span>
+                </div>
+                ${db.pdfImportQueue.length ? `<div class="space-y-2 max-h-[520px] overflow-y-auto pr-1">${db.pdfImportQueue.map((item, idx) => `<div class="rounded-lg border border-slate-200 bg-white p-2.5"><div class="flex items-start justify-between gap-2"><span class="text-[11px] font-bold text-indigo-700">Q.${idx + 1}</span><span class="text-[10px] font-bold ${item.status === 'approved' ? 'text-emerald-700' : 'text-amber-700'}">${item.status === 'approved' ? 'APPROVED' : 'REVIEW PENDING'}</span></div><p class="mt-1 text-xs font-semibold text-slate-800">${escapeHtml(item.text_en || item.text_hi || 'Question text not available')}</p>${item.text_hi && item.text_hi !== item.text_en ? `<p class="mt-1 text-xs text-slate-600 hindi-text">${escapeHtml(item.text_hi)}</p>` : ''}<p class="mt-1 text-[11px] text-slate-500">${(Array.isArray(item.options_en) ? item.options_en : []).filter(Boolean).map((opt, oi) => String.fromCharCode(65 + oi) + '. ' + escapeHtml(opt)).join(' · ')}</p></div>`).join('')}</div>` : `<p class="rounded-lg border border-dashed border-slate-300 bg-white p-3 text-xs text-slate-500">Parsed questions will remain visible here after extraction. Moving to Step 3 will not clear this list.</p>`}
+              </div>
             </div>
           </div>
 
