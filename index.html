@@ -7826,11 +7826,15 @@ Answer Key:
             if (laserEl) laserEl.classList.add('hidden');
 
             if (fullOcrText && fullOcrText.trim().length > 15) {
-              if (statusEl) statusEl.textContent = '✓ Scanned Paper OCR Complete! Extracted text copied to Box #2 & Review Queue.';
+              if (statusEl) statusEl.textContent = '✓ OCR complete: ' + pageStats.length + ' pages scanned; ' + totalDetectedQuestions + ' question headers detected.';
+              if (extractionSummaryEl) extractionSummaryEl.textContent = 'OCR complete. AI question extraction is starting from ' + totalCapturedChars.toLocaleString('en-IN') + ' captured characters.';
               const rawBox = document.getElementById('inpRawBlockExtract');
               if (rawBox) rawBox.value = fullOcrText.trim();
               const backgroundExtracted = await tryBackgroundExtractQuestions(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId, '');
               if (!backgroundExtracted) parseAllQuestionsFromText(fullOcrText, 'Scanned_' + file.name, targetExId, targetSubId);
+              const finalQueueCount = db.pdfImportQueue.filter(item => item.fileName === 'Scanned_' + file.name).length;
+              if (extractionSummaryEl) extractionSummaryEl.textContent = 'Final report: ' + pageStats.length + ' pages scanned • ' + chatGptPageCount + ' by ChatGPT Vision • ' + totalDetectedQuestions + ' question headers detected • ' + finalQueueCount + ' questions staged for review.';
+              if (statusEl) statusEl.textContent = '✓ Scan + extraction complete • ' + finalQueueCount + ' questions staged.';
               setTimeout(function() {
                 renderAdminDashboardView(document.getElementById('appMain'));
               }, 900);
