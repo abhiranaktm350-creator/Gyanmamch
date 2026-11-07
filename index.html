@@ -6812,6 +6812,8 @@ function syncCbtSideDrawerUI() {
       }
 
       async function persistApprovedPdfBatchToSupabase(exam, newTest, createdQIds, batchFileName, currentPaperItems) {
+        // Preview builds must remain isolated from the production Supabase database.
+        if (isGyanManchPreviewBuild()) return { testId:newTest.id, questionCount:createdQIds.length, previewOnly:true };
         const client = window.gyanManchSupabase;
         if (!client || !state.currentUser || !['admin','teacher'].includes(state.currentUser.role)) throw new Error('Approved administrator session required.');
         const auth = await client.auth.getUser();
@@ -7013,7 +7015,7 @@ function syncCbtSideDrawerUI() {
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                   <button id="btnApproveAllStaged" type="button" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow transition">✓ Mark all in this PDF approved</button>
-                  ${activeDraftRecord && activeDraftRecord.processingComplete ? '<button id="btnSubmitApprovedDraft" type="button" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow transition">Submit approved questions to Question Bank</button>' : ''}
+                  ${activeDraftRecord && activeDraftRecord.processingComplete && activeApprovedCount > 0 ? '<button id="btnSubmitApprovedDraft" type="button" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow transition">Submit & Create Mock Test</button>' : ''}
                   <button id="btnClearAllStaged" type="button" class="px-3 py-2 rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-semibold transition">Clear Queue</button>
                 </div>
               ` : ''}
@@ -7034,7 +7036,6 @@ function syncCbtSideDrawerUI() {
                           <span class="px-2 py-0.5 rounded ${item.reviewStatus === 'approved' ? 'bg-emerald-100 text-emerald-800' : item.reviewStatus === 'review_required' ? 'bg-rose-100 text-rose-800' : item.published ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-700'} text-[11px] font-bold">${item.published ? 'Submitted' : (item.reviewStatus || 'Unapproved').replace('_',' ')}</span>
                           <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 text-xs font-bold">${escapeHtml(item.fileName)}</span>
                           <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-xs font-bold">+${item.marks} / -${item.negativeMarks}</span>
-                          ${item.isDuplicate ? `<span class="px-2 py-0.5 rounded bg-amber-200 text-amber-900 text-xs font-bold">⚠️ Duplicate in DB</span>` : ''}
                           ${item.extractionWarning ? `<span class="px-2 py-0.5 rounded bg-rose-200 text-rose-900 text-xs font-bold">❗ ${escapeHtml(item.extractionWarning)}</span>` : ''}
                         </div>
                         <span class="text-xs font-bold uppercase text-slate-600">${escapeHtml(item.status)}</span>
@@ -7566,7 +7567,12 @@ Answer Key:
               setImportProgress(82, 'Using built-in question parser…', 'Reading question numbers, options and inline answer labels from the same PDF.');
               parseAllQuestionsFromText(combinedText, file.name, targetExId, targetSubId);
             }
-            const addedCount = Math.max(0, db.pdfImportQueue.length - queueBefore);
+            let addedCount = Math.max(0, db.pdfImportQueue.length - queueBefore);
+            if (addedCount === 0 && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
+              setImportProgress(76, 'Text extraction incomplete — retrying with visual OCR…', 'Rendering every PDF page at higher resolution and recognizing English + Hindi text.');
+              await runVisualOcrOnFile(file, targetExId, targetSubId);
+              addedCount = Math.max(0, db.pdfImportQueue.length - queueBefore);
+            }
             await finalizeImportJob();
             if (addedCount === 0) {
               setImportProgress(0, 'No questions were added', 'PDF text was read, but no question blocks were recognized. Try a text-based PDF or paste its extracted text into the manual parser.');
@@ -7635,7 +7641,7 @@ Answer Key:
                 if (barEl) barEl.style.width = pct + '%';
 
                 const page = await pdf.getPage(p);
-                const viewport = page.getViewport({ scale: 1.8 });
+                const viewport = page.getViewport({ scale: 2.5 });
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
                 const ctx = canvas.getContext('2d');
@@ -7656,11 +7662,15 @@ Answer Key:
                       }
                     }
                   });
-                  if (res && res.data && res.data.text && res.data.text.trim().length > pageEmbedded.length) {
-                    fullOcrText += res.data.text + '\n';
-                  } else if (pageEmbedded) {
-                    fullOcrText += pageEmbedded + '\n';
-                  }
+                  const pageOcr = res && res.data && res.data.text ? String(res.data.text).trim() : '';
+                  const markerCount = function(value) {
+                    const matches = String(value || '').match(/(?:^|\n)\s*(?:(?:Q(?:uestion)?\.?\s*|प्रश्न(?:\s*संख्या)?\s*)?(?:\(\s*\d{1,3}\s*\)|\d{1,3}\s*[.):\-]))/gim);
+                    return matches ? matches.length : 0;
+                  };
+                  const useOcr = pageOcr.length > 15 && (markerCount(pageOcr) > markerCount(pageEmbedded) || pageOcr.length > pageEmbedded.length * 1.12);
+                  if (useOcr) fullOcrText += pageOcr + '\n';
+                  else if (pageEmbedded) fullOcrText += pageEmbedded + '\n';
+                  else if (pageOcr) fullOcrText += pageOcr + '\n';
                 } else if (pageEmbedded) {
                   fullOcrText += pageEmbedded + '\n';
                 }
@@ -7869,20 +7879,7 @@ Answer Key:
               showToast('Hindi question/options are missing or untranslated. Fill every Hindi field in the review queue before publishing this PDF.', 'error');
               return;
             }
-            const normalizeApprovedQuestion = (value) => String(value || '').toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
-            let skippedDuplicates = 0;
-
             approvedPaperItems.forEach(function(item, idx) {
-              const candidateEn = normalizeApprovedQuestion(item.text_en);
-              const candidateHi = normalizeApprovedQuestion(item.text_hi);
-              const duplicateInDb = db.questions.some(q => {
-                if (q.examId && q.examId !== exam.id) return false;
-                const qEn = normalizeApprovedQuestion(q.text_en);
-                const qHi = normalizeApprovedQuestion(q.text_hi);
-                return (candidateEn && (candidateEn === qEn || candidateEn === qHi)) ||
-                       (candidateHi && (candidateHi === qEn || candidateHi === qHi));
-              });
-              if (item.isDuplicate || duplicateInDb) { skippedDuplicates += 1; return; }
               const newQId = 'q_pdf_' + Date.now() + '_' + idx;
               db.questions.push({
                 id: newQId,
@@ -7949,7 +7946,7 @@ Answer Key:
               questionIds: createdQIds
             };
             if (!createdQIds.length) {
-              showToast('No new questions were published. All questions in this PDF were duplicates or already in the database.', 'warning');
+              showToast('No approved questions were ready to create this mock test.', 'warning');
               return;
             }
             try {
@@ -7967,7 +7964,7 @@ Answer Key:
               activeDraftRecord.submittedQuestionIds = approvedPaperItems.map(function(item) { return item.id; });
             }
             saveDatabase(db);
-            showToast('Created ONE mock test with ' + createdQIds.length + ' questions from this PDF. Skipped ' + skippedDuplicates + ' duplicate(s).', 'success');
+            showToast('Created ONE mock test with all ' + createdQIds.length + ' approved questions from this PDF.', 'success');
             navigateTo('exam-detail', { examId: exam.id });
           });
         }
@@ -8061,19 +8058,20 @@ Answer Key:
           // Split only between numbered question blocks. This prevents a long paper
           // from cutting a question in half and asking the AI to reconstruct it.
           const sourceLines = String(rawText || '').replace(/\r/g, '').split('\n');
-          const questionStart = /^(?:Q(?:uestion)?\.?\s*|प्रश्न\s*)?\d{1,3}\s*[.):\-]\s*\S/i;
+          const questionStart = /^(?:(?:Q(?:uestion)?\.?\s*|प्रश्न(?:\s*संख्या)?\s*)?(?:\(\s*\d{1,3}\s*\)|\d{1,3}\s*[.):\-]))\s*\S/i;
           const chunks = [];
           let chunkLines = [];
           let chunkLength = 0;
           let chunkQuestionCount = 0;
           let inAnswerKey = false;
           const maxChunkChars = 8000;
+          const maxQuestionsPerChunk = 20;
           sourceLines.forEach(function(line) {
             const trimmedLine = line.trim();
             if (/^(?:answer\\s*key|answers|उत्तर\\s*कुंजी)\\b/i.test(trimmedLine)) inAnswerKey = true;
             const isQuestion = !inAnswerKey && questionStart.test(trimmedLine);
             const lineLength = line.length + 1;
-            if (isQuestion && chunkQuestionCount > 0 && chunkLength >= maxChunkChars) {
+            if (isQuestion && chunkQuestionCount > 0 && (chunkLength >= maxChunkChars || chunkQuestionCount >= maxQuestionsPerChunk)) {
               chunks.push({ text: chunkLines.join('\n'), expectedCount: chunkQuestionCount });
               chunkLines = [];
               chunkLength = 0;
@@ -8087,6 +8085,7 @@ Answer Key:
           if (!chunks.length) return false;
 
           const extractedItems = [];
+          const extractionCountWarnings = [];
           for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
             const extractionResponse = await fetch('/api/extract-questions', {
               method: 'POST',
@@ -8114,6 +8113,7 @@ Answer Key:
               return false;
             }
             extractedItems.push(...payload.questions);
+            if (payload.count_warning) extractionCountWarnings.push(String(payload.count_warning));
           }
 
           // Preserve every source question, including repeated questions in the paper.
@@ -8125,6 +8125,7 @@ Answer Key:
             return false;
           }
 
+          const countWarning = extractionCountWarnings.length ? extractionCountWarnings.join(' ') : null;
           const exam = db.exams.find(e => e.id === targetExamId) || db.exams[0];
           const posInput = document.getElementById('admTestPos');
           const negInput = document.getElementById('pdfTestNegativeOverride');
@@ -8140,15 +8141,7 @@ Answer Key:
             const optionsHi = Array.isArray(item.options_hi) ? item.options_hi.slice(0,4) : [];
             while (optionsEn.length < 4) optionsEn.push('');
             while (optionsHi.length < 4) optionsHi.push('');
-            const normalizedEn = normalizeImportedQuestion(textEn);
-            const normalizedHi = normalizeImportedQuestion(textHi);
-            const duplicate = db.questions.some(q => q.examId === exam.id && (
-              (normalizedEn && [normalizeImportedQuestion(q.text_en), normalizeImportedQuestion(q.text_hi)].includes(normalizedEn)) ||
-              (normalizedHi && [normalizeImportedQuestion(q.text_en), normalizeImportedQuestion(q.text_hi)].includes(normalizedHi))
-            )) || db.pdfImportQueue.some(q => {
-              const qEn = normalizeImportedQuestion(q.text_en), qHi = normalizeImportedQuestion(q.text_hi);
-              return (normalizedEn && (normalizedEn === qEn || normalizedEn === qHi)) || (normalizedHi && (normalizedHi === qEn || normalizedHi === qHi));
-            });
+            const duplicate = false; // Re-imports are allowed even when a question already exists in the bank.
             const suggested = suggestSubjectForQuestion(textEn + ' ' + textHi);
             const correctOption = Number.isInteger(item.correct_option) && item.correct_option >= 0 && item.correct_option <= 3 ? item.correct_option : -1;
             db.pdfImportQueue.unshift({
@@ -8163,7 +8156,7 @@ Answer Key:
               explanation_en: String(item.explanation_en || ''), explanation_hi: String(item.explanation_hi || ''),
               visualData: item.visual_type && item.visual_type !== 'none' ? { type:item.visual_type, title:item.visual_title || '', description:item.visual_description || '', table:item.visual_table || null, chart:item.visual_chart || null } : null,
               sourceType: 'admin_created', verificationStatus: 'needs_review', isDuplicate: duplicate,
-              extractionWarning: correctOption >= 0 ? null : 'Answer not confidently identified. Please select the correct option before publishing.'
+              extractionWarning: countWarning || (correctOption >= 0 ? null : 'Answer not confidently identified. Please select the correct option before publishing.')
             });
             staged++;
           });
@@ -8309,21 +8302,7 @@ Answer Key:
           const textEn = (qParts[0] || fullStem).trim();
           const textHi = (qParts[1] || qParts[0] || fullStem).trim();
 
-          const normalizeImportedQuestion = (value) => String(value || '').toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
-          const normalizedImportedEn = normalizeImportedQuestion(textEn);
-          const normalizedImportedHi = normalizeImportedQuestion(textHi);
-          const isDup = db.questions.some(q => {
-            if (q.examId && q.examId !== exam.id) return false;
-            const qEn = normalizeImportedQuestion(q.text_en);
-            const qHi = normalizeImportedQuestion(q.text_hi);
-            return (normalizedImportedEn && (normalizedImportedEn === qEn || normalizedImportedEn === qHi)) ||
-                   (normalizedImportedHi && (normalizedImportedHi === qEn || normalizedImportedHi === qHi));
-          }) || db.pdfImportQueue.some(q => {
-            const qEn = normalizeImportedQuestion(q.text_en);
-            const qHi = normalizeImportedQuestion(q.text_hi);
-            return (normalizedImportedEn && (normalizedImportedEn === qEn || normalizedImportedEn === qHi)) ||
-                   (normalizedImportedHi && (normalizedImportedHi === qEn || normalizedImportedHi === qHi));
-          });
+          const isDup = false; // Existing database questions can be re-imported.
 
           const warning = (ansIdx === -1 || ansIdx === undefined)
             ? 'Select Answer Key (A/B/C/D) before approving'
