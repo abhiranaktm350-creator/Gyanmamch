@@ -47,50 +47,41 @@ async function generateBatch({ key, model, exam, subject, topic, difficulty, lan
     "Return ONLY valid JSON in this schema: " + JSON.stringify({questions:[{question_en:"",question_hi:"",options_en:["","","",""],options_hi:["","","",""],correct_option:0,explanation_en:"",explanation_hi:"",difficulty:difficulty}]}),
     "Return exactly " + count + " questions. No markdown fences or text outside JSON."
   ].join("\n\n");
-
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 50000);
   try {
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+      headers: { "Content-Type": "application/json", authorization: "Bearer " + key },
       body: JSON.stringify({
-        model,
-        input: prompt,
-        store: false,
-        generation_config: { thinking_level: "low" }
+        model, temperature: 0.2, max_tokens: 7000, response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: "You create accurate, original Indian competitive-exam MCQs. Follow the requested JSON schema exactly." },
+          { role: "user", content: prompt }
+        ]
       }),
       signal: controller.signal
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
       const message = data.error && data.error.message ? data.error.message : "";
-      throw new Error(response.status === 429 ? "Gemini rate limit reached. Wait a moment and retry." :
-        response.status === 401 || response.status === 403 ? "Gemini rejected the configured API key. Check the Preview environment variable." :
-        message || "Gemini could not generate this question batch.");
+      throw new Error(response.status === 429 ? "OpenAI rate limit or quota reached. Check API billing/limits and retry." :
+        response.status === 401 || response.status === 403 ? "OpenAI rejected the API key. Check OPENAI_API_KEY in the Preview environment." :
+        message || "ChatGPT could not generate this question batch.");
     }
-    const raw = typeof data.output_text === "string" ? data.output_text :
-      (Array.isArray(data.output) ? data.output.flatMap(step =>
-        step.type === "model_output" && Array.isArray(step.content)
-          ? step.content.filter(part => part.type === "text").map(part => part.text || "")
-          : step.type === "text" ? [step.text || ""] : []
-      ).join("\n") : "");
+    const raw = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
     let parsed;
     try {
-      const clean = raw.replace(/^\\uFEFF/, "").trim().replace(/^\x60{3}(?:json)?\s*/i, "").replace(/\s*\x60{3}\s*$/, "");
+      const clean = String(raw || "").trim().replace(/^\uFEFF/, "").replace(/^\x60{3}(?:json)?\s*/i, "").replace(/\s*\x60{3}\s*$/, "");
       parsed = JSON.parse(clean);
-    } catch (_) {
-      throw new Error("Gemini returned an invalid JSON batch. Please retry.");
-    }
-    if (!Array.isArray(parsed.questions)) throw new Error("Gemini response did not contain a question list.");
+    } catch (_) { throw new Error("ChatGPT returned an invalid JSON batch. Please retry."); }
+    if (!Array.isArray(parsed.questions)) throw new Error("ChatGPT response did not contain a question list.");
     const questions = parsed.questions.map(q => normalizeQuestion(q || {}, difficulty));
     if (questions.length !== count || questions.some(q => !isComplete(q, language))) {
-      throw new Error("Gemini returned incomplete questions or options. No partial batch was accepted; please retry.");
+      throw new Error("ChatGPT returned incomplete questions or options. No partial batch was accepted; please retry.");
     }
     return questions;
-  } finally {
-    clearTimeout(timeout);
-  }
+  } finally { clearTimeout(timeout); }
 }
 
 export default async function handler(req, res) {
@@ -122,8 +113,8 @@ export default async function handler(req, res) {
       return json(res, 403, { error: "Only approved administrators can use the AI Question Agent." });
     }
 
-    const key = String(process.env.GEMINI_API_KEY || "").trim();
-    if (!key) return json(res, 503, { error: "AI is not configured for this Preview yet. Add GEMINI_API_KEY to the Vercel Preview environment only; never put it in browser code." });
+    const key = String(process.env.OPENAI_API_KEY || "").trim();
+    if (!key) return json(res, 503, { error: "ChatGPT is not configured for this Preview yet. Add OPENAI_API_KEY to the Vercel Preview environment only; never put it in browser code." });
 
     let body = req.body || {};
     if (typeof body === "string") {
@@ -140,7 +131,7 @@ export default async function handler(req, res) {
     if (!topic) return json(res, 400, { error: "Enter a topic first." });
     if (!Number.isFinite(Number(body.count)) || count < 1) return json(res, 400, { error: "Choose a valid question count." });
 
-    const model = String(process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
+    const model = String(process.env.OPENAI_MODEL || "gpt-4o-mini").trim();
     const batchSize = 10;
     const batchCounts = Array.from({length: Math.ceil(count / batchSize)}, (_, i) => Math.min(batchSize, count - i * batchSize));
     const batches = [];
