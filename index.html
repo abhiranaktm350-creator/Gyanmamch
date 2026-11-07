@@ -7045,6 +7045,13 @@ function syncCbtSideDrawerUI() {
                       <div><strong class="text-sm text-slate-900">AI Quality Checker Agent</strong><p class="text-[11px] text-slate-600">Checks Hindi translation, option matching, question formatting, missing answers and duplicates. It never auto-approves questions.</p></div>
                       <button id="btnRunQualityAudit" type="button" class="px-3 py-2 rounded-lg bg-sky-700 hover:bg-sky-800 text-white text-xs font-bold">Run AI Quality Check</button>
                     </div>
+                    <div class="mt-3 rounded-lg border border-indigo-200 bg-indigo-50/60 p-3">
+                      <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div><strong class="text-sm text-indigo-950">Stage 3 · ChatGPT Translation & Preparation</strong><p class="text-[11px] text-slate-700">Translate question, all options, passage and explanation into Hindi. English stays unchanged; charts, diagrams, numbers and reasoning symbols are preserved.</p></div>
+                        <button id="btnTranslateStage3" type="button" class="px-3 py-2 rounded-lg bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-bold">Prepare Stage 3 with ChatGPT</button>
+                      </div>
+                      <p id="stage3TranslationStatus" class="mt-2 text-[11px] text-slate-600" aria-live="polite">Ready · Translation is optional. English-only questions can still be approved and submitted.</p>
+                    </div>
                     ${activeDraftRecord && activeDraftRecord.qualityAudit ? (function(audit) {
                       const issues = Array.isArray(audit.issues) ? audit.issues : [];
                       const errors = issues.filter(function(issue) { return issue.severity === 'error'; }).length;
@@ -8146,6 +8153,90 @@ Answer Key:
             navigateTo('exam-detail', { examId: exam.id });
           });
         }
+
+        const stage3TranslateButton = document.getElementById('btnTranslateStage3');
+        if (stage3TranslateButton) stage3TranslateButton.addEventListener('click', async function() {
+          if (!activeDraftItems.length || !activeDraftRecord) {
+            showToast('पहले PDF के प्रश्न Review Queue में डालें।', 'warning');
+            return;
+          }
+          const client = window.gyanManchSupabase;
+          if (!client) { showToast('Secure sign-in is unavailable. Refresh and sign in again.', 'error'); return; }
+          const status = document.getElementById('stage3TranslationStatus');
+          stage3TranslateButton.disabled = true;
+          stage3TranslateButton.textContent = 'ChatGPT is preparing Stage 3…';
+          let translatedTotal = 0;
+          let failedBatch = null;
+          try {
+            const sessionResult = await client.auth.getSession();
+            const session = sessionResult && sessionResult.data && sessionResult.data.session;
+            if (!session || !session.access_token) throw new Error('Session expired. Please sign in again.');
+            const translatable = activeDraftItems.filter(function(item) {
+              return String(item.text_en || '').trim() ||
+                (Array.isArray(item.options_en) && item.options_en.some(function(value) { return String(value || '').trim(); })) ||
+                String(item.explanation_en || '').trim() || String(item.passage_en || '').trim();
+            });
+            if (!translatable.length) throw new Error('No English question text or options were found in this PDF draft.');
+            const batchSize = 10;
+            const totalBatches = Math.ceil(translatable.length / batchSize);
+            for (let start = 0; start < translatable.length; start += batchSize) {
+              const batchNumber = Math.floor(start / batchSize) + 1;
+              const batch = translatable.slice(start, start + batchSize);
+              if (status) status.textContent = 'ChatGPT Stage 3 processing · Batch ' + batchNumber + ' / ' + totalBatches + ' · ' + translatedTotal + ' questions completed';
+              const response = await fetch('/api/translate-staged-questions', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + session.access_token },
+                body: JSON.stringify({ items: batch.map(function(item) {
+                  return {
+                    index: activeDraftItems.indexOf(item),
+                    question_en: item.text_en || '',
+                    question_hi: item.text_hi || '',
+                    options_en: Array.isArray(item.options_en) ? item.options_en : [],
+                    options_hi: Array.isArray(item.options_hi) ? item.options_hi : [],
+                    explanation_en: item.explanation_en || '',
+                    explanation_hi: item.explanation_hi || '',
+                    passage_en: item.passage_en || '',
+                    passage_hi: item.passage_hi || '',
+                    visual_type: item.visualData && item.visualData.type ? item.visualData.type : 'none'
+                  };
+                }) })
+              });
+              const result = await response.json().catch(function() { return {}; });
+              if (!response.ok) throw new Error(result.error || ('Translation failed in batch ' + batchNumber + '.'));
+              if (!Array.isArray(result.translations) || result.translations.length !== batch.length) {
+                throw new Error('ChatGPT did not return every question in batch ' + batchNumber + '. Earlier completed batches have been saved.');
+              }
+              const byIndex = new Map(result.translations.map(function(value) { return [Number(value.index), value]; }));
+              batch.forEach(function(item) {
+                const index = activeDraftItems.indexOf(item);
+                const translation = byIndex.get(index);
+                if (!translation) return;
+                if (translation.question_hi) item.text_hi = translation.question_hi;
+                if (Array.isArray(translation.options_hi)) {
+                  if (!Array.isArray(item.options_hi)) item.options_hi = [];
+                  translation.options_hi.forEach(function(value, optionIndex) {
+                    if (optionIndex < 5 && String((item.options_en || [])[optionIndex] || '').trim() && String(value || '').trim()) {
+                      item.options_hi[optionIndex] = value;
+                    }
+                  });
+                }
+                if (translation.explanation_hi) item.explanation_hi = translation.explanation_hi;
+                if (translation.passage_hi) item.passage_hi = translation.passage_hi;
+                item.stage3TranslatedAt = new Date().toISOString();
+                translatedTotal++;
+              });
+              saveDatabase(db);
+              if (status) status.textContent = 'Saved batch ' + batchNumber + ' / ' + totalBatches + ' · ' + translatedTotal + ' questions translated. English source and answer keys unchanged.';
+            }
+            showToast('Stage 3 ready: ChatGPT translated ' + translatedTotal + ' question(s). Review Hindi before approval.', 'success');
+            renderAdminDashboardView(document.getElementById('appMain'));
+          } catch (error) {
+            if (status) status.textContent = 'Partial progress saved: ' + translatedTotal + ' questions translated. ' + (error.message || 'Retry the remaining questions.');
+            showToast('Stage 3 translation: ' + (error.message || 'Please retry.'), 'error');
+            stage3TranslateButton.disabled = false;
+            stage3TranslateButton.textContent = 'Retry Stage 3 Translation';
+          }
+        });
 
         const qualityAuditButton = document.getElementById('btnRunQualityAudit');
         if (qualityAuditButton) qualityAuditButton.addEventListener('click', async function() {
