@@ -1686,7 +1686,19 @@ table{max-width:100%;border-collapse:collapse}
               if (!Array.isArray(parsed.attempts)) parsed.attempts = [];
               if (!Array.isArray(parsed.announcements)) parsed.announcements = [];
               if (!Array.isArray(parsed.pdfImportQueue)) parsed.pdfImportQueue = [];
-              try { localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed)); } catch (e) {}
+              // Restore a durable queue backup so changing views/reloading cannot silently erase staged questions.
+              try {
+                const savedQueue = JSON.parse(localStorage.getItem('GYAN_MANCH_PDF_IMPORT_QUEUE_V1') || '[]');
+                if (Array.isArray(savedQueue)) {
+                  const byId = new Map();
+                  parsed.pdfImportQueue.concat(savedQueue).forEach(item => { if (item && item.id) byId.set(item.id, item); });
+                  parsed.pdfImportQueue = Array.from(byId.values());
+                }
+              } catch (queueRestoreError) { console.warn('PDF queue restore:', queueRestoreError); }
+              try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+                localStorage.setItem('GYAN_MANCH_PDF_IMPORT_QUEUE_V1', JSON.stringify(parsed.pdfImportQueue));
+              } catch (e) {}
               return parsed;
             }
           }
@@ -1701,6 +1713,7 @@ table{max-width:100%;border-collapse:collapse}
       function saveDatabase(dbObj) {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(dbObj));
+          if (Array.isArray(dbObj.pdfImportQueue)) localStorage.setItem('GYAN_MANCH_PDF_IMPORT_QUEUE_V1', JSON.stringify(dbObj.pdfImportQueue));
         } catch (err) {
           console.warn('LocalStorage write fallback:', err);
         }
@@ -6085,6 +6098,7 @@ table{max-width:100%;border-collapse:collapse}
       }
 
       function renderAdminPdfImportTab(pane) {
+        const pendingPdfQueue = db.pdfImportQueue.filter(item => item.status !== 'approved');
         pane.innerHTML = `
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <!-- Full Multi-Question PDF & Scanned Question Paper OCR Scanner -->
@@ -6202,10 +6216,10 @@ table{max-width:100%;border-collapse:collapse}
                 <h3 class="font-bold text-slate-900 text-base">3. Extracted Questions Review Queue (${db.pdfImportQueue.length} Questions Staged)</h3>
                 <p class="text-xs text-slate-500">Review or edit any question below, or click <strong>Approve All & Create Official Mock Test</strong> to publish the entire paper at once.</p>
               </div>
-              ${db.pdfImportQueue.length > 0 ? `
+              ${pendingPdfQueue.length > 0 ? `
                 <div class="flex flex-wrap items-center gap-2">
                   <button id="btnApproveAllStaged" type="button" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow transition">
-                    ✓ Approve ALL (${db.pdfImportQueue.length}) & Create Official Mock Test
+                    ✓ Approve ALL (${pendingPdfQueue.length}) & Create Official Mock Test
                   </button>
                   <button id="btnClearAllStaged" type="button" class="px-3 py-2 rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-semibold transition">
                     Clear Queue
@@ -6231,7 +6245,7 @@ table{max-width:100%;border-collapse:collapse}
                           ${item.isDuplicate ? `<span class="px-2 py-0.5 rounded bg-amber-200 text-amber-900 text-xs font-bold">⚠️ Duplicate in DB</span>` : ''}
                           ${item.extractionWarning ? `<span class="px-2 py-0.5 rounded bg-rose-200 text-rose-900 text-xs font-bold">❗ ${escapeHtml(item.extractionWarning)}</span>` : ''}
                         </div>
-                        <span class="text-xs font-bold uppercase text-slate-600">${escapeHtml(item.status)}</span>
+                        <span class="text-xs font-bold uppercase ${item.status === 'approved' ? 'text-emerald-700' : 'text-slate-600'}">${item.status === 'approved' ? 'APPROVED • SAVED' : escapeHtml(item.status || 'PENDING REVIEW')}</span>
                       </div>
 
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3 text-xs">
@@ -6995,7 +7009,9 @@ Answer Key:
         const btnApproveAll = document.getElementById('btnApproveAllStaged');
         if (btnApproveAll) {
           btnApproveAll.addEventListener('click', async function() {
-            const missingKey = db.pdfImportQueue.find(it => it.correctOption === null || it.correctOption < 0 || it.correctOption > 3);
+            const pendingItems = db.pdfImportQueue.filter(it => it.status !== 'approved');
+            if (!pendingItems.length) { showToast('All questions in this queue are already approved and saved.', 'info'); return; }
+            const missingKey = pendingItems.find(it => it.correctOption === null || it.correctOption < 0 || it.correctOption > 3);
             if (missingKey) {
               showToast('Some staged questions are missing an Answer Key. Please select Option A/B/C/D for highlighted items first.', 'error');
               return;
@@ -7003,21 +7019,10 @@ Answer Key:
             const targetExId = document.getElementById('pdfTargetExamSelect').value;
             const exam = db.exams.find(e => e.id === targetExId) || db.exams[0];
             const createdQIds = [];
-            const batchFileName = db.pdfImportQueue[0] ? db.pdfImportQueue[0].fileName : 'Imported PDF Paper';
-            // Keep one uploaded paper as one test. Do not accidentally merge staged questions from other PDFs.
-            const currentPaperItems = db.pdfImportQueue.filter(item => item.fileName === batchFileName && item.examId === exam.id);
-            const missingHindiOptionItem = currentPaperItems.find(item => {
-              const questionEn = String(item.text_en || '').trim();
-              const questionHi = String(item.text_hi || '').trim();
-              if (questionEn && (!questionHi || questionHi === questionEn)) return true;
-              const en = Array.isArray(item.options_en) ? item.options_en : [];
-              const hi = Array.isArray(item.options_hi) ? item.options_hi : [];
-              return en.slice(0, 5).some((value, idx) => String(value || '').trim() && (!String(hi[idx] || '').trim() || String(hi[idx] || '').trim() === String(value || '').trim()));
-            });
-            if (missingHindiOptionItem) {
-              showToast('Hindi question/options are missing or untranslated. Fill every Hindi field in the review queue before publishing this PDF.', 'error');
-              return;
-            }
+            const firstPendingItem = pendingItems.find(item => item.examId === exam.id) || pendingItems[0];
+            const batchFileName = firstPendingItem ? firstPendingItem.fileName : 'Imported PDF Paper';
+            // Approved records stay visible in Step 2 but are never published a second time.
+            const currentPaperItems = pendingItems.filter(item => item.fileName === batchFileName && item.examId === firstPendingItem.examId);
             const normalizeApprovedQuestion = (value) => String(value || '').toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
             let skippedDuplicates = 0;
 
@@ -7106,8 +7111,12 @@ Answer Key:
               return;
             }
             db.tests.unshift(newTest);
-            const currentBatchIds = new Set(currentPaperItems.map(item => item.id));
-            db.pdfImportQueue = db.pdfImportQueue.filter(item => !currentBatchIds.has(item.id));
+            currentPaperItems.forEach(item => {
+              item.status = 'approved';
+              item.verificationStatus = 'verified';
+              item.approvedAt = new Date().toISOString();
+              item.approvedTestId = newTest.id;
+            });
             saveDatabase(db);
             showToast('Created ONE mock test with ' + createdQIds.length + ' questions from this PDF. Skipped ' + skippedDuplicates + ' duplicate(s).', 'success');
             navigateTo('exam-detail', { examId: exam.id });
@@ -7135,17 +7144,6 @@ Answer Key:
               showToast('Please select the Answer Key (Option A/B/C/D) before approving.', 'error');
               return;
             }
-            if (String(item.text_en || '').trim() && (!String(item.text_hi || '').trim() || String(item.text_hi || '').trim() === String(item.text_en || '').trim())) {
-              showToast('Hindi question translation missing. Fill the Hindi question before approving.', 'error');
-              return;
-            }
-            const optionEn = Array.isArray(item.options_en) ? item.options_en : [];
-            const optionHi = Array.isArray(item.options_hi) ? item.options_hi : [];
-            const missingHindiOptions = optionEn.slice(0, 5).some((value, idx) => String(value || '').trim() && (!String(optionHi[idx] || '').trim() || String(optionHi[idx] || '').trim() === String(value || '').trim()));
-            if (missingHindiOptions) {
-              showToast('Hindi option translation missing. Fill the Hindi field for every English option before approving.', 'error');
-              return;
-            }
 
             const newQId = 'q_imp_' + Date.now();
             db.questions.unshift({
@@ -7170,8 +7168,11 @@ Answer Key:
               isSample: false
             });
 
-            if (db.tests[0]) db.tests[0].questionIds.push(newQId);
-            db.pdfImportQueue = db.pdfImportQueue.filter(x => x.id !== stgId);
+            if (db.tests[0] && Array.isArray(db.tests[0].questionIds)) db.tests[0].questionIds.push(newQId);
+            item.status = 'approved';
+            item.verificationStatus = 'verified';
+            item.approvedAt = new Date().toISOString();
+            item.approvedQuestionId = newQId;
             saveDatabase(db);
             showToast('Question approved and added to database!', 'success');
             renderAdminDashboardView(document.getElementById('appMain'));
