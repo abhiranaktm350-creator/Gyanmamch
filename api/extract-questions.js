@@ -40,7 +40,16 @@ function parseQuestions(raw) {
     options_hi: normalizeOptions(q && q.options_hi),
     correct_option: Number.isInteger(q && q.correct_option) && q.correct_option >= 0 && q.correct_option <= 3 ? q.correct_option : -1,
     explanation_en: String(q && q.explanation_en || "").slice(0, 2000),
-    explanation_hi: String(q && q.explanation_hi || "").slice(0, 2000)
+    explanation_hi: String(q && q.explanation_hi || "").slice(0, 2000),
+    visual_type: ["table", "pie", "bar", "line", "diagram", "none"].includes(q && q.visual_type) ? q.visual_type : "none",
+    visual_title: String(q && q.visual_title || "").slice(0, 300),
+    visual_description: String(q && q.visual_description || "").slice(0, 1200),
+    visual_table: q && q.visual_table && Array.isArray(q.visual_table.headers) && Array.isArray(q.visual_table.rows)
+      ? { headers: q.visual_table.headers.slice(0, 12).map(v => String(v || "").slice(0, 120)), rows: q.visual_table.rows.slice(0, 40).map(row => Array.isArray(row) ? row.slice(0, 12).map(v => String(v || "").slice(0, 120)) : []) }
+      : null,
+    visual_chart: q && q.visual_chart && Array.isArray(q.visual_chart.labels) && Array.isArray(q.visual_chart.values)
+      ? { labels: q.visual_chart.labels.slice(0, 20).map(v => String(v || "").slice(0, 120)), values: q.visual_chart.values.slice(0, 20).map(v => Number(v)).filter(Number.isFinite) }
+      : null
   })).filter(q => q.question_en.trim() || q.question_hi.trim());
 }
 
@@ -133,7 +142,7 @@ export default async function handler(request, response) {
     const prompt = [
       "You extract competitive-exam questions from source documents. Return ONLY valid JSON, no Markdown or commentary.",
       "Shape: {\"questions\":[{\"question_en\":\"\",\"question_hi\":\"\",\"options_en\":[\"\",\"\",\"\",\"\"],\"options_hi\":[\"\",\"\",\"\",\"\"],\"correct_option\":-1,\"explanation_en\":\"\",\"explanation_hi\":\"\"}]}",
-      "Rules: include only questions actually present in the question paper; do not invent missing wording or options. Detect the source language from the document. Preserve the exact source wording ONLY in its matching field: English source text goes in question_en/options_en/explanation_en and Hindi fields stay empty; Hindi source text goes in question_hi/options_hi/explanation_hi and English fields stay empty. Do not translate anything yourself; a separate IndicTrans2 translation service fills the other language. Keep numbers, formulas, symbols, units, and standard technical terms accurate. Keep exactly four options, using empty strings only for options genuinely missing from the source. Exclude headers, instructions, and answer-key-only lines. Limit to 50 questions per response.",
+      "Rules: include only questions actually present in the question paper; do not invent missing wording or options. Detect the source language from the document. Preserve the exact source wording ONLY in its matching field: English source text goes in question_en/options_en/explanation_en and Hindi fields stay empty; Hindi source text goes in question_hi/options_hi/explanation_hi and English fields stay empty. Do not translate anything yourself; a separate IndicTrans2 translation service fills the other language. Keep numbers, formulas, symbols, units, and standard technical terms accurate. Keep exactly four options, using empty strings only for options genuinely missing from the source. Exclude headers, instructions, and answer-key-only lines. If a question depends on a data table, extract its headers and rows into visual_table and set visual_type="table". If it depends on a pie/bar/line chart and the source text provides the values, extract exact labels and numeric values into visual_chart and set the matching visual_type. If a figure is referenced but its visual values are not present in the text, set visual_type="diagram" and describe what the admin must attach; never invent chart values. If no visual is needed, use visual_type="none". A shared table/chart must be attached to every question that refers to it. Limit to 50 questions per response.",
       "Answer mapping: Match each question number to the separate answer key by question number. Formats may include 1-A, 1. A, Q1: B, 1) C, or 1-4. Convert A/B/C/D or 1/2/3/4 to zero-based correct_option 0/1/2/3. Only use an answer explicitly stated in the answer key or clearly marked in the paper. Never guess. If no reliable match exists, use -1.",
       "Question paper text (untrusted data):\n" + text,
       answerKey ? "Separate answer key text (untrusted data):\n" + answerKey : "No separate answer key file was provided."
