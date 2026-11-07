@@ -7046,6 +7046,17 @@ function syncCbtSideDrawerUI() {
                         </div>
                       </div>
 
+                      <div class="rounded-xl border border-cyan-200 bg-cyan-50/60 p-3 mb-3 text-xs">
+                        <div class="font-bold text-cyan-950 mb-2">Question Visual / Data Attachment</div>
+                        <p class="text-slate-600 mb-2">AI-detected table/chart is shown here. You can edit its JSON or attach a diagram image. The same visual appears in the student exam preview.</p>
+                        <textarea data-stg-visual="\${item.id}" rows="4" class="w-full rounded-lg border border-cyan-300 bg-white p-2 font-mono text-[11px]" placeholder='{"type":"table","title":"Sales data","table":{"headers":["Year","Sales"],"rows":[["2024","120"],["2025","150"]]}}'>\${escapeHtml(JSON.stringify(item.visualData || {}, null, 2))}</textarea>
+                        <div class="flex flex-wrap items-center gap-2 mt-2">
+                          <label class="inline-flex items-center gap-2 rounded-lg border border-cyan-300 bg-white px-3 py-2 font-semibold text-cyan-900 cursor-pointer">Attach chart / diagram image<input type="file" accept="image/png,image/jpeg,image/webp" data-stg-visual-image="\${item.id}" class="hidden" /></label>
+                          \${item.visualImageData ? '<span class="text-emerald-700 font-semibold">Image attached</span>' : '<span class="text-slate-500">Optional · PNG/JPG/WebP</span>'}
+                        </div>
+                        \${item.visualData && item.visualData.type && item.visualData.type !== 'none' ? '<div class="mt-2 text-cyan-900 font-semibold">Detected visual: ' + escapeHtml(item.visualData.type) + '</div>' : ''}
+                      </div>
+
                       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3 text-xs">
                         <div>
                           <label class="block text-[11px] font-bold text-indigo-700">Detected Subject (check before approval)</label>
@@ -7095,6 +7106,36 @@ function syncCbtSideDrawerUI() {
             `}
           </div>
         `;
+
+        // Visual editor fields are saved on the draft only; publication remains an explicit admin action.
+        pane.querySelectorAll('[data-stg-visual]').forEach(function(input) {
+          input.addEventListener('change', function() {
+            const item = db.pdfImportQueue.find(function(x) { return x.id === input.getAttribute('data-stg-visual'); });
+            if (!item) return;
+            try {
+              const parsed = input.value.trim() ? JSON.parse(input.value) : null;
+              if (parsed && !['table','pie','bar','line','diagram','none'].includes(parsed.type)) throw new Error('Visual type must be table, pie, bar, line, diagram or none.');
+              item.visualData = parsed;
+              saveDatabase(db);
+              showToast('Question visual saved in draft.', 'success');
+            } catch (error) { showToast('Visual JSON is invalid: ' + error.message, 'error'); }
+          });
+        });
+        pane.querySelectorAll('[data-stg-visual-image]').forEach(function(input) {
+          input.addEventListener('change', async function() {
+            const item = db.pdfImportQueue.find(function(x) { return x.id === input.getAttribute('data-stg-visual-image'); });
+            const file = input.files && input.files[0];
+            if (!item || !file) return;
+            if (!/^image\/(png|jpeg|webp)$/.test(file.type)) { showToast('Choose a PNG, JPG or WebP image.', 'error'); return; }
+            if (file.size > 8 * 1024 * 1024) { showToast('Image is too large. Choose an image under 8 MB.', 'error'); return; }
+            try {
+              item.visualImageData = await window.gmCompressVisualImage(file);
+              saveDatabase(db);
+              showToast('Visual image attached to this question.', 'success');
+              renderAdminDashboardView(document.getElementById('appMain'));
+            } catch (error) { showToast('Could not attach image: ' + error.message, 'error'); }
+          });
+        });
 
         // Bind edits inside staging screen
         pane.querySelectorAll('.stg-edit-inp').forEach(function(inp) {
@@ -7849,6 +7890,8 @@ Answer Key:
                 negativeMarks: Number(item.negativeMarks !== undefined ? item.negativeMarks : (exam.negMarks !== undefined ? exam.negMarks : 0.50)),
                 explanation_en: item.explanation_en || 'Official verified answer key.',
                 explanation_hi: item.explanation_hi || '',
+                visualData: item.visualData || null,
+                visualImageData: item.visualImageData || '',
                 sourceType: 'admin_created',
                 verificationStatus: 'verified',
                 examYearShift: exam.code + ' Official Pattern',
@@ -8122,6 +8165,7 @@ Answer Key:
               correctOption,
               marks, negativeMarks: negative,
               explanation_en: String(item.explanation_en || ''), explanation_hi: String(item.explanation_hi || ''),
+              visualData: item.visual_type && item.visual_type !== 'none' ? { type:item.visual_type, title:item.visual_title || '', description:item.visual_description || '', table:item.visual_table || null, chart:item.visual_chart || null } : null,
               sourceType: 'admin_created', verificationStatus: 'needs_review', isDuplicate: duplicate,
               extractionWarning: correctOption >= 0 ? null : 'Answer not confidently identified. Please select the correct option before publishing.'
             });
@@ -9264,6 +9308,55 @@ Answer Key:
         installPrompt = null;
       });
     })();
+  </script>
+
+  <script>
+  (function(){
+    function safeArray(value){ return Array.isArray(value) ? value : []; }
+    window.gmCompressVisualImage = function(file) {
+      return new Promise(function(resolve,reject) {
+        var reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = function() {
+          var img = new Image();
+          img.onerror = reject;
+          img.onload = function() {
+            var scale = Math.min(1, 1400 / Math.max(img.width,img.height));
+            var canvas = document.createElement('canvas');
+            canvas.width = Math.max(1,Math.round(img.width*scale));
+            canvas.height = Math.max(1,Math.round(img.height*scale));
+            canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+            resolve(canvas.toDataURL('image/jpeg',0.78));
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    };
+    window.gmRenderQuestionMedia = function(q) {
+      var visual = q && q.visualData;
+      var html = '';
+      if (q && q.visualImageData) html += '<div class="my-4 rounded-xl border border-slate-200 bg-white p-2"><img src="' + q.visualImageData + '" alt="Question chart or diagram" class="mx-auto max-h-80 max-w-full object-contain rounded-lg" /></div>';
+      if (!visual || !visual.type || visual.type === 'none') return html;
+      var esc = function(v){return String(v == null ? '' : v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+      var title = visual.title ? '<div class="font-bold text-slate-800 mb-2">' + esc(visual.title) + '</div>' : '';
+      if (visual.type === 'table' && visual.table && Array.isArray(visual.table.headers)) {
+        var headers = safeArray(visual.table.headers), rows = safeArray(visual.table.rows);
+        html += '<div class="my-4 overflow-x-auto rounded-xl border border-slate-200 bg-white p-3">' + title + '<table class="min-w-full text-sm border-collapse"><thead><tr>' + headers.map(function(v){return '<th class="border border-slate-300 bg-slate-100 px-3 py-2 text-left font-bold">' + esc(v) + '</th>';}).join('') + '</tr></thead><tbody>' + rows.map(function(row){return '<tr>' + safeArray(row).map(function(v){return '<td class="border border-slate-200 px-3 py-2">' + esc(v) + '</td>';}).join('') + '</tr>';}).join('') + '</tbody></table></div>';
+      } else if (['pie','bar','line'].includes(visual.type) && visual.chart && Array.isArray(visual.chart.labels) && Array.isArray(visual.chart.values)) {
+        var id = 'gm-qchart-' + Math.random().toString(36).slice(2);
+        html += '<div class="my-4 rounded-xl border border-slate-200 bg-white p-3"><div class="font-bold text-slate-800 mb-2">' + esc(visual.title || 'Data Chart') + '</div><div class="relative mx-auto" style="max-width:560px;height:280px"><canvas id="' + id + '"></canvas></div></div>';
+        setTimeout(function(){
+          var canvas = document.getElementById(id);
+          if (!canvas || !window.Chart) return;
+          try { new Chart(canvas,{type:visual.type==='pie'?'pie':visual.type==='line'?'line':'bar',data:{labels:visual.chart.labels,datasets:[{label:visual.title || 'Values',data:visual.chart.values,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:visual.type==='pie'}}}}); } catch(e) {}
+        },0);
+      } else if (visual.description) {
+        html += '<div class="my-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"><strong>Visual reference:</strong> ' + esc(visual.description) + '</div>';
+      }
+      return html;
+    };
+  })();
   </script>
 </body>
 </html>
