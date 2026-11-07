@@ -6179,6 +6179,9 @@ table{max-width:100%;border-collapse:collapse}
                   <button id="btnRunPdfExtraction" type="button" class="px-3.5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow transition">
                     📄 Upload & Create Questions
                   </button>
+                  <button id="btnRunOcrPaperScan" type="button" class="px-3.5 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition">
+                    🔍 Start OCR Scan
+                  </button>
                 </div>
 
                 <!-- Live Visual Scanned Paper Preview & OCR Progress Box -->
@@ -6908,10 +6911,28 @@ Answer Key:
               } catch (visionError) {
                 if (statusEl) statusEl.textContent = 'ChatGPT OCR unavailable; using local OCR fallback...';
               }
+              let imageEngine = 'Embedded / image text';
               if (!fullOcrText && window.Tesseract) {
-                const res = await window.Tesseract.recognize(canvas, 'eng+hin');
-                if (res && res.data && res.data.text) fullOcrText = res.data.text;
+                if (statusEl) statusEl.textContent = '🔎 Tesseract local OCR: reading English + Hindi…';
+                const res = await window.Tesseract.recognize(canvas, 'eng+hin', {
+                  logger: function(m) {
+                    if (m.status === 'recognizing text' && pctEl && barEl) {
+                      const p = Math.max(25, Math.round((m.progress || 0) * 100));
+                      pctEl.textContent = p + '%';
+                      barEl.style.width = p + '%';
+                    }
+                  }
+                });
+                if (res && res.data && res.data.text) { fullOcrText = res.data.text; imageEngine = 'Tesseract local OCR'; }
+              } else if (fullOcrText) {
+                imageEngine = 'ChatGPT Vision';
               }
+              const imageQuestions = countQuestionStarts(fullOcrText);
+              totalDetectedQuestions = imageQuestions;
+              totalCapturedChars = fullOcrText.length;
+              if (imageEngine === 'ChatGPT Vision') chatGptPageCount = 1;
+              pageStats.push({ page: 1, engine: imageEngine, questions: imageQuestions, chars: fullOcrText.length, error: !fullOcrText ? 'No text returned' : '' });
+              renderOcrReport(1);
             }
 
             if (pctEl) pctEl.textContent = '100%';
@@ -6942,17 +6963,48 @@ Answer Key:
           }
         }
 
+        const ocrFileInput = document.getElementById('inpPdfFile');
+        const ocrPanel = document.getElementById('ocrVisualScannerPanel');
+        const ocrStatus = document.getElementById('ocrScanStatusText');
+        if (ocrFileInput) {
+          ocrFileInput.addEventListener('change', function() {
+            const selected = ocrFileInput.files && ocrFileInput.files[0];
+            if (!selected) return;
+            if (ocrPanel) ocrPanel.classList.remove('hidden');
+            if (ocrStatus) ocrStatus.textContent = '📄 File selected: ' + selected.name + ' • OCR is ready. Press Start OCR Scan or Upload & Create Questions.';
+            const pct = document.getElementById('ocrScanPercentText');
+            const bar = document.getElementById('ocrScanProgressBar');
+            if (pct) pct.textContent = '0%';
+            if (bar) bar.style.width = '0%';
+          });
+        }
         const btnOcrScan = document.getElementById('btnRunOcrPaperScan');
         if (btnOcrScan) {
           btnOcrScan.addEventListener('click', async function() {
             const fileInput = document.getElementById('inpPdfFile');
             if (!fileInput.files || fileInput.files.length === 0) {
-              showToast('Please select a Scanned PDF or Question Paper Photo (.pdf, .jpg, .png) first, or click "Demo: Scan Printed Exam Paper".', 'warning');
+              showToast('Please select a PDF or question-paper image first.', 'warning');
               return;
             }
             const targetExId = document.getElementById('pdfTargetExamSelect').value;
             const targetSubId = document.getElementById('pdfTargetSubjectSelect').value;
-            await runVisualOcrOnFile(fileInput.files[0], targetExId, targetSubId);
+            btnOcrScan.disabled = true;
+            btnOcrScan.textContent = '⏳ OCR scanning…';
+            try {
+              await runVisualOcrOnFile(fileInput.files[0], targetExId, targetSubId);
+              const panel = document.getElementById('ocrVisualScannerPanel');
+              const snapshot = panel ? panel.innerHTML : '';
+              state.adminActiveTab = 'pdf-import';
+              saveDatabase(db);
+              renderAdminDashboardView(document.getElementById('appMain'));
+              const restored = document.getElementById('ocrVisualScannerPanel');
+              if (restored && snapshot) { restored.innerHTML = snapshot; restored.classList.remove('hidden'); }
+            } catch (scanError) {
+              console.error('Manual OCR scan failed:', scanError);
+            } finally {
+              const currentButton = document.getElementById('btnRunOcrPaperScan');
+              if (currentButton) { currentButton.disabled = false; currentButton.textContent = '🔍 Start OCR Scan'; }
+            }
           });
         }
 
